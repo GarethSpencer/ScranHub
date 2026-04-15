@@ -1,6 +1,11 @@
-@WebApi_HostAddress = http://localhost:5234
+@WebApi_HostAddress = https://localhost:7079
 
-GET {{WebApi_HostAddress}}/weatherforecast/
+### Get authentication token
+POST {{WebApi_HostAddress}}/authentication/token
+Content-Type: application/json
 Accept: application/json
 
-###
+{
+    "UserName": "test",
+    "Password": "Password123!"
+}
