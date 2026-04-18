@@ -1,6 +1,8 @@
-﻿namespace DAL.Entities;
+﻿using DAL.Entities.Base;
 
-public class User
+namespace DAL.Entities;
+
+public class User : AuditableEntity
 {
     public required Guid UserId { get; set; }
     public Guid AuthId { get; set; }
