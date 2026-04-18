@@ -7,6 +7,8 @@ public class ScranHubDbContext(DbContextOptions<ScranHubDbContext> options) : Db
 {
     public DbSet<User> Users => Set<User>();
     public DbSet<UserFriend> UserFriends => Set<UserFriend>();
+    public DbSet<Group> Groups => Set<Group>();
+    public DbSet<UserGroup> UserGroups => Set<UserGroup>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -20,6 +22,18 @@ public class ScranHubDbContext(DbContextOptions<ScranHubDbContext> options) : Db
             .HasOne(uf => uf.Friend)
             .WithMany(uf => uf.ReceivedFriendships)
             .HasForeignKey(uf => uf.FriendId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<UserGroup>()
+            .HasOne(ug => ug.User)
+            .WithMany(ug => ug.UserGroups)
+            .HasForeignKey(ug => ug.UserId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<UserGroup>()
+            .HasOne(ug => ug.Group)
+            .WithMany(ug => ug.UserGroups)
+            .HasForeignKey(ug => ug.GroupId)
             .OnDelete(DeleteBehavior.Restrict);
     }
 }
