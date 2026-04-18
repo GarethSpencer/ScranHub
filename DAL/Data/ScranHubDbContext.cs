@@ -6,17 +6,15 @@ namespace DAL.Data;
 public class ScranHubDbContext(DbContextOptions<ScranHubDbContext> options) : DbContext(options)
 {
     private static readonly Guid _adminId = Guid.Parse("00000000-0000-0000-0000-000000000001");
-    private static readonly Guid _defaultConfigId = Guid.Parse("00000000-0000-0000-0000-000000000001");
     private static readonly DateTime _createdDate = new(2026, 4, 18, 0, 0, 0, DateTimeKind.Utc);
 
     public DbSet<User> Users => Set<User>();
     public DbSet<UserFriend> UserFriends => Set<UserFriend>();
     public DbSet<Group> Groups => Set<Group>();
     public DbSet<UserGroup> UserGroups => Set<UserGroup>();
-    public DbSet<GroupCost> GroupCosts => Set<GroupCost>();
-    public DbSet<GroupRating> GroupRatings => Set<GroupRating>();
-    public DbSet<GroupCostOverride> GroupCostOverrides => Set<GroupCostOverride>();
-    public DbSet<GroupRatingOverride> GroupRatingOverrides => Set<GroupRatingOverride>();
+    public DbSet<GroupCostOption> GroupCostOptions => Set<GroupCostOption>();
+    public DbSet<GroupRatingOption> GroupRatingOptions => Set<GroupRatingOption>();
+    public DbSet<GroupVenue> GroupVenues => Set<GroupVenue>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -44,16 +42,34 @@ public class ScranHubDbContext(DbContextOptions<ScranHubDbContext> options) : Db
             .HasForeignKey(ug => ug.GroupId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        modelBuilder.Entity<GroupCostOverride>()
+        modelBuilder.Entity<GroupCostOption>()
             .HasOne(gc => gc.Group)
-            .WithOne(gc => gc.GroupCostOverride)
-            .HasForeignKey<GroupCostOverride>(gc => gc.GroupId)
+            .WithMany(g => g.GroupCostOptions)
+            .HasForeignKey(gc => gc.GroupId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        modelBuilder.Entity<GroupRatingOverride>()
+        modelBuilder.Entity<GroupRatingOption>()
             .HasOne(gr => gr.Group)
-            .WithOne(gr => gr.GroupRatingOverride)
-            .HasForeignKey<GroupRatingOverride>(gr => gr.GroupId)
+            .WithMany(g => g.GroupRatingOptions)
+            .HasForeignKey(gr => gr.GroupId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<GroupVenue>()
+            .HasOne(gv => gv.GroupCostOption)
+            .WithMany()
+            .HasForeignKey(gv => gv.GroupCostOptionId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<GroupVenue>()
+            .HasOne(gv => gv.GroupRatingOption)
+            .WithMany()
+            .HasForeignKey(gv => gv.GroupRatingOptionId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<GroupVenue>()
+            .HasOne(gv => gv.Group)
+            .WithMany(gv => gv.GroupVenues)
+            .HasForeignKey(gv => gv.GroupId)
             .OnDelete(DeleteBehavior.Restrict);
 
         modelBuilder.Entity<User>().HasData(new User
@@ -66,20 +82,17 @@ public class ScranHubDbContext(DbContextOptions<ScranHubDbContext> options) : Db
             CreatedBy = _adminId
         });
 
-        modelBuilder.Entity<GroupCost>().HasData(new GroupCost
-        {
-            GroupCostId = _defaultConfigId,
-            Costs = "Cheap|Reasonable|Pricey",
-            CreatedOn = _createdDate,
-            CreatedBy = _adminId
-        });
+        modelBuilder.Entity<GroupCostOption>().HasData(
+            new GroupCostOption { GroupCostOptionId = Guid.Parse("00000000-0000-0000-0001-000000000001"), GroupId = null, Label = "Cheap",      DisplayOrder = 0, CreatedOn = _createdDate, CreatedBy = _adminId },
+            new GroupCostOption { GroupCostOptionId = Guid.Parse("00000000-0000-0000-0001-000000000002"), GroupId = null, Label = "Reasonable", DisplayOrder = 1, CreatedOn = _createdDate, CreatedBy = _adminId },
+            new GroupCostOption { GroupCostOptionId = Guid.Parse("00000000-0000-0000-0001-000000000003"), GroupId = null, Label = "Pricey",     DisplayOrder = 2, CreatedOn = _createdDate, CreatedBy = _adminId }
+        );
 
-        modelBuilder.Entity<GroupRating>().HasData(new GroupRating
-        {
-            GroupRatingId = _defaultConfigId,
-            Ratings = "Great|Good|Average|Poor",
-            CreatedOn = _createdDate,
-            CreatedBy = _adminId
-        });
+        modelBuilder.Entity<GroupRatingOption>().HasData(
+            new GroupRatingOption { GroupRatingOptionId = Guid.Parse("00000000-0000-0000-0002-000000000001"), GroupId = null, Label = "Great",   DisplayOrder = 0, CreatedOn = _createdDate, CreatedBy = _adminId },
+            new GroupRatingOption { GroupRatingOptionId = Guid.Parse("00000000-0000-0000-0002-000000000002"), GroupId = null, Label = "Good",    DisplayOrder = 1, CreatedOn = _createdDate, CreatedBy = _adminId },
+            new GroupRatingOption { GroupRatingOptionId = Guid.Parse("00000000-0000-0000-0002-000000000003"), GroupId = null, Label = "Average", DisplayOrder = 2, CreatedOn = _createdDate, CreatedBy = _adminId },
+            new GroupRatingOption { GroupRatingOptionId = Guid.Parse("00000000-0000-0000-0002-000000000004"), GroupId = null, Label = "Poor",    DisplayOrder = 3, CreatedOn = _createdDate, CreatedBy = _adminId }
+        );
     }
 }

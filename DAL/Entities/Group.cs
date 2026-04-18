@@ -9,6 +9,7 @@ public class Group : AuditableEntity
     public required bool Active { get; set; }
 
     public ICollection<UserGroup> UserGroups { get; set; } = [];
-    public GroupCostOverride GroupCostOverride { get; set; } = null!;
-    public GroupRatingOverride GroupRatingOverride { get; set; } = null!;
+    public ICollection<GroupVenue> GroupVenues { get; set; } = [];
+    public ICollection<GroupCostOption> GroupCostOptions { get; set; } = [];
+    public ICollection<GroupRatingOption> GroupRatingOptions { get; set; } = [];
 }
