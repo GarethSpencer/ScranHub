@@ -2,12 +2,13 @@ using DAL.Entities.Base;
 
 namespace DAL.Entities;
 
-public class GroupCostOption : AuditableEntity
+public class RatingOption : AuditableEntity
 {
-    public required Guid GroupCostOptionId { get; set; }
+    public required Guid RatingOptionId { get; set; }
     public Guid? GroupId { get; set; }
     public required string Label { get; set; }
     public required int DisplayOrder { get; set; }
 
     public Group? Group { get; set; }
+    public ICollection<GroupVenue> GroupVenues { get; set; } = [];
 }

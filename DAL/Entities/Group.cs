@@ -10,6 +10,8 @@ public class Group : AuditableEntity
 
     public ICollection<UserGroup> UserGroups { get; set; } = [];
     public ICollection<GroupVenue> GroupVenues { get; set; } = [];
-    public ICollection<GroupCostOption> GroupCostOptions { get; set; } = [];
-    public ICollection<GroupRatingOption> GroupRatingOptions { get; set; } = [];
+    public ICollection<CostOption> CostOptions { get; set; } = [];
+    public ICollection<RatingOption> RatingOptions { get; set; } = [];
+    public ICollection<FoodTypeOption> FoodTypeOptions { get; set; } = [];
+    public ICollection<VenueTypeOption> VenueTypeOptions { get; set; } = [];
 }
