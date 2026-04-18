@@ -4,6 +4,7 @@ using DAL.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DAL.Migrations
 {
     [DbContext(typeof(ScranHubDbContext))]
-    partial class ScranHubDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260418172850_UpdateCostsAndRatingsWithDefaults")]
+    partial class UpdateCostsAndRatingsWithDefaults
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -41,10 +44,10 @@ namespace DAL.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<Guid?>("UpdatedBy")
+                    b.Property<Guid>("UpdatedBy")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<DateTime?>("UpdatedOn")
+                    b.Property<DateTime>("UpdatedOn")
                         .HasColumnType("datetime2");
 
                     b.HasKey("GroupId");
@@ -68,10 +71,10 @@ namespace DAL.Migrations
                     b.Property<DateTime>("CreatedOn")
                         .HasColumnType("datetime2");
 
-                    b.Property<Guid?>("UpdatedBy")
+                    b.Property<Guid>("UpdatedBy")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<DateTime?>("UpdatedOn")
+                    b.Property<DateTime>("UpdatedOn")
                         .HasColumnType("datetime2");
 
                     b.HasKey("GroupCostId");
@@ -84,7 +87,9 @@ namespace DAL.Migrations
                             GroupCostId = new Guid("00000000-0000-0000-0000-000000000001"),
                             Costs = "Cheap|Reasonable|Pricey",
                             CreatedBy = new Guid("00000000-0000-0000-0000-000000000001"),
-                            CreatedOn = new DateTime(2026, 4, 18, 0, 0, 0, 0, DateTimeKind.Utc)
+                            CreatedOn = new DateTime(2026, 4, 18, 0, 0, 0, 0, DateTimeKind.Utc),
+                            UpdatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
+                            UpdatedOn = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         });
                 });
 
@@ -107,10 +112,10 @@ namespace DAL.Migrations
                     b.Property<Guid>("GroupId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid?>("UpdatedBy")
+                    b.Property<Guid>("UpdatedBy")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<DateTime?>("UpdatedOn")
+                    b.Property<DateTime>("UpdatedOn")
                         .HasColumnType("datetime2");
 
                     b.HasKey("GroupCostOverrideId");
@@ -137,10 +142,10 @@ namespace DAL.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<Guid?>("UpdatedBy")
+                    b.Property<Guid>("UpdatedBy")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<DateTime?>("UpdatedOn")
+                    b.Property<DateTime>("UpdatedOn")
                         .HasColumnType("datetime2");
 
                     b.HasKey("GroupRatingId");
@@ -153,7 +158,9 @@ namespace DAL.Migrations
                             GroupRatingId = new Guid("00000000-0000-0000-0000-000000000001"),
                             CreatedBy = new Guid("00000000-0000-0000-0000-000000000001"),
                             CreatedOn = new DateTime(2026, 4, 18, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Ratings = "Great|Good|Average|Poor"
+                            Ratings = "Great|Good|Average|Poor",
+                            UpdatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
+                            UpdatedOn = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         });
                 });
 
@@ -176,10 +183,10 @@ namespace DAL.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<Guid?>("UpdatedBy")
+                    b.Property<Guid>("UpdatedBy")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<DateTime?>("UpdatedOn")
+                    b.Property<DateTime>("UpdatedOn")
                         .HasColumnType("datetime2");
 
                     b.HasKey("GroupRatingOverrideId");
@@ -202,7 +209,7 @@ namespace DAL.Migrations
                     b.Property<bool>("Admin")
                         .HasColumnType("bit");
 
-                    b.Property<Guid?>("AuthId")
+                    b.Property<Guid>("AuthId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid>("CreatedBy")
@@ -215,10 +222,10 @@ namespace DAL.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<Guid?>("UpdatedBy")
+                    b.Property<Guid>("UpdatedBy")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<DateTime?>("UpdatedOn")
+                    b.Property<DateTime>("UpdatedOn")
                         .HasColumnType("datetime2");
 
                     b.HasKey("UserId");
@@ -231,9 +238,12 @@ namespace DAL.Migrations
                             UserId = new Guid("00000000-0000-0000-0000-000000000001"),
                             Active = true,
                             Admin = true,
+                            AuthId = new Guid("00000000-0000-0000-0000-000000000000"),
                             CreatedBy = new Guid("00000000-0000-0000-0000-000000000001"),
                             CreatedOn = new DateTime(2026, 4, 18, 0, 0, 0, 0, DateTimeKind.Utc),
-                            DisplayName = "Admin User"
+                            DisplayName = "Admin User",
+                            UpdatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
+                            UpdatedOn = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         });
                 });
 
@@ -255,10 +265,10 @@ namespace DAL.Migrations
                     b.Property<Guid>("FriendId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid?>("UpdatedBy")
+                    b.Property<Guid>("UpdatedBy")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<DateTime?>("UpdatedOn")
+                    b.Property<DateTime>("UpdatedOn")
                         .HasColumnType("datetime2");
 
                     b.Property<Guid>("UserId")
@@ -288,10 +298,10 @@ namespace DAL.Migrations
                     b.Property<Guid>("GroupId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid?>("UpdatedBy")
+                    b.Property<Guid>("UpdatedBy")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<DateTime?>("UpdatedOn")
+                    b.Property<DateTime>("UpdatedOn")
                         .HasColumnType("datetime2");
 
                     b.Property<Guid>("UserId")

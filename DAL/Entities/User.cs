@@ -5,7 +5,7 @@ namespace DAL.Entities;
 public class User : AuditableEntity
 {
     public required Guid UserId { get; set; }
-    public Guid AuthId { get; set; }
+    public Guid? AuthId { get; set; }
     public required string DisplayName { get; set; }
     public required bool Active { get; set; }
     public required bool Admin { get; set; }
