@@ -1,6 +1,6 @@
 ﻿namespace DAL.Entities.Base;
 
-public abstract class AuditableEntity
+public abstract class AuditableEntity : IAuditableEntity
 {
     public required DateTime CreatedOn { get; set; }
     public required Guid CreatedBy { get; set; }
