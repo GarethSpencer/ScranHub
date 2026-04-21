@@ -10,5 +10,5 @@ public class CostOption : AuditableEntity
     public required int DisplayOrder { get; set; }
 
     public Group? Group { get; set; }
-    public ICollection<GroupVenue> GroupVenues { get; set; } = [];
+    public ICollection<CostUserRating> CostUserRatings { get; set; } = [];
 }

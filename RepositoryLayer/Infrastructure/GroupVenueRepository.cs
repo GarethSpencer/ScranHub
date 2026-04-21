@@ -22,9 +22,9 @@ public sealed class GroupVenueRepository(ScranHubDbContext dbContext) : EFReposi
     {
         IQueryable<GroupVenue> query = _dbSet.Where(x => x.GroupId == groupId)
             .Include(x => x.Group)
-            .Include(x => x.CostOption)
+            .Include(x => x.CostUserRatings)!.ThenInclude(x => x.CostOption)
             .Include(x => x.FoodTypeOption)
-            .Include(x => x.RatingOption)
+            .Include(x => x.RatingUserRatings)!.ThenInclude(x => x.RatingOption)
             .Include(x => x.VenueTypeOption);
 
         if (!trackChanges)

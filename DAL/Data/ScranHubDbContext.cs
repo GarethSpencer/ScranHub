@@ -16,6 +16,8 @@ public class ScranHubDbContext(DbContextOptions<ScranHubDbContext> options) : Db
     public DbSet<RatingOption> RatingOptions => Set<RatingOption>();
     public DbSet<FoodTypeOption> FoodTypeOptions => Set<FoodTypeOption>();
     public DbSet<VenueTypeOption> VenueTypeOptions => Set<VenueTypeOption>();
+    public DbSet<CostUserRating> CostUserRatings => Set<CostUserRating>();
+    public DbSet<RatingUserRating> RatingUserRatings => Set<RatingUserRating>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

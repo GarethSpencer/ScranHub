@@ -13,5 +13,7 @@ public class User : AuditableEntity
 
     public ICollection<UserFriend> InitiatedFriendships { get; set; } = [];
     public ICollection<UserFriend> ReceivedFriendships { get; set; } = [];
+    public ICollection<CostUserRating> CostUserRatings { get; set; } = [];
+    public ICollection<RatingUserRating> RatingUserRatings { get; set; } = [];
     public ICollection<UserGroup> UserGroups { get; set; } = [];
 }

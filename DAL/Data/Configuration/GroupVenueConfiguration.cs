@@ -15,16 +15,6 @@ public class GroupVenueConfiguration : IEntityTypeConfiguration<GroupVenue>
             .HasForeignKey(gv => gv.GroupId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        builder.HasOne(gv => gv.CostOption)
-            .WithMany(co => co.GroupVenues)
-            .HasForeignKey(gv => gv.CostOptionId)
-            .OnDelete(DeleteBehavior.Restrict);
-
-        builder.HasOne(gv => gv.RatingOption)
-            .WithMany(ro => ro.GroupVenues)
-            .HasForeignKey(gv => gv.RatingOptionId)
-            .OnDelete(DeleteBehavior.Restrict);
-
         builder.HasOne(gv => gv.FoodTypeOption)
             .WithMany(ft => ft.GroupVenues)
             .HasForeignKey(gv => gv.FoodTypeOptionId)
