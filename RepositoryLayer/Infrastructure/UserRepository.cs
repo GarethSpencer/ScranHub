@@ -18,9 +18,9 @@ public sealed class UserRepository(ScranHubDbContext dbContext) : EFRepository<U
         return await _dbSet.AsNoTracking().FirstOrDefaultAsync(x => x.UserId == id, ct);
     }
 
-    public async Task<User?> GetByDisplayNameAsync(string name, CancellationToken ct, bool trackChanges = false)
+    public async Task<User?> GetByEmailAsync(string email, CancellationToken ct, bool trackChanges = false)
     {
-        IQueryable<User> query = _dbSet.Where(x => x.DisplayName == name);
+        IQueryable<User> query = _dbSet.Where(x => x.Email == email);
 
         if (!trackChanges)
         {

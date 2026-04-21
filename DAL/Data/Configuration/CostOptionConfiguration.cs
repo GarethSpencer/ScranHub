@@ -8,6 +8,8 @@ public class CostOptionConfiguration : IEntityTypeConfiguration<CostOption>
 {
     public void Configure(EntityTypeBuilder<CostOption> builder)
     {
+        builder.Property(ft => ft.Label).HasMaxLength(30);
+
         builder.HasOne(co => co.Group)
             .WithMany(g => g.CostOptions)
             .HasForeignKey(co => co.GroupId)

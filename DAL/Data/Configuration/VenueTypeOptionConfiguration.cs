@@ -8,6 +8,8 @@ public class VenueTypeOptionConfiguration : IEntityTypeConfiguration<VenueTypeOp
 {
     public void Configure(EntityTypeBuilder<VenueTypeOption> builder)
     {
+        builder.Property(ft => ft.Label).HasMaxLength(30);
+
         builder.HasOne(vt => vt.Group)
             .WithMany(g => g.VenueTypeOptions)
             .HasForeignKey(vt => vt.GroupId)

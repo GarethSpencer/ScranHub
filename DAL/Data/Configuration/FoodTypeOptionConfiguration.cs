@@ -8,6 +8,8 @@ public class FoodTypeOptionConfiguration : IEntityTypeConfiguration<FoodTypeOpti
 {
     public void Configure(EntityTypeBuilder<FoodTypeOption> builder)
     {
+        builder.Property(ft => ft.Label).HasMaxLength(30);
+
         builder.HasOne(ft => ft.Group)
             .WithMany(g => g.FoodTypeOptions)
             .HasForeignKey(ft => ft.GroupId)

@@ -8,6 +8,8 @@ public class GroupVenueConfiguration : IEntityTypeConfiguration<GroupVenue>
 {
     public void Configure(EntityTypeBuilder<GroupVenue> builder)
     {
+        builder.Property(gv => gv.VenueName).HasMaxLength(50);
+
         builder.HasOne(gv => gv.Group)
             .WithMany(g => g.GroupVenues)
             .HasForeignKey(gv => gv.GroupId)

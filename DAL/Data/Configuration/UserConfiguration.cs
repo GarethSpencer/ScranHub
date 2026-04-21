@@ -8,10 +8,14 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
 {
     public void Configure(EntityTypeBuilder<User> builder)
     {
+        builder.Property(u => u.DisplayName).HasMaxLength(30);
+        builder.Property(u => u.Email).HasMaxLength(256);
+
         builder.HasData(new User
         {
             UserId = SeedConstants.AdminId,
             DisplayName = "Admin User",
+            Email = "admin@example.com",
             Active = true,
             Admin = true,
             CreatedOn = SeedConstants.CreatedDate,

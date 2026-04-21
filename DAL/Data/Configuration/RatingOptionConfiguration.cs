@@ -8,6 +8,8 @@ public class RatingOptionConfiguration : IEntityTypeConfiguration<RatingOption>
 {
     public void Configure(EntityTypeBuilder<RatingOption> builder)
     {
+        builder.Property(ft => ft.Label).HasMaxLength(30);
+
         builder.HasOne(ro => ro.Group)
             .WithMany(g => g.RatingOptions)
             .HasForeignKey(ro => ro.GroupId)
