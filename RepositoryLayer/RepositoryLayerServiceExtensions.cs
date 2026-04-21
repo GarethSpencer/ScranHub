@@ -2,7 +2,9 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using RepositoryLayer.Abstractions;
 using RepositoryLayer.Abstractions.Generic;
+using RepositoryLayer.Infrastructure;
 using RepositoryLayer.Infrastructure.Generic;
 
 namespace RepositoryLayer;
@@ -16,6 +18,13 @@ public static class RepositoryLayerServiceExtensions
 
         services.AddScoped(typeof(IEFRepository<>), typeof(EFRepository<>));
         services.AddScoped<IUnitOfWork, UnitOfWork>();
+        services.AddScoped<IGroupRepository, GroupRepository>();
+        services.AddScoped<ICostOptionRepository, CostOptionRepository>();
+        services.AddScoped<IFoodTypeOptionRepository, FoodTypeOptionRepository>();
+        services.AddScoped<IRatingOptionRepository, RatingOptionRepository>();
+        services.AddScoped<IVenueTypeOptionRepository, VenueTypeOptionRepository>();
+        services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<IGroupVenueRepository, GroupVenueRepository>();
 
         return services;
     }
