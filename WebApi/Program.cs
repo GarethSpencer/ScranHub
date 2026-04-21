@@ -1,10 +1,10 @@
 using Scalar.AspNetCore;
-using DAL.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Utilities.Token;
+using ServiceLayer;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -34,8 +34,7 @@ builder.Services.AddAuthentication("Bearer")
         };
     });
 
-builder.Services.AddDbContext<ScranHubDbContext>(opts =>
-    opts.UseSqlServer(builder.Configuration.GetConnectionString("Default")));
+builder.Services.AddServiceLayer(builder.Configuration);
 
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ITokenData, TokenData>();
