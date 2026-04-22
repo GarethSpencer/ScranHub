@@ -1,10 +1,11 @@
-using Scalar.AspNetCore;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using System.Text;
-using Utilities.Token;
+using Scalar.AspNetCore;
 using ServiceLayer;
+using System.Text;
+using Utilities.Models.Options;
+using Utilities.Token;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -34,6 +35,7 @@ builder.Services.AddAuthentication("Bearer")
         };
     });
 
+builder.Services.Configure<Authentication>(builder.Configuration.GetSection("Authentication"));
 builder.Services.AddServiceLayer(builder.Configuration);
 
 builder.Services.AddHttpContextAccessor();

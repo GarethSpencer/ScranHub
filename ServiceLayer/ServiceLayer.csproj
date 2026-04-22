@@ -8,11 +8,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\RepositoryLayer\RepositoryLayer.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Abstractions\" />
-    <Folder Include="Infrastructure\" />
+    <ProjectReference Include="..\Utilities\Utilities.csproj" />
   </ItemGroup>
 
 </Project>
