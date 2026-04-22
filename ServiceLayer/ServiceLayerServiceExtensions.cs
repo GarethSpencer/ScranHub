@@ -12,6 +12,7 @@ public static class ServiceLayerServiceExtensions
     {
         services.AddRepositoryLayer(configuration);
         services.AddScoped<IAuthService, AuthService>();
+        services.AddScoped<IGroupService, GroupService>();
         return services;
     }
 }

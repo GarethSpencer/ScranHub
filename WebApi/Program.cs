@@ -6,11 +6,15 @@ using ServiceLayer;
 using System.Text;
 using Utilities.Models.Options;
 using Utilities.Token;
+using WebApi.ProgramExtensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
+
+builder.Services.ConfigureApiVersioning();
+builder.Services.ConfigureApiBehavior();
 
 builder.Services.AddAuthorizationBuilder()
     .SetFallbackPolicy(new AuthorizationPolicyBuilder()

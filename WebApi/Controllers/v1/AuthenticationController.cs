@@ -1,12 +1,14 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Asp.Versioning;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Utilities.Models.Requests;
 using ServiceLayer.Abstractions;
+using Utilities.Models.Requests;
 
-namespace WebApi.Controllers;
+namespace WebApi.Controllers.v1;
 
 [ApiController]
-[Route("[controller]")]
+[Route("v/{version:apiVersion}/[controller]")]
+[ApiVersion("1.0")]
 public class AuthenticationController(IAuthService authenticationService) : ControllerBase
 {
     private readonly IAuthService _authenticationService = authenticationService;
