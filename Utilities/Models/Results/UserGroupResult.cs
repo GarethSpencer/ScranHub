@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿namespace Utilities.Models.Results;
 
-namespace Utilities.Models.Results;
-
-public class UserGroupResult
+public record UserGroupResult
 {
-    public required Guid GroupId { get; set; }
-    public required string GroupName { get; set; }
-    public required int Users { get; set; }
+    public required Guid GroupId { get; init; }
+    public required string GroupName { get; init; }
+    public required int Users { get; init; }
 }

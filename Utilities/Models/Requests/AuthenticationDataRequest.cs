@@ -5,8 +5,8 @@ namespace Utilities.Models.Requests;
 public record AuthenticationDataRequest
 {
     [DefaultValue("test")]
-    public string? UserName { get; init; }
+    public string? UserName { get; set; }
 
     [DefaultValue("Password123!")]
-    public string? Password { get; init; }
+    public string? Password { get; set; }
 }
