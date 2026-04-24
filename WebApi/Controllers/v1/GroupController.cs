@@ -14,7 +14,7 @@ public class GroupController(IGroupService groupService) : ControllerBase
     [HttpGet("me")]
     public IActionResult GetUserGroups()
     {
-        var response = _groupService.GetGroupsForUser(Guid.NewGuid());
+        var response = _groupService.GetGroupsForUser();
 
         return StatusCode((int)response.StatusCode, response);
     }

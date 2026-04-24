@@ -4,5 +4,5 @@ namespace ServiceLayer.Abstractions;
 
 public interface IGroupService
 {
-    UserGroupsResponse GetGroupsForUser(Guid userId);
+    UserGroupsResponse GetGroupsForUser();
 }

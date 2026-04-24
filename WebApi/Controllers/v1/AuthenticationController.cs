@@ -24,7 +24,7 @@ public class AuthenticationController(IAuthService authenticationService) : Cont
             return Unauthorized();
         }
 
-        var token = _authenticationService.GenerateToken(Guid.NewGuid(), data.UserName!, "Gareth", "Spencer");
+        var token = _authenticationService.GenerateToken(Guid.Parse("00000000-0000-0000-0000-000000000001"), data.UserName!, "Gareth", "Spencer");
 
         return Ok(token);
     }

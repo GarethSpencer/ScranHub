@@ -1,3 +1,12 @@
-﻿namespace Utilities.Models.Requests;
+﻿using System.ComponentModel;
 
-public record AuthenticationDataRequest(string? UserName, string? Password);
+namespace Utilities.Models.Requests;
+
+public record AuthenticationDataRequest
+{
+    [DefaultValue("test")]
+    public string? UserName { get; init; }
+
+    [DefaultValue("Password123!")]
+    public string? Password { get; init; }
+}

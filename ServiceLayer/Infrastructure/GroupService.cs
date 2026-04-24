@@ -2,21 +2,28 @@
 using Utilities.Models.Responses.Groups;
 using Utilities.Models.Results;
 using System.Net;
+using Utilities.Token;
 
 namespace ServiceLayer.Infrastructure;
 
-public class GroupService : IGroupService
+public class GroupService(ITokenData tokenData) : IGroupService
 {
-    public GroupService()
-    {
-        
-    }
+    private readonly ITokenData _tokenData = tokenData;
 
-    public UserGroupsResponse GetGroupsForUser(Guid userId)
+    public UserGroupsResponse GetGroupsForUser()
     {
+        if (_tokenData == null || !_tokenData.UserId.HasValue)
+        {
+            return new UserGroupsResponse
+            {
+                StatusCode = HttpStatusCode.Unauthorized,
+                Message = "User is not authenticated."
+            };
+        }
+
         return new UserGroupsResponse
         {
-            UserId = userId,
+            UserId = _tokenData.UserId.Value,
             UserGroups =
             [
                 new UserGroupResult
