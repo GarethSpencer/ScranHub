@@ -1,8 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.OpenApi;
-using Scalar.AspNetCore;
 using ServiceLayer;
 using System.Text;
 using Utilities.Models.Options;
@@ -11,27 +9,10 @@ using WebApi.ProgramExtensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllers();
-builder.Services.AddOpenApi(opts =>
-{
-    opts.AddDocumentTransformer((document, context, ct) =>
-    {
-        document.Components ??= new();
-        document.Components.SecuritySchemes ??= new Dictionary<string, IOpenApiSecurityScheme>();
-        document.Components.SecuritySchemes["Bearer"] = new OpenApiSecurityScheme
-        {
-            Type = SecuritySchemeType.Http,
-            Scheme = "bearer",
-            BearerFormat = "JWT",
-            Description = "Paste JWT Token Here"
-        };
-
-        return Task.CompletedTask;
-    });
-});
-
-builder.Services.ConfigureApiVersioning();
 builder.Services.ConfigureApiBehavior();
+builder.Services.ConfigureApiVersioning();
+builder.Services.ConfigureSwagger();
+builder.Services.ConfigureScalar();
 
 builder.Services.AddAuthorizationBuilder()
     .SetFallbackPolicy(new AuthorizationPolicyBuilder()
@@ -66,14 +47,8 @@ var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
 {
-    app.MapOpenApi().AllowAnonymous();
-    app.MapScalarApiReference(opts =>
-    {
-        opts.Authentication = new ScalarAuthenticationOptions
-        {
-            PreferredSecuritySchemes = ["Bearer"]
-        };
-    }).AllowAnonymous(); // interactive UI at /scalar/v1
+    app.ConfigureSwagger();
+    app.ConfigureScalar();
 }
 
 app.UseHttpsRedirection();
