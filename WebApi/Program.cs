@@ -6,6 +6,8 @@ using System.Text;
 using Utilities.Models.Options;
 using Utilities.Token;
 using WebApi.ProgramExtensions;
+using Serilog.Debugging;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,6 +15,11 @@ builder.Services.ConfigureApiBehavior();
 builder.Services.ConfigureApiVersioning();
 builder.Services.ConfigureSwagger();
 builder.Services.ConfigureScalar();
+
+builder.Host.UseSerilog((hostingContext, configuration) =>
+{
+    configuration.ReadFrom.Configuration(hostingContext.Configuration);
+});
 
 builder.Services.AddAuthorizationBuilder()
     .SetFallbackPolicy(new AuthorizationPolicyBuilder()
@@ -47,11 +54,13 @@ var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
 {
+    SelfLog.Enable(Console.Error);
     app.ConfigureSwagger();
     app.ConfigureScalar();
 }
 
 app.UseHttpsRedirection();
+app.UseSerilogRequestLogging();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
