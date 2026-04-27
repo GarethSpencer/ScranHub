@@ -12,10 +12,12 @@ using WebApi.ProgramExtensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// ServiceExtensions
 builder.Services.ConfigureApiBehavior();
 builder.Services.ConfigureApiVersioning();
 builder.Services.ConfigureSwagger();
 builder.Services.ConfigureScalar();
+builder.Services.ConfigureCors();
 
 builder.Host.UseSerilog((hostingContext, configuration) =>
 {
@@ -63,6 +65,10 @@ if (app.Environment.IsDevelopment())
 
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 app.UseHttpsRedirection();
+
+var corsPolicy = app.Environment.IsDevelopment() ? "DevelopmentCorsPolicy" : "ProductionCorsPolicy";
+app.UseCors(corsPolicy);
+
 app.UseSerilogRequestLogging();
 app.UseAuthentication();
 app.UseAuthorization();

@@ -87,4 +87,20 @@ public static class ServiceExtensions
             });
         });
     }
+
+    public static void ConfigureCors(this IServiceCollection services)
+    {
+        services.AddCors(opts =>
+        {
+            opts.AddPolicy("DevelopmentCorsPolicy",
+                policy => policy.AllowAnyOrigin()
+                    .AllowAnyMethod()
+                    .AllowAnyHeader());
+
+            opts.AddPolicy("ProductionCorsPolicy",
+                policy => policy.WithOrigins("https://www.scranhub.com")
+                    .AllowAnyMethod()
+                    .WithHeaders("Authorization", "Content-Type"));
+        });
+    }
 }
