@@ -1,13 +1,14 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Serilog;
+using Serilog.Debugging;
 using ServiceLayer;
 using System.Text;
 using Utilities.Models.Options;
 using Utilities.Token;
+using WebApi.Middleware;
 using WebApi.ProgramExtensions;
-using Serilog.Debugging;
-using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -49,6 +50,7 @@ builder.Services.AddServiceLayer(builder.Configuration);
 
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ITokenData, TokenData>();
+builder.Services.AddScoped<ExceptionHandlingMiddleware>();
 
 var app = builder.Build();
 
@@ -59,6 +61,7 @@ if (app.Environment.IsDevelopment())
     app.ConfigureScalar();
 }
 
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 app.UseHttpsRedirection();
 app.UseSerilogRequestLogging();
 app.UseAuthentication();
