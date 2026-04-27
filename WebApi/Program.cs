@@ -6,7 +6,7 @@ using Serilog.Debugging;
 using ServiceLayer;
 using System.Text;
 using Utilities.Models.Options;
-using Utilities.Token;
+using Utilities;
 using WebApi.Middleware;
 using WebApi.ProgramExtensions;
 
@@ -48,10 +48,11 @@ builder.Services.AddAuthentication("Bearer")
     });
 
 builder.Services.Configure<Authentication>(builder.Configuration.GetSection("Authentication"));
-builder.Services.AddServiceLayer(builder.Configuration);
 
-builder.Services.AddHttpContextAccessor();
-builder.Services.AddScoped<ITokenData, TokenData>();
+//Add layers
+builder.Services.AddServiceLayer(builder.Configuration);
+builder.Services.AddUtilities();
+
 builder.Services.AddScoped<ExceptionHandlingMiddleware>();
 
 var app = builder.Build();
