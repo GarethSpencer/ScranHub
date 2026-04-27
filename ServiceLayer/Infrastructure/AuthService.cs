@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Options;
+﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using ServiceLayer.Abstractions;
 using System.IdentityModel.Tokens.Jwt;
@@ -6,17 +7,14 @@ using System.Security.Claims;
 using System.Text;
 using Utilities.Models.Options;
 using Utilities.Models.Requests;
+using Utilities.Token;
 
 namespace ServiceLayer.Infrastructure;
 
-public class AuthService : IAuthService
+public class AuthService(IOptions<Authentication> jwtSettings, ILogger<AuthService> logger) : IAuthService
 {
-    private readonly Authentication _jwtAuth;
-
-    public AuthService(IOptions<Authentication> jwtSettings)
-    {
-        _jwtAuth = jwtSettings.Value;
-    }
+    private readonly Authentication _jwtAuth = jwtSettings.Value;
+    private readonly ILogger<AuthService> _logger = logger;
 
     public bool ValidateCredentials(AuthenticationDataRequest data)
     {
@@ -24,9 +22,11 @@ public class AuthService : IAuthService
         if (CompareValues(data.UserName, "test") &&
             CompareValues(data.Password, "Password123!"))
         {
+            _logger.LogInformation("User {UserName} authenticated successfully.", data.UserName);
             return true;
         }
-
+        
+        _logger.LogWarning("User {UserName} failed to authenticate.", data.UserName);
         return false;
     }
 

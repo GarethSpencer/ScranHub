@@ -1,19 +1,24 @@
-﻿using ServiceLayer.Abstractions;
+﻿using Microsoft.Extensions.Logging;
+using ServiceLayer.Abstractions;
+using System.Net;
 using Utilities.Models.Responses.Groups;
 using Utilities.Models.Results;
-using System.Net;
 using Utilities.Token;
 
 namespace ServiceLayer.Infrastructure;
 
-public class GroupService(ITokenData tokenData) : IGroupService
+public class GroupService(ITokenData tokenData, ILogger<GroupService> logger) : IGroupService
 {
     private readonly ITokenData _tokenData = tokenData;
+    private readonly ILogger<GroupService> _logger = logger;
 
     public UserGroupsResponse GetGroupsForUser()
     {
-        if (_tokenData == null || !_tokenData.UserId.HasValue)
+        var userId = _tokenData?.UserId;
+
+        if (_tokenData == null || !userId.HasValue)
         {
+            _logger.LogWarning("User is not authenticated.");
             return new UserGroupsResponse
             {
                 StatusCode = HttpStatusCode.Unauthorized,
@@ -21,9 +26,11 @@ public class GroupService(ITokenData tokenData) : IGroupService
             };
         }
 
+        _logger.LogInformation("Successfully retrieved groups for user {UserId}", userId);
+
         return new UserGroupsResponse
         {
-            UserId = _tokenData.UserId.Value,
+            UserId = userId.Value,
             UserGroups =
             [
                 new UserGroupResult
