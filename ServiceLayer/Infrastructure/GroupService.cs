@@ -14,7 +14,7 @@ public class GroupService(ITokenData tokenData, ILogger<GroupService> logger) : 
 
     public UserGroupsResponse GetGroupsForUser()
     {
-        var userId = _tokenData?.UserId;
+        var userId = _tokenData.UserId;
 
         if (_tokenData == null || !userId.HasValue)
         {

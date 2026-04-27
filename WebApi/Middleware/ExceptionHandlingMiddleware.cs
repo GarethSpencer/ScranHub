@@ -1,4 +1,5 @@
-﻿using Utilities.Models.Responses.GenericResponses;
+﻿using System.Text.Json;
+using Utilities.Models.Responses.GenericResponses;
 
 namespace WebApi.Middleware;
 
@@ -31,9 +32,9 @@ internal class ExceptionHandlingMiddleware(ILogger<ExceptionHandlingMiddleware> 
             : "An unexpected error occurred. Please try again later.";
 
 
-        await context.Response.WriteAsync(new ErrorResultResponse
+        await context.Response.WriteAsync(JsonSerializer.Serialize(new ErrorResultResponse
         {
             Errors = [message]
-        }.ToString());
+        }));
     }
 }

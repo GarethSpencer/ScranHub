@@ -14,7 +14,7 @@ public static class RepositoryLayerServiceExtensions
     public static IServiceCollection AddRepositoryLayer(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddDbContext<ScranHubDbContext>(opts =>
-            opts.UseSqlServer(configuration.GetConnectionString("Default")));
+            opts.UseSqlServer(configuration.GetConnectionString("Default"), sql => _ = sql.EnableRetryOnFailure(5, TimeSpan.FromSeconds(10), null)));
 
         services.AddScoped(typeof(IEFRepository<>), typeof(EFRepository<>));
         services.AddScoped<IUnitOfWork, UnitOfWork>();

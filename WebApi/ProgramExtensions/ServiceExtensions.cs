@@ -1,9 +1,12 @@
 ﻿using Asp.Versioning;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
+using System.Text;
 using System.Text.Json.Serialization;
-using ServiceLayer.AutoMapper;
+using Utilities.Models.Options;
 using Utilities.Models.Responses.GenericResponses;
-using System.Reflection;
+using WebApi.Middleware;
 
 namespace WebApi.ProgramExtensions;
 
@@ -26,6 +29,8 @@ public static class ServiceExtensions
             {
                 opts.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
             });
+
+        services.AddScoped<ExceptionHandlingMiddleware>();
     }
 
     public static void ConfigureApiVersioning(this IServiceCollection services)
@@ -102,5 +107,39 @@ public static class ServiceExtensions
                     .AllowAnyMethod()
                     .WithHeaders("Authorization", "Content-Type"));
         });
+    }
+
+    public static void ConfigureAuthentication(this IServiceCollection services, IConfiguration configuration)
+    {
+        services.AddAuthentication("Bearer")
+            .AddJwtBearer(opts =>
+            {
+                opts.TokenValidationParameters = new()
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateIssuerSigningKey = true,
+                    ValidIssuer = configuration.GetValue<string>("Authentication:Issuer"),
+                    ValidAudience = configuration.GetValue<string>("Authentication:Audience"),
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(
+                        configuration.GetValue<string>("Authentication:SecretKey")!))
+                };
+            });
+
+        services.Configure<Authentication>(configuration.GetSection("Authentication"));
+    }
+
+    public static void ConfigureAuthorization(this IServiceCollection services)
+    {
+        services.AddAuthorizationBuilder()
+            .SetFallbackPolicy(new AuthorizationPolicyBuilder()
+                .RequireAuthenticatedUser()
+                .Build());
+    }
+
+    public static void ConfigureHealthChecks(this IServiceCollection services, IConfiguration configuration)
+    {
+        services.AddHealthChecks()
+            .AddSqlServer(configuration.GetConnectionString("Default")!);
     }
 }
