@@ -1,20 +1,40 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Asp.Versioning;
+using FluentValidation;
+using Microsoft.AspNetCore.Mvc;
 using ServiceLayer.Abstractions;
-using Asp.Versioning;
+using Utilities.Models.Requests;
+using Utilities.Validators;
 
 namespace WebApi.Controllers.v1;
 
 [ApiController]
 [Route("v/{version:apiVersion}/[controller]")]
 [ApiVersion("1.0")]
-public class GroupController(IGroupService groupService) : ControllerBase
+public class GroupController(
+    IGroupService groupService,
+    IValidator<GroupRequest> groupRequestValidator) : ControllerBase
 {
     private readonly IGroupService _groupService = groupService;
+    private readonly IValidator<GroupRequest> _groupRequestValidator = groupRequestValidator;
 
     [HttpGet("me")]
-    public IActionResult GetUserGroups()
+    public async Task<IActionResult> GetUserGroups(CancellationToken ct)
     {
-        var response = _groupService.GetGroupsForUser();
+        var response = await _groupService.GetGroupsForUser(ct);
+
+        return StatusCode((int)response.StatusCode, response);
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> CreateGroup([FromBody] GroupRequest groupRequest, CancellationToken ct)
+    {
+        var validation = await _groupRequestValidator.ValidateAsync(groupRequest);
+        if (!validation.IsValid)
+        {
+            return BadRequest(ValidationErrorFormatter.FormatErrors(validation));
+        }
+
+        var response = await _groupService.CreateGroup(groupRequest, ct);
 
         return StatusCode((int)response.StatusCode, response);
     }

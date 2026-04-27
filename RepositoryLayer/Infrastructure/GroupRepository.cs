@@ -3,6 +3,7 @@ using DAL.Entities;
 using Microsoft.EntityFrameworkCore;
 using RepositoryLayer.Abstractions;
 using RepositoryLayer.Infrastructure.Generic;
+using Utilities.Models.Requests;
 
 namespace RepositoryLayer.Infrastructure;
 
@@ -40,5 +41,17 @@ public sealed class GroupRepository(ScranHubDbContext dbContext) : EFRepository<
         }
 
         return await query.ToListAsync(ct);
+    }
+
+    public async Task<Guid> CreateGroup(GroupRequest request, CancellationToken ct)
+    {
+        var group = new Group
+        {
+            GroupId = Guid.NewGuid(),
+            GroupName = request.GroupName,
+            Active = true
+        };
+        await _dbSet.AddAsync(group, ct);
+        return group.GroupId;
     }
 }

@@ -8,6 +8,11 @@ internal class ExceptionHandlingMiddleware(ILogger<ExceptionHandlingMiddleware> 
     private readonly ILogger _logger = logger;
     private readonly IHostEnvironment _environment = environment;
 
+    private static readonly JsonSerializerOptions _jsonOptions = new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+    };
+
     public async Task InvokeAsync(HttpContext context, RequestDelegate next)
     {
         try
@@ -31,10 +36,9 @@ internal class ExceptionHandlingMiddleware(ILogger<ExceptionHandlingMiddleware> 
             ? exception.Message
             : "An unexpected error occurred. Please try again later.";
 
-
-        await context.Response.WriteAsync(JsonSerializer.Serialize(new ErrorResultResponse
-        {
-            Errors = [message]
-        }));
+        await context.Response.WriteAsync(JsonSerializer.Serialize(
+            new ErrorResultResponse { Errors = [message] },
+            _jsonOptions
+        ));
     }
 }

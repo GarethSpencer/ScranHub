@@ -1,8 +1,9 @@
 ﻿using DAL.Entities;
+using RepositoryLayer.Abstractions.Generic;
 
 namespace RepositoryLayer.Abstractions
 {
-    public interface IUserRepository
+    public interface IUserRepository : IEFRepository<User>
     {
         Task<IEnumerable<User>> GetAllActiveAdminsAsync(CancellationToken ct, bool trackChanges = false);
         Task<User?> GetByEmailAsync(string email, CancellationToken ct, bool trackChanges = false);

@@ -1,8 +1,11 @@
-﻿using Utilities.Models.Responses.Groups;
+﻿using Utilities.Models.Requests;
+using Utilities.Models.Responses.Groups;
 
 namespace ServiceLayer.Abstractions;
 
 public interface IGroupService
 {
-    UserGroupsResponse GetGroupsForUser();
+    Task<AddGroupResponse> CreateGroup(GroupRequest groupRequest, CancellationToken ct);
+
+    Task<UserGroupsResponse> GetGroupsForUser(CancellationToken ct);
 }
