@@ -4,7 +4,7 @@ namespace DAL.Entities;
 
 public class VenueTypeOption : AuditableEntity
 {
-    public required Guid VenueTypeOptionId { get; set; }
+    public Guid VenueTypeOptionId { get; set; }
     public Guid? GroupId { get; set; }
     public required string Label { get; set; }
     public required int DisplayOrder { get; set; }

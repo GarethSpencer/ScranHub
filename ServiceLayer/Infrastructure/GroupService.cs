@@ -10,15 +10,28 @@ using Utilities.Token;
 
 namespace ServiceLayer.Infrastructure;
 
-public class GroupService(ITokenData tokenData, ILogger<GroupService> logger, IGroupRepository groupRepository, IUnitOfWork unitOfWork) : IGroupService
+public class GroupService(ITokenData tokenData,
+    ILogger<GroupService> logger,
+    IGroupRepository groupRepository,
+    IUserGroupRepository userGroupRepository,
+    IUnitOfWork unitOfWork) : IGroupService
 {
     private readonly ITokenData _tokenData = tokenData;
     private readonly ILogger<GroupService> _logger = logger;
     private readonly IGroupRepository _groupRepository = groupRepository;
+    private readonly IUserGroupRepository _userGroupRepository = userGroupRepository;
     private readonly IUnitOfWork _unitOfWork = unitOfWork;
 
     public async Task<AddGroupResponse> CreateGroup(GroupRequest groupRequest, CancellationToken ct)
     {
+        if (!_tokenData.UserId.HasValue)
+        {
+            _logger.LogWarning("CreateGroup called with no authenticated user.");
+            return new AddGroupResponse { StatusCode = HttpStatusCode.Unauthorized, Message = "Unauthorized" };
+        }
+
+        var userId = _tokenData.UserId!.Value;
+
         var groupExists = await _groupRepository.ExistsAsync(x => x.GroupName == groupRequest.GroupName, ct);
         if (groupExists)
         {
@@ -30,7 +43,8 @@ public class GroupService(ITokenData tokenData, ILogger<GroupService> logger, IG
             };
         }
 
-        Guid groupId = await _groupRepository.CreateGroup(groupRequest, ct);
+        Guid groupId = await _groupRepository.CreateGroup(groupRequest.GroupName, ct);
+        _ = await _userGroupRepository.AddUserToGroup(groupId, userId, ct);
 
         await this._unitOfWork.SaveChanges(ct);
         _logger.LogInformation("Group [{GroupId}] created successfully.", groupId);
@@ -45,38 +59,22 @@ public class GroupService(ITokenData tokenData, ILogger<GroupService> logger, IG
 
     public async Task<UserGroupsResponse> GetGroupsForUser(CancellationToken ct)
     {
-        var userId = _tokenData.UserId;
-
-        if (_tokenData == null || !userId.HasValue)
+        if (!_tokenData.UserId.HasValue)
         {
-            _logger.LogWarning("User is not authenticated.");
-            return new UserGroupsResponse
-            {
-                StatusCode = HttpStatusCode.Unauthorized,
-                Message = "User is not authenticated."
-            };
+            _logger.LogWarning("GetGroupsForUser called with no authenticated user.");
+            return new UserGroupsResponse { StatusCode = HttpStatusCode.Unauthorized, Message = "Unauthorized" };
         }
+
+        var userId = _tokenData.UserId!.Value;
+
+        var userGroups = await _userGroupRepository.GetGroupsForUser(userId, ct, false);
 
         _logger.LogInformation("Successfully retrieved groups for user {UserId}", userId);
 
         return new UserGroupsResponse
         {
-            UserId = userId.Value,
-            UserGroups =
-            [
-                new UserGroupResult
-                {
-                    GroupId = Guid.NewGuid(),
-                    GroupName = "Test Group 1",
-                    Users = 10
-                },
-                new UserGroupResult
-                {
-                    GroupId = Guid.NewGuid(),
-                    GroupName = "Test Group 2",
-                    Users = 20
-                }
-            ],
+            UserId = userId,
+            UserGroups = userGroups,
             StatusCode = HttpStatusCode.OK,
             Message = "Groups retrieved successfully."
         };

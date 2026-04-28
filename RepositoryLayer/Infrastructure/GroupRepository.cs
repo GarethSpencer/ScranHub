@@ -43,12 +43,11 @@ public sealed class GroupRepository(ScranHubDbContext dbContext) : EFRepository<
         return await query.ToListAsync(ct);
     }
 
-    public async Task<Guid> CreateGroup(GroupRequest request, CancellationToken ct)
+    public async Task<Guid> CreateGroup(string groupName, CancellationToken ct)
     {
         var group = new Group
         {
-            GroupId = Guid.NewGuid(),
-            GroupName = request.GroupName,
+            GroupName = groupName,
             Active = true
         };
         await _dbSet.AddAsync(group, ct);

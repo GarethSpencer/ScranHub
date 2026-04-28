@@ -4,7 +4,7 @@ namespace DAL.Entities;
 
 public class FoodTypeOption : AuditableEntity
 {
-    public required Guid FoodTypeOptionId { get; set; }
+    public Guid FoodTypeOptionId { get; set; }
     public Guid? GroupId { get; set; }
     public required string Label { get; set; }
     public required int DisplayOrder { get; set; }

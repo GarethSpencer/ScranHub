@@ -1,9 +1,8 @@
 ﻿using AutoMapper;
 using DAL.Entities;
-using Utilities.Models.Responses.Groups;
 using Utilities.Models.Results;
 
-namespace ServiceLayer.AutoMapper;
+namespace RepositoryLayer.AutoMapper;
 
 public class DTOToResponseProfile : Profile
 {

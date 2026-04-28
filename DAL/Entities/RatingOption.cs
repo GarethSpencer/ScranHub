@@ -4,7 +4,7 @@ namespace DAL.Entities;
 
 public class RatingOption : AuditableEntity
 {
-    public required Guid RatingOptionId { get; set; }
+    public Guid RatingOptionId { get; set; }
     public Guid? GroupId { get; set; }
     public required string Label { get; set; }
     public required int DisplayOrder { get; set; }
