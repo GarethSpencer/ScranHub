@@ -4,8 +4,8 @@ using RepositoryLayer.Abstractions.Generic;
 using ServiceLayer.Abstractions;
 using System.Net;
 using Utilities.Models.Requests;
+using Utilities.Models.Responses.GenericResponses;
 using Utilities.Models.Responses.Groups;
-using Utilities.Models.Results;
 using Utilities.Token;
 
 namespace ServiceLayer.Infrastructure;
@@ -22,12 +22,16 @@ public class GroupService(ITokenData tokenData,
     private readonly IUserGroupRepository _userGroupRepository = userGroupRepository;
     private readonly IUnitOfWork _unitOfWork = unitOfWork;
 
-    public async Task<AddGroupResponse> CreateGroup(GroupRequest groupRequest, CancellationToken ct)
+    public async Task<AddGroupResponse> CreateGroupAsync(GroupRequest groupRequest, CancellationToken ct)
     {
         if (!_tokenData.UserId.HasValue)
         {
-            _logger.LogWarning("CreateGroup called with no authenticated user.");
-            return new AddGroupResponse { StatusCode = HttpStatusCode.Unauthorized, Message = "Unauthorized" };
+            _logger.LogWarning("CreateGroupAsync called with no authenticated user.");
+            return new AddGroupResponse
+            {
+                StatusCode = HttpStatusCode.Unauthorized,
+                Message = "Unauthorized."
+            };
         }
 
         var userId = _tokenData.UserId!.Value;
@@ -43,10 +47,10 @@ public class GroupService(ITokenData tokenData,
             };
         }
 
-        Guid groupId = await _groupRepository.CreateGroup(groupRequest.GroupName, ct);
-        _ = await _userGroupRepository.AddUserToGroup(groupId, userId, ct);
+        Guid groupId = await _groupRepository.CreateGroupAsync(groupRequest.GroupName, ct);
+        _ = await _userGroupRepository.AddUserToGroupAsync(groupId, userId, ct);
 
-        await this._unitOfWork.SaveChanges(ct);
+        await this._unitOfWork.SaveChangesAsync(ct);
         _logger.LogInformation("Group [{GroupId}] created successfully.", groupId);
 
         return new AddGroupResponse
@@ -57,17 +61,21 @@ public class GroupService(ITokenData tokenData,
         };
     }
 
-    public async Task<UserGroupsResponse> GetGroupsForUser(CancellationToken ct)
+    public async Task<UserGroupsResponse> GetGroupsForUserAsync(CancellationToken ct)
     {
         if (!_tokenData.UserId.HasValue)
         {
-            _logger.LogWarning("GetGroupsForUser called with no authenticated user.");
-            return new UserGroupsResponse { StatusCode = HttpStatusCode.Unauthorized, Message = "Unauthorized" };
+            _logger.LogWarning("GetGroupsForUserAsync called with no authenticated user.");
+            return new UserGroupsResponse
+            {
+                StatusCode = HttpStatusCode.Unauthorized,
+                Message = "Unauthorized."
+            };
         }
 
         var userId = _tokenData.UserId!.Value;
 
-        var userGroups = await _userGroupRepository.GetGroupsForUser(userId, ct, false);
+        var userGroups = await _userGroupRepository.GetGroupsForUserAsync(userId, ct, false);
 
         _logger.LogInformation("Successfully retrieved groups for user {UserId}", userId);
 
@@ -77,6 +85,53 @@ public class GroupService(ITokenData tokenData,
             UserGroups = userGroups,
             StatusCode = HttpStatusCode.OK,
             Message = "Groups retrieved successfully."
+        };
+    }
+
+    public async Task<CommonResponse> LeaveGroupAsync(Guid groupId, CancellationToken ct)
+    {
+        if (!_tokenData.UserId.HasValue)
+        {
+            _logger.LogWarning("LeaveGroupAsync called with no authenticated user.");
+            return new CommonResponse
+            {
+                StatusCode = HttpStatusCode.Unauthorized,
+                Message = "Unauthorized."
+            };
+        }
+
+        var userId = _tokenData.UserId!.Value;
+
+        var isMember = await _userGroupRepository.IsUserInGroupAsync(groupId, userId, ct);
+        if (!isMember)
+        {
+            _logger.LogWarning("User {UserId} is not in group {GroupId}.", userId, groupId);
+            return new CommonResponse
+            {
+                StatusCode = HttpStatusCode.BadRequest,
+                Message = "You are not a member of this group."
+            };
+        }
+
+        var memberCount = await _userGroupRepository.GetGroupMemberCountAsync(groupId, ct);
+
+        await _userGroupRepository.RemoveUserFromGroupAsync(groupId, userId, ct);
+
+        var canGroupBeDeleted = memberCount == 1;
+        if (canGroupBeDeleted) // If a user joins the group between here and the group being deleted, an exception will be thrown and caught, and changes won't be saved
+        {
+            _logger.LogInformation("Group {GroupId} to be deleted as it has no members left.", groupId);
+            await _groupRepository.DeleteGroupAsync(groupId, ct);
+        }
+
+        await this._unitOfWork.SaveChangesAsync(ct);
+        _logger.LogInformation("User {UserId} left group {GroupId} successfully.", userId, groupId);
+
+        var message = $"Successfully left the group{(canGroupBeDeleted ? " and the group was deleted" : string.Empty)}.";
+        return new CommonResponse
+        {
+            StatusCode = HttpStatusCode.OK,
+            Message = message
         };
     }
 }

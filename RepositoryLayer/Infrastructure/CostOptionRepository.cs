@@ -12,7 +12,7 @@ public sealed class CostOptionRepository(ScranHubDbContext dbContext) : EFReposi
     {
         if (trackChanges)
         {
-            return await _dbContext.FindAsync<CostOption>([id], ct);
+            return await _dbSet.FindAsync([id], ct);
         }
 
         return await _dbSet.AsNoTracking().FirstOrDefaultAsync(x => x.CostOptionId == id, ct);

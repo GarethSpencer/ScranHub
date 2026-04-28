@@ -12,7 +12,7 @@ public sealed class RatingOptionRepository(ScranHubDbContext dbContext) : EFRepo
     {
         if (trackChanges)
         {
-            return await _dbContext.FindAsync<RatingOption>([id], ct);
+            return await _dbSet.FindAsync([id], ct);
         }
 
         return await _dbSet.AsNoTracking().FirstOrDefaultAsync(x => x.RatingOptionId == id, ct);

@@ -12,7 +12,7 @@ public sealed class FoodTypeOptionRepository(ScranHubDbContext dbContext) : EFRe
     {
         if (trackChanges)
         {
-            return await _dbContext.FindAsync<FoodTypeOption>([id], ct);
+            return await _dbSet.FindAsync([id], ct);
         }
 
         return await _dbSet.AsNoTracking().FirstOrDefaultAsync(x => x.FoodTypeOptionId == id, ct);

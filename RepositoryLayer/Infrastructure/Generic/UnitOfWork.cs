@@ -15,7 +15,7 @@ public class UnitOfWork : IUnitOfWork
         _tokenData = tokenData;
     }
 
-    public async Task<int> SaveChanges(CancellationToken ct = default)
+    public async Task<int> SaveChangesAsync(CancellationToken ct = default)
     {
         if (_tokenData?.UserId != null)
         {

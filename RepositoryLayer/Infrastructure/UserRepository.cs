@@ -12,7 +12,7 @@ public sealed class UserRepository(ScranHubDbContext dbContext) : EFRepository<U
     {
         if (trackChanges)
         {
-            return await _dbContext.FindAsync<User>([id], ct);
+            return await _dbSet.FindAsync([id], ct);
         }
 
         return await _dbSet.AsNoTracking().FirstOrDefaultAsync(x => x.UserId == id, ct);
@@ -42,7 +42,7 @@ public sealed class UserRepository(ScranHubDbContext dbContext) : EFRepository<U
         return await query.ToListAsync(ct);
     }
 
-    public async Task<User?> GetUserWithFriendsById(Guid userId, CancellationToken ct, bool trackChanges = false)
+    public async Task<User?> GetUserWithFriendsByIdAsync(Guid userId, CancellationToken ct, bool trackChanges = false)
     {
         IQueryable<User> query = _dbSet
             .Where(x => x.UserId == userId)
@@ -57,7 +57,7 @@ public sealed class UserRepository(ScranHubDbContext dbContext) : EFRepository<U
         return await query.FirstOrDefaultAsync(ct);
     }
 
-    public async Task<User?> GetUserGroupsById(Guid userId, CancellationToken ct, bool trackChanges = false)
+    public async Task<User?> GetUserGroupsByIdAsync(Guid userId, CancellationToken ct, bool trackChanges = false)
     {
         IQueryable<User> query = _dbSet
             .Where(x => x.UserId == userId)

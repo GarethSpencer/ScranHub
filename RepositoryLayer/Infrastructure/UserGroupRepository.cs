@@ -3,14 +3,13 @@ using DAL.Entities;
 using Microsoft.EntityFrameworkCore;
 using RepositoryLayer.Abstractions;
 using RepositoryLayer.Infrastructure.Generic;
-using Utilities.Models.Responses.Groups;
 using Utilities.Models.Results;
 
 namespace RepositoryLayer.Infrastructure;
 
 public sealed class UserGroupRepository(ScranHubDbContext dbContext) : EFRepository<UserGroup>(dbContext), IUserGroupRepository
 {
-    public async Task<Guid> AddUserToGroup(Guid groupId, Guid userId, CancellationToken ct)
+    public async Task<Guid> AddUserToGroupAsync(Guid groupId, Guid userId, CancellationToken ct)
     {
         var userGroup = new UserGroup
         {
@@ -21,7 +20,7 @@ public sealed class UserGroupRepository(ScranHubDbContext dbContext) : EFReposit
         return userGroup.UserGroupId;
     }
 
-    public async Task<IEnumerable<UserGroupResult>> GetGroupsForUser(Guid userId, CancellationToken ct, bool trackChanges = false)
+    public async Task<IEnumerable<UserGroupResult>> GetGroupsForUserAsync(Guid userId, CancellationToken ct, bool trackChanges = false)
     {
         var query = _dbSet.Where(ug => ug.UserId == userId);
 
@@ -39,5 +38,24 @@ public sealed class UserGroupRepository(ScranHubDbContext dbContext) : EFReposit
             .ToListAsync(ct);
 
         return userGroups;
+    }
+
+    public async Task<bool> IsUserInGroupAsync(Guid groupId, Guid userId, CancellationToken ct)
+    {
+        return await _dbSet.AnyAsync(ug => ug.GroupId == groupId && ug.UserId == userId, ct);
+    }
+
+    public async Task<int> GetGroupMemberCountAsync(Guid groupId, CancellationToken ct)
+    {
+        return await _dbSet.CountAsync(ug => ug.GroupId == groupId, ct);
+    }
+
+    public async Task RemoveUserFromGroupAsync(Guid groupId, Guid userId, CancellationToken ct)
+    {
+        var userGroup = await _dbSet.FirstOrDefaultAsync(ug => ug.GroupId == groupId && ug.UserId == userId, ct);
+        if (userGroup != null)
+        {
+            _dbSet.Remove(userGroup);
+        }
     }
 }

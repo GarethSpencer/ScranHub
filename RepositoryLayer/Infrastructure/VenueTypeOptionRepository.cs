@@ -12,7 +12,7 @@ public sealed class VenueTypeOptionRepository(ScranHubDbContext dbContext) : EFR
     {
         if (trackChanges)
         {
-            return await _dbContext.FindAsync<VenueTypeOption>([id], ct);
+            return await _dbSet.FindAsync([id], ct);
         }
 
         return await _dbSet.AsNoTracking().FirstOrDefaultAsync(x => x.VenueTypeOptionId == id, ct);

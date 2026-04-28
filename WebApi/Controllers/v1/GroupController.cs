@@ -20,7 +20,7 @@ public class GroupController(
     [HttpGet("me")]
     public async Task<IActionResult> GetUserGroups(CancellationToken ct)
     {
-        var response = await _groupService.GetGroupsForUser(ct);
+        var response = await _groupService.GetGroupsForUserAsync(ct);
 
         return StatusCode((int)response.StatusCode, response);
     }
@@ -34,7 +34,15 @@ public class GroupController(
             return BadRequest(ValidationErrorFormatter.FormatErrors(validation));
         }
 
-        var response = await _groupService.CreateGroup(groupRequest, ct);
+        var response = await _groupService.CreateGroupAsync(groupRequest, ct);
+
+        return StatusCode((int)response.StatusCode, response);
+    }
+
+    [HttpDelete("{groupId}/members/me")]
+    public async Task<IActionResult> LeaveGroup([FromRoute] Guid groupId, CancellationToken ct)
+    {
+        var response = await _groupService.LeaveGroupAsync(groupId, ct);
 
         return StatusCode((int)response.StatusCode, response);
     }

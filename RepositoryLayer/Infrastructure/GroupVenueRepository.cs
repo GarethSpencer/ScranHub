@@ -12,7 +12,7 @@ public sealed class GroupVenueRepository(ScranHubDbContext dbContext) : EFReposi
     {
         if (trackChanges)
         {
-            return await _dbContext.FindAsync<GroupVenue>([id], ct);
+            return await _dbSet.FindAsync([id], ct);
         }
 
         return await _dbSet.AsNoTracking().FirstOrDefaultAsync(x => x.GroupVenueId == id, ct);
