@@ -46,4 +46,12 @@ public class GroupController(
 
         return StatusCode((int)response.StatusCode, response);
     }
+
+    [HttpPost("{groupId}/members/me")]
+    public async Task<IActionResult> JoinGroup([FromRoute] Guid groupId, CancellationToken ct)
+    {
+        var response = await _groupService.JoinGroupAsync(groupId, ct);
+
+        return StatusCode((int)response.StatusCode, response);
+    }
 }

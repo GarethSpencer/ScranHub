@@ -102,6 +102,17 @@ public class GroupService(ITokenData tokenData,
             };
         }
 
+        var groupExists = await _groupRepository.ExistsAsync(x => x.GroupId == groupId, ct);
+        if (!groupExists)
+        {
+            _logger.LogWarning("JoinGroupAsync called with non-existent group {GroupId}.", groupId);
+            return new CommonResponse
+            {
+                StatusCode = HttpStatusCode.NotFound,
+                Message = "Group not found."
+            };
+        }
+
         var userId = _tokenData.UserId!.Value;
 
         var isMember = await _userGroupRepository.IsUserInGroupAsync(groupId, userId, ct);
@@ -131,11 +142,60 @@ public class GroupService(ITokenData tokenData,
         await this._unitOfWork.SaveChangesAsync(ct);
         _logger.LogInformation("User {UserId} left group {GroupId} successfully.", userId, groupId);
 
-        var message = $"Successfully left the group.";
         return new CommonResponse
         {
             StatusCode = HttpStatusCode.OK,
-            Message = message
+            Message = "Successfully left the group."
+        };
+    }
+
+    public async Task<CommonResponse> JoinGroupAsync(Guid groupId, CancellationToken ct)
+    {
+        if (!_tokenData.UserId.HasValue)
+        {
+            _logger.LogWarning("JoinGroupAsync called with no authenticated user.");
+            return new CommonResponse
+            {
+                StatusCode = HttpStatusCode.Unauthorized,
+                Message = "Unauthorized."
+            };
+        }
+
+        var groupExists = await _groupRepository.ExistsAsync(x => x.GroupId == groupId, ct);
+        if (!groupExists)
+        {
+            _logger.LogWarning("JoinGroupAsync called with non-existent group {GroupId}.", groupId);
+            return new CommonResponse
+            {
+                StatusCode = HttpStatusCode.NotFound,
+                Message = "Group not found."
+            };
+        }
+
+        var userId = _tokenData.UserId!.Value;
+
+        var isMember = await _userGroupRepository.IsUserInGroupAsync(groupId, userId, ct);
+        if (isMember)
+        {
+            _logger.LogWarning("User {UserId} is already in group {GroupId}.", userId, groupId);
+            return new CommonResponse
+            {
+                StatusCode = HttpStatusCode.BadRequest,
+                Message = "You are already a member of this group."
+            };
+        }
+
+        //TODO friend check
+
+        await _userGroupRepository.AddUserToGroupAsync(groupId, userId, ct);
+
+        await this._unitOfWork.SaveChangesAsync(ct);
+        _logger.LogInformation("User {UserId} joined group {GroupId} successfully.", userId, groupId);
+
+        return new CommonResponse
+        {
+            StatusCode = HttpStatusCode.OK,
+            Message = "Successfully joined the group."
         };
     }
 }
