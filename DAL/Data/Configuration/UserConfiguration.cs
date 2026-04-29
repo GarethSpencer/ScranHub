@@ -20,6 +20,17 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
             Admin = true,
             CreatedOn = SeedConstants.CreatedDate,
             CreatedBy = SeedConstants.AdminId
-        });
+        },
+        new User
+        {
+            UserId = SeedConstants.NonAdminId,
+            DisplayName = "Non-Admin User",
+            Email = "nonadmin@example.com",
+            Active = true,
+            Admin = false,
+            CreatedOn = SeedConstants.CreatedDate,
+            CreatedBy = SeedConstants.AdminId
+        }
+        );
     }
 }

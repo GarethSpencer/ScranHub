@@ -70,4 +70,10 @@ public sealed class UserRepository(ScranHubDbContext dbContext) : EFRepository<U
 
         return await query.FirstOrDefaultAsync(ct);
     }
+
+    public async Task<bool> IsUserAdmin(Guid userId, CancellationToken ct)
+    {
+        var user = await _dbSet.FindAsync([userId], ct);
+        return user != null && user.Admin;
+    }
 }

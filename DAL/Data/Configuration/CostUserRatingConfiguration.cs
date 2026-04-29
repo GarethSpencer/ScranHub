@@ -11,7 +11,7 @@ public class CostUserRatingConfiguration : IEntityTypeConfiguration<CostUserRati
         builder.HasOne(co => co.GroupVenue)
             .WithMany(g => g.CostUserRatings)
             .HasForeignKey(co => co.GroupVenueId)
-            .OnDelete(DeleteBehavior.Restrict);
+            .OnDelete(DeleteBehavior.Cascade);
 
         builder.HasOne(co => co.User)
             .WithMany(u => u.CostUserRatings)

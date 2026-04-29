@@ -13,7 +13,7 @@ public class RatingOptionConfiguration : IEntityTypeConfiguration<RatingOption>
         builder.HasOne(ro => ro.Group)
             .WithMany(g => g.RatingOptions)
             .HasForeignKey(ro => ro.GroupId)
-            .OnDelete(DeleteBehavior.Restrict);
+            .OnDelete(DeleteBehavior.Cascade);
 
         builder.HasData(
             new RatingOption { RatingOptionId = Guid.Parse("00000000-0000-0000-0002-000000000001"), GroupId = null, Label = "Great",   DisplayOrder = 1, CreatedOn = SeedConstants.CreatedDate, CreatedBy = SeedConstants.AdminId },

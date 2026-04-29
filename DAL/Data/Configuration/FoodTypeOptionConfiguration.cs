@@ -13,7 +13,7 @@ public class FoodTypeOptionConfiguration : IEntityTypeConfiguration<FoodTypeOpti
         builder.HasOne(ft => ft.Group)
             .WithMany(g => g.FoodTypeOptions)
             .HasForeignKey(ft => ft.GroupId)
-            .OnDelete(DeleteBehavior.Restrict);
+            .OnDelete(DeleteBehavior.Cascade);
 
         builder.HasData(
             new FoodTypeOption { FoodTypeOptionId = Guid.Parse("00000000-0000-0000-0003-000000000001"), GroupId = null, Label = "Café",     DisplayOrder = 1, CreatedOn = SeedConstants.CreatedDate, CreatedBy = SeedConstants.AdminId },

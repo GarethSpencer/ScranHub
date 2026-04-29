@@ -13,7 +13,7 @@ public class CostOptionConfiguration : IEntityTypeConfiguration<CostOption>
         builder.HasOne(co => co.Group)
             .WithMany(g => g.CostOptions)
             .HasForeignKey(co => co.GroupId)
-            .OnDelete(DeleteBehavior.Restrict);
+            .OnDelete(DeleteBehavior.Cascade);
 
         builder.HasData(
             new CostOption { CostOptionId = Guid.Parse("00000000-0000-0000-0001-000000000001"), GroupId = null, Label = "Cheap",      DisplayOrder = 1, CreatedOn = SeedConstants.CreatedDate, CreatedBy = SeedConstants.AdminId },

@@ -12,12 +12,14 @@ namespace ServiceLayer.Infrastructure;
 
 public class GroupService(ITokenData tokenData,
     ILogger<GroupService> logger,
+    IUserRepository userRepository,
     IGroupRepository groupRepository,
     IUserGroupRepository userGroupRepository,
     IUnitOfWork unitOfWork) : IGroupService
 {
     private readonly ITokenData _tokenData = tokenData;
     private readonly ILogger<GroupService> _logger = logger;
+    private readonly IUserRepository _userRepository = userRepository;
     private readonly IGroupRepository _groupRepository = groupRepository;
     private readonly IUserGroupRepository _userGroupRepository = userGroupRepository;
     private readonly IUnitOfWork _unitOfWork = unitOfWork;
@@ -113,21 +115,23 @@ public class GroupService(ITokenData tokenData,
             };
         }
 
-        var memberCount = await _userGroupRepository.GetGroupMemberCountAsync(groupId, ct);
+        var didUserCreateGroup = await _groupRepository.DidUserCreateGroupAsync(groupId, userId, ct);
+        if (didUserCreateGroup)
+        {
+            _logger.LogWarning("User {UserId} cannot leave group {GroupId} as they are the creator.", userId, groupId);
+            return new CommonResponse
+            {
+                StatusCode = HttpStatusCode.BadRequest,
+                Message = "You cannot leave a group you created. Please delete the group instead."
+            };
+        }
 
         await _userGroupRepository.RemoveUserFromGroupAsync(groupId, userId, ct);
-
-        var canGroupBeDeleted = memberCount == 1;
-        if (canGroupBeDeleted) // If a user joins the group between here and the group being deleted, an exception will be thrown and caught, and changes won't be saved
-        {
-            _logger.LogInformation("Group {GroupId} to be deleted as it has no members left.", groupId);
-            await _groupRepository.DeleteGroupAsync(groupId, ct);
-        }
 
         await this._unitOfWork.SaveChangesAsync(ct);
         _logger.LogInformation("User {UserId} left group {GroupId} successfully.", userId, groupId);
 
-        var message = $"Successfully left the group{(canGroupBeDeleted ? " and the group was deleted" : string.Empty)}.";
+        var message = $"Successfully left the group.";
         return new CommonResponse
         {
             StatusCode = HttpStatusCode.OK,

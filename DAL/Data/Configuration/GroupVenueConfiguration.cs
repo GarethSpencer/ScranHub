@@ -13,7 +13,7 @@ public class GroupVenueConfiguration : IEntityTypeConfiguration<GroupVenue>
         builder.HasOne(gv => gv.Group)
             .WithMany(g => g.GroupVenues)
             .HasForeignKey(gv => gv.GroupId)
-            .OnDelete(DeleteBehavior.Restrict);
+            .OnDelete(DeleteBehavior.Cascade);
 
         builder.HasOne(gv => gv.FoodTypeOption)
             .WithMany(ft => ft.GroupVenues)

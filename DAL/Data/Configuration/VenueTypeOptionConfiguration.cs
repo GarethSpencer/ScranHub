@@ -13,7 +13,7 @@ public class VenueTypeOptionConfiguration : IEntityTypeConfiguration<VenueTypeOp
         builder.HasOne(vt => vt.Group)
             .WithMany(g => g.VenueTypeOptions)
             .HasForeignKey(vt => vt.GroupId)
-            .OnDelete(DeleteBehavior.Restrict);
+            .OnDelete(DeleteBehavior.Cascade);
 
         builder.HasData(
             new VenueTypeOption { VenueTypeOptionId = Guid.Parse("00000000-0000-0000-0004-000000000001"), GroupId = null, Label = "Eat-In",   DisplayOrder = 1, CreatedOn = SeedConstants.CreatedDate, CreatedBy = SeedConstants.AdminId },
