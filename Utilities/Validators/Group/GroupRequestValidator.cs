@@ -1,7 +1,4 @@
 ﻿using FluentValidation;
-using System;
-using System.Collections.Generic;
-using System.Text;
 using Utilities.Models.Requests;
 
 namespace Utilities.Validators.Group;
@@ -11,7 +8,15 @@ public class GroupRequestValidator : AbstractValidator<GroupRequest>
     public GroupRequestValidator()
     {
         RuleFor(x => x.GroupName)
-            .NotEmpty().WithMessage("Group name is required.")
-            .MaximumLength(30).WithMessage("Group name must not exceed 30 characters.");
+            .NotEmpty().WithMessage("Name is required.")
+            .MaximumLength(30).WithMessage("Name must not exceed 30 characters.")
+            .Must(name => CheckProfanity(name)).WithMessage("Name must not contain profanity.");
+    }
+
+    private static bool CheckProfanity(string groupName)
+    {
+        var filter = new ProfanityFilter.ProfanityFilter();
+        var detected = filter.DetectAllProfanities(groupName);
+        return detected == null || detected.Count == 0;
     }
 }
