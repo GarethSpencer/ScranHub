@@ -1,15 +1,15 @@
 ﻿using DAL.Entities;
 using RepositoryLayer.Abstractions.Generic;
+using Utilities.Models.Requests;
+using Utilities.Models.Results;
 
 namespace RepositoryLayer.Abstractions
 {
     public interface IGroupRepository : IEFRepository<Group>
     {
-        Task<IEnumerable<Group>> GetAllActiveGroupsAsync(CancellationToken ct, bool trackChanges = false);
+        Task<GroupResult?> GetDetailsByIdAsync(Guid id, CancellationToken ct);
 
-        Task<Group?> GetByIdAsync(Guid id, CancellationToken ct, bool trackChanges = false);
-
-        Task<Group?> GetByNameAsync(string name, CancellationToken ct, bool trackChanges = false);
+        Task<GroupResult?> GetByNameAsync(string name, CancellationToken ct);
 
         Task<Guid> CreateAsync(string groupName, CancellationToken ct);
 
@@ -18,5 +18,7 @@ namespace RepositoryLayer.Abstractions
         Task<bool> DidUserCreateGroupAsync(Guid groupId, Guid userId, CancellationToken ct);
 
         Task DeactivateAsync(Guid groupId, CancellationToken ct);
+
+        Task UpdateAsync(Guid groupId, UpdateGroupRequest groupRequest, CancellationToken ct);
     }
 }

@@ -6,7 +6,9 @@ namespace ServiceLayer.Abstractions;
 
 public interface IGroupService
 {
-    Task<AddGroupResponse> CreateGroupAsync(GroupRequest groupRequest, CancellationToken ct);
+    Task<AddGroupResponse> CreateGroupAsync(CreateGroupRequest groupRequest, CancellationToken ct);
+
+    Task<CommonResponse> UpdateGroupAsync(Guid groupId, UpdateGroupRequest groupRequest, CancellationToken ct);
 
     Task<UserGroupsResponse> GetGroupsForUserAsync(CancellationToken ct);
 

@@ -12,10 +12,12 @@ namespace WebApi.Controllers.v1;
 [ApiVersion("1.0")]
 public class GroupController(
     IGroupService groupService,
-    IValidator<GroupRequest> groupRequestValidator) : ControllerBase
+    IValidator<CreateGroupRequest> createGroupRequestValidator,
+    IValidator<UpdateGroupRequest> updateGroupRequestValidator) : ControllerBase
 {
     private readonly IGroupService _groupService = groupService;
-    private readonly IValidator<GroupRequest> _groupRequestValidator = groupRequestValidator;
+    private readonly IValidator<CreateGroupRequest> _createGroupRequestValidator = createGroupRequestValidator;
+    private readonly IValidator<UpdateGroupRequest> _updateGroupRequestValidator = updateGroupRequestValidator;
 
     [HttpGet("me")]
     public async Task<IActionResult> GetUserGroups(CancellationToken ct)
@@ -26,15 +28,15 @@ public class GroupController(
     }
 
     [HttpPost]
-    public async Task<IActionResult> CreateGroup([FromBody] GroupRequest groupRequest, CancellationToken ct)
+    public async Task<IActionResult> CreateGroup([FromBody] CreateGroupRequest createGroupRequest, CancellationToken ct)
     {
-        var validation = await _groupRequestValidator.ValidateAsync(groupRequest);
+        var validation = await _createGroupRequestValidator.ValidateAsync(createGroupRequest, ct);
         if (!validation.IsValid)
         {
             return BadRequest(ValidationErrorFormatter.FormatErrors(validation));
         }
 
-        var response = await _groupService.CreateGroupAsync(groupRequest, ct);
+        var response = await _groupService.CreateGroupAsync(createGroupRequest, ct);
 
         return StatusCode((int)response.StatusCode, response);
     }
@@ -43,6 +45,20 @@ public class GroupController(
     public async Task<IActionResult> DeleteGroup([FromRoute] Guid groupId, CancellationToken ct)
     {
         var response = await _groupService.DeleteGroupAsync(groupId, ct);
+
+        return StatusCode((int)response.StatusCode, response);
+    }
+
+    [HttpPatch("{groupId}")]
+    public async Task<IActionResult> UpdateGroup([FromRoute] Guid groupId, [FromBody] UpdateGroupRequest updateGroupRequest, CancellationToken ct)
+    {
+        var validation = await _updateGroupRequestValidator.ValidateAsync(updateGroupRequest, ct);
+        if (!validation.IsValid)
+        {
+            return BadRequest(ValidationErrorFormatter.FormatErrors(validation));
+        }
+
+        var response = await _groupService.UpdateGroupAsync(groupId, updateGroupRequest, ct);
 
         return StatusCode((int)response.StatusCode, response);
     }

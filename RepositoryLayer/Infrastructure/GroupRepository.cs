@@ -3,44 +3,47 @@ using DAL.Entities;
 using Microsoft.EntityFrameworkCore;
 using RepositoryLayer.Abstractions;
 using RepositoryLayer.Infrastructure.Generic;
+using Utilities.Models.Results;
 using Utilities.Models.Requests;
 
 namespace RepositoryLayer.Infrastructure;
 
 public sealed class GroupRepository(ScranHubDbContext dbContext) : EFRepository<Group>(dbContext), IGroupRepository
 {
-    public async Task<Group?> GetByIdAsync(Guid id, CancellationToken ct, bool trackChanges = false)
+    public async Task<GroupResult?> GetDetailsByIdAsync(Guid id, CancellationToken ct)
     {
-        if (trackChanges)
+        var group = await _dbSet.FindAsync([id], ct);
+
+        if (group == null)
         {
-            return await _dbSet.FindAsync([id], ct);
+            return null;
         }
 
-        return await _dbSet.AsNoTracking().FirstOrDefaultAsync(x => x.GroupId == id, ct);
+        return new GroupResult
+        {
+            GroupId = group.GroupId,
+            GroupName = group.GroupName,
+            Active = group.Active,
+            CreatedBy = group.CreatedBy
+        };
     }
 
-    public async Task<Group?> GetByNameAsync(string name, CancellationToken ct, bool trackChanges = false)
+    public async Task<GroupResult?> GetByNameAsync(string name, CancellationToken ct)
     {
-        IQueryable<Group> query = _dbSet.Where(x => x.GroupName == name);
+        var group = await _dbSet.FirstOrDefaultAsync(x => x.GroupName == name, ct);
 
-        if (!trackChanges)
+        if (group == null)
         {
-            query = query.AsNoTracking();
+            return null;
         }
 
-        return await query.FirstOrDefaultAsync(ct);
-    }
-
-    public async Task<IEnumerable<Group>> GetAllActiveGroupsAsync(CancellationToken ct, bool trackChanges = false)
-    {
-        IQueryable<Group> query = _dbSet.Where(x => x.Active);
-
-        if (!trackChanges)
+        return new GroupResult
         {
-            query = query.AsNoTracking();
-        }
-
-        return await query.ToListAsync(ct);
+            GroupId = group.GroupId,
+            GroupName = group.GroupName,
+            Active = group.Active,
+            CreatedBy = group.CreatedBy
+        };
     }
 
     public async Task<Guid> CreateAsync(string groupName, CancellationToken ct)
@@ -75,5 +78,15 @@ public sealed class GroupRepository(ScranHubDbContext dbContext) : EFRepository<
     public async Task<bool> DidUserCreateGroupAsync(Guid groupId, Guid userId, CancellationToken ct)
     {
         return await _dbSet.AnyAsync(ug => ug.GroupId == groupId && ug.CreatedBy == userId, ct);
+    }
+
+    public async Task UpdateAsync(Guid groupId, UpdateGroupRequest groupRequest, CancellationToken ct)
+    {
+        var group = await _dbSet.FindAsync([groupId], ct);
+        if (group != null)
+        {
+            group.GroupName = groupRequest.GroupName;
+            group.Active = groupRequest.Active;
+        }
     }
 }

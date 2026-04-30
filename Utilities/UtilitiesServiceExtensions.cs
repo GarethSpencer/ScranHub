@@ -19,6 +19,7 @@ public static class UtilitiesServiceExtensions
 
     private static void RegisterValidators(this IServiceCollection services)
     {
-        services.AddScoped<IValidator<GroupRequest>, GroupRequestValidator>();
+        services.AddScoped<IValidator<CreateGroupRequest>, CreateGroupRequestValidator>();
+        services.AddScoped<IValidator<UpdateGroupRequest>, UpdateGroupRequestValidator>();
     }
 }

@@ -8,7 +8,7 @@ namespace RepositoryLayer.Abstractions
     {
         Task<Guid> AddUserToGroupAsync(Guid groupId, Guid userId, CancellationToken ct);
 
-        Task<IEnumerable<UserGroupResult>> GetGroupsForUserAsync(Guid userId, CancellationToken ct, bool trackChanges = false);
+        Task<IEnumerable<GroupResult>> GetGroupsForUserAsync(Guid userId, CancellationToken ct);
 
         Task<bool> IsUserInGroupAsync(Guid groupId, Guid userId, CancellationToken ct);
 

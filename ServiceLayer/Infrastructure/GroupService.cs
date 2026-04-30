@@ -24,7 +24,7 @@ public class GroupService(ITokenData tokenData,
     private readonly IUserGroupRepository _userGroupRepository = userGroupRepository;
     private readonly IUnitOfWork _unitOfWork = unitOfWork;
 
-    public async Task<AddGroupResponse> CreateGroupAsync(GroupRequest groupRequest, CancellationToken ct)
+    public async Task<AddGroupResponse> CreateGroupAsync(CreateGroupRequest groupRequest, CancellationToken ct)
     {
         if (!_tokenData.UserId.HasValue)
         {
@@ -38,8 +38,8 @@ public class GroupService(ITokenData tokenData,
 
         var userId = _tokenData.UserId!.Value;
 
-        var groupExists = await _groupRepository.ExistsAsync(x => x.GroupName == groupRequest.GroupName, ct);
-        if (groupExists)
+        var groupNameExists = await _groupRepository.ExistsAsync(x => String.Equals(x.GroupName, groupRequest.GroupName, StringComparison.OrdinalIgnoreCase), ct);
+        if (groupNameExists)
         {
             _logger.LogWarning("Group with name {GroupName} already exists.", groupRequest.GroupName);
             return new AddGroupResponse
@@ -52,7 +52,7 @@ public class GroupService(ITokenData tokenData,
         Guid groupId = await _groupRepository.CreateAsync(groupRequest.GroupName, ct);
         _ = await _userGroupRepository.AddUserToGroupAsync(groupId, userId, ct);
 
-        await this._unitOfWork.SaveChangesAsync(ct);
+        await _unitOfWork.SaveChangesAsync(ct);
         _logger.LogInformation("Group [{GroupId}] created successfully.", groupId);
 
         return new AddGroupResponse
@@ -60,6 +60,68 @@ public class GroupService(ITokenData tokenData,
             StatusCode = HttpStatusCode.Created,
             Message = $"Group with name {groupRequest.GroupName} created successfully.",
             GroupId = groupId
+        };
+    }
+
+    public async Task<CommonResponse> UpdateGroupAsync(Guid groupId, UpdateGroupRequest groupRequest, CancellationToken ct)
+    {
+        if (!_tokenData.UserId.HasValue)
+        {
+            _logger.LogWarning("UpdateGroupAsync called with no authenticated user.");
+            return new CommonResponse
+            {
+                StatusCode = HttpStatusCode.Unauthorized,
+                Message = "Unauthorized."
+            };
+        }
+
+        var group = await _groupRepository.GetDetailsByIdAsync(groupId, ct);
+        if (group == null)
+        {
+            _logger.LogWarning("Group with ID {GroupId} not found.", groupId);
+            return new CommonResponse
+            {
+                StatusCode = HttpStatusCode.NotFound,
+                Message = $"Group with ID {groupId} not found."
+            };
+        }
+
+        var userId = _tokenData.UserId!.Value;
+
+        var didUserCreateGroup = await _groupRepository.DidUserCreateGroupAsync(groupId, userId, ct);
+        if (!didUserCreateGroup)
+        {
+            _logger.LogWarning("User {UserId} cannot update group {GroupId} as they are not the creator.", userId, groupId);
+            return new CommonResponse
+            {
+                StatusCode = HttpStatusCode.Forbidden,
+                Message = "You cannot update a group you did not create."
+            };
+        }
+
+        if (!String.Equals(group.GroupName, groupRequest.GroupName, StringComparison.OrdinalIgnoreCase))
+        {
+            var groupNameExists = await _groupRepository.ExistsAsync(x => String.Equals(x.GroupName, groupRequest.GroupName, StringComparison.OrdinalIgnoreCase), ct);
+            if (groupNameExists)
+            {
+                _logger.LogWarning("Group with name {GroupName} already exists.", groupRequest.GroupName);
+                return new CommonResponse
+                {
+                    StatusCode = HttpStatusCode.Conflict,
+                    Message = $"Group with name {groupRequest.GroupName} already exists."
+                };
+            }
+        }
+
+        await _groupRepository.UpdateAsync(groupId, groupRequest, ct);
+
+        await _unitOfWork.SaveChangesAsync(ct);
+        _logger.LogInformation("Group [{GroupId}] updated successfully.", groupId);
+
+        return new CommonResponse
+        {
+            StatusCode = HttpStatusCode.OK,
+            Message = "Group updated successfully.",
         };
     }
 
@@ -77,7 +139,7 @@ public class GroupService(ITokenData tokenData,
 
         var userId = _tokenData.UserId!.Value;
 
-        var userGroups = await _userGroupRepository.GetGroupsForUserAsync(userId, ct, false);
+        var userGroups = await _userGroupRepository.GetGroupsForUserAsync(userId, ct);
 
         _logger.LogInformation("Successfully retrieved groups for user {UserId}", userId);
 
@@ -105,7 +167,7 @@ public class GroupService(ITokenData tokenData,
         var groupExists = await _groupRepository.ExistsAsync(x => x.GroupId == groupId, ct);
         if (!groupExists)
         {
-            _logger.LogWarning("JoinGroupAsync called with non-existent group {GroupId}.", groupId);
+            _logger.LogWarning("LeaveGroupAsync called with non-existent group {GroupId}.", groupId);
             return new CommonResponse
             {
                 StatusCode = HttpStatusCode.NotFound,
@@ -132,14 +194,14 @@ public class GroupService(ITokenData tokenData,
             _logger.LogWarning("User {UserId} cannot leave group {GroupId} as they are the creator.", userId, groupId);
             return new CommonResponse
             {
-                StatusCode = HttpStatusCode.BadRequest,
+                StatusCode = HttpStatusCode.Forbidden,
                 Message = "You cannot leave a group you created. Please delete the group instead."
             };
         }
 
         await _userGroupRepository.RemoveUserFromGroupAsync(groupId, userId, ct);
 
-        await this._unitOfWork.SaveChangesAsync(ct);
+        await _unitOfWork.SaveChangesAsync(ct);
         _logger.LogInformation("User {UserId} left group {GroupId} successfully.", userId, groupId);
 
         return new CommonResponse
@@ -189,7 +251,7 @@ public class GroupService(ITokenData tokenData,
 
         await _userGroupRepository.AddUserToGroupAsync(groupId, userId, ct);
 
-        await this._unitOfWork.SaveChangesAsync(ct);
+        await _unitOfWork.SaveChangesAsync(ct);
         _logger.LogInformation("User {UserId} joined group {GroupId} successfully.", userId, groupId);
 
         return new CommonResponse
@@ -231,14 +293,14 @@ public class GroupService(ITokenData tokenData,
             _logger.LogWarning("User {UserId} is not an admin and cannot delete group {GroupId}.", userId, groupId);
             return new CommonResponse
             {
-                StatusCode = HttpStatusCode.BadRequest,
+                StatusCode = HttpStatusCode.Forbidden,
                 Message = "You are not an admin and cannot delete groups."
             };
         }
 
         await _groupRepository.DeleteAsync(groupId, ct);
 
-        await this._unitOfWork.SaveChangesAsync(ct);
+        await _unitOfWork.SaveChangesAsync(ct);
         _logger.LogInformation("User {UserId} deleted group {GroupId} successfully.", userId, groupId);
 
         return new CommonResponse

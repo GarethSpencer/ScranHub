@@ -20,22 +20,17 @@ public sealed class UserGroupRepository(ScranHubDbContext dbContext) : EFReposit
         return userGroup.UserGroupId;
     }
 
-    public async Task<IEnumerable<UserGroupResult>> GetGroupsForUserAsync(Guid userId, CancellationToken ct, bool trackChanges = false)
+    public async Task<IEnumerable<GroupResult>> GetGroupsForUserAsync(Guid userId, CancellationToken ct)
     {
         var query = _dbSet.Where(ug => ug.UserId == userId);
 
-        if (!trackChanges)
-        {
-            query = query.AsNoTracking();
-        }
-
         var userGroups = await query
-            .Select(ug => new UserGroupResult
+            .Select(ug => new GroupResult
             {
                 GroupId = ug.GroupId,
                 GroupName = ug.Group!.GroupName,
                 Active = ug.Group.Active,
-                CreatedByUser = ug.Group.CreatedBy == userId
+                CreatedBy = ug.Group.CreatedBy
             })
             .ToListAsync(ct);
 
