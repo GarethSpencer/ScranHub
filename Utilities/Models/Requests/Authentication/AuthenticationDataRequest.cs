@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel;
 
-namespace Utilities.Models.Requests;
+namespace Utilities.Models.Requests.Authentication;
 
 public record AuthenticationDataRequest
 {

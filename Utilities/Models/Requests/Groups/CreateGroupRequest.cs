@@ -1,4 +1,4 @@
-﻿namespace Utilities.Models.Requests;
+﻿namespace Utilities.Models.Requests.Groups;
 
 public record CreateGroupRequest
 {

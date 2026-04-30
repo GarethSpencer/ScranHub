@@ -3,7 +3,7 @@ using Utilities.Models.Results;
 
 namespace Utilities.Models.Responses.Groups;
 
-public class GetGroupResponse : CommonResponse
+public class SearchGroupsResponse : CommonResponse
 {
-    public GroupResult? Group { get; set; }
+    public IEnumerable<GroupResult>? Groups { get; set; }
 }

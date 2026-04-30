@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ServiceLayer.Abstractions;
-using Utilities.Models.Requests;
+using Utilities.Models.Requests.Authentication;
 
 namespace WebApi.Controllers.v1;
 

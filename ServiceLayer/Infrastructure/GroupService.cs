@@ -3,8 +3,8 @@ using RepositoryLayer.Abstractions;
 using RepositoryLayer.Abstractions.Generic;
 using ServiceLayer.Abstractions;
 using System.Net;
-using Utilities.Models.Requests;
-using Utilities.Models.Responses.GenericResponses;
+using Utilities.Models.Requests.Groups;
+using Utilities.Models.Responses.Generic;
 using Utilities.Models.Responses.Groups;
 using Utilities.Token;
 
@@ -65,6 +65,16 @@ public class GroupService(ITokenData tokenData,
 
     public async Task<GetGroupResponse> GetGroupAsync(Guid groupId, CancellationToken ct)
     {
+        if (!_tokenData.UserId.HasValue)
+        {
+            _logger.LogWarning("GetGroupAsync called with no authenticated user.");
+            return new GetGroupResponse
+            {
+                StatusCode = HttpStatusCode.Unauthorized,
+                Message = "Unauthorized."
+            };
+        }
+
         var group = await _groupRepository.GetDetailsByIdAsync(groupId, ct);
 
         if (group == null)
@@ -82,6 +92,38 @@ public class GroupService(ITokenData tokenData,
             StatusCode = HttpStatusCode.OK,
             Message = $"Group returned successfully.",
             Group = group
+        };
+    }
+
+    public async Task<SearchGroupsResponse> SearchGroupsAsync(string searchText, CancellationToken ct)
+    {
+        if (!_tokenData.UserId.HasValue)
+        {
+            _logger.LogWarning("SearchGroupsAsync called with no authenticated user.");
+            return new SearchGroupsResponse
+            {
+                StatusCode = HttpStatusCode.Unauthorized,
+                Message = "Unauthorized."
+            };
+        }
+
+        var groups = await _groupRepository.SearchByNameAsync(searchText, ct);
+
+        var userId = _tokenData.UserId!.Value;
+        var isAdmin = await _userRepository.IsUserAdminAsync(userId, ct);
+
+        if (!isAdmin && groups != null)
+        {
+            _logger.LogInformation("Groups filtered for non-admin user {UserId}.", userId);
+            groups = [.. groups.Where(g => g.Active)];
+            //TODO filter by friend
+        }
+
+        return new SearchGroupsResponse
+        {
+            StatusCode = HttpStatusCode.OK,
+            Message = $"Groups returned successfully.",
+            Groups = groups
         };
     }
 

@@ -1,4 +1,4 @@
-﻿using Utilities.Models.Requests;
+﻿using Utilities.Models.Requests.Authentication;
 
 namespace ServiceLayer.Abstractions
 {

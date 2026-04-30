@@ -1,6 +1,6 @@
 ﻿using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
-using Utilities.Models.Requests;
+using Utilities.Models.Requests.Groups;
 using Utilities.Token;
 using Utilities.Validators.Group;
 
@@ -21,5 +21,6 @@ public static class UtilitiesServiceExtensions
     {
         services.AddScoped<IValidator<CreateGroupRequest>, CreateGroupRequestValidator>();
         services.AddScoped<IValidator<UpdateGroupRequest>, UpdateGroupRequestValidator>();
+        services.AddScoped<IValidator<SearchGroupRequest>, SearchGroupRequestValidator>();
     }
 }

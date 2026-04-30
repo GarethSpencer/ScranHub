@@ -1,6 +1,6 @@
 ﻿using DAL.Entities;
 using RepositoryLayer.Abstractions.Generic;
-using Utilities.Models.Requests;
+using Utilities.Models.Requests.Groups;
 using Utilities.Models.Results;
 
 namespace RepositoryLayer.Abstractions
@@ -10,6 +10,8 @@ namespace RepositoryLayer.Abstractions
         Task<GroupResult?> GetDetailsByIdAsync(Guid id, CancellationToken ct);
 
         Task<GroupResult?> GetByNameAsync(string name, CancellationToken ct);
+
+        Task<IEnumerable<GroupResult>?> SearchByNameAsync(string name, CancellationToken ct);
 
         Task<Guid> CreateAsync(string groupName, CancellationToken ct);
 

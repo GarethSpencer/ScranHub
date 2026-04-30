@@ -5,7 +5,7 @@ using Microsoft.OpenApi;
 using System.Text;
 using System.Text.Json.Serialization;
 using Utilities.Models.Options;
-using Utilities.Models.Responses.GenericResponses;
+using Utilities.Models.Responses.Generic;
 using WebApi.Middleware;
 
 namespace WebApi.ProgramExtensions;

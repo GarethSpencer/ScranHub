@@ -1,5 +1,5 @@
 ﻿using FluentValidation;
-using Utilities.Models.Requests;
+using Utilities.Models.Requests.Groups;
 
 namespace Utilities.Validators.Group;
 

@@ -1,6 +1,6 @@
 ﻿using System.Net;
 
-namespace Utilities.Models.Responses.GenericResponses;
+namespace Utilities.Models.Responses.Generic;
 
 public class CommonResponse
 {

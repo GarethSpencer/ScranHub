@@ -1,5 +1,5 @@
 ﻿using System.Text.Json;
-using Utilities.Models.Responses.GenericResponses;
+using Utilities.Models.Responses.Generic;
 
 namespace WebApi.Middleware;
 

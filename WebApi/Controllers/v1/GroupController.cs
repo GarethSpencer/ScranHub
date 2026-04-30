@@ -1,8 +1,9 @@
 ﻿using Asp.Versioning;
+using Azure.Core;
 using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 using ServiceLayer.Abstractions;
-using Utilities.Models.Requests;
+using Utilities.Models.Requests.Groups;
 using Utilities.Validators;
 
 namespace WebApi.Controllers.v1;
@@ -13,11 +14,13 @@ namespace WebApi.Controllers.v1;
 public class GroupController(
     IGroupService groupService,
     IValidator<CreateGroupRequest> createGroupRequestValidator,
-    IValidator<UpdateGroupRequest> updateGroupRequestValidator) : ControllerBase
+    IValidator<UpdateGroupRequest> updateGroupRequestValidator,
+    IValidator<SearchGroupRequest> searchGroupRequestValidator) : ControllerBase
 {
     private readonly IGroupService _groupService = groupService;
     private readonly IValidator<CreateGroupRequest> _createGroupRequestValidator = createGroupRequestValidator;
     private readonly IValidator<UpdateGroupRequest> _updateGroupRequestValidator = updateGroupRequestValidator;
+    private readonly IValidator<SearchGroupRequest> _searchGroupRequestValidator = searchGroupRequestValidator;
 
     [HttpGet("me")]
     public async Task<IActionResult> GetUserGroups(CancellationToken ct)
@@ -35,16 +38,40 @@ public class GroupController(
         return StatusCode((int)response.StatusCode, response);
     }
 
-    [HttpPost]
-    public async Task<IActionResult> CreateGroup([FromBody] CreateGroupRequest createGroupRequest, CancellationToken ct)
+    [HttpGet]
+    public async Task<IActionResult> SearchGroups([FromQuery] SearchGroupRequest request, CancellationToken ct)
     {
-        var validation = await _createGroupRequestValidator.ValidateAsync(createGroupRequest, ct);
+        if (request == null)
+        {
+            return BadRequest("Request body is required.");
+        }
+
+        var validation = await _searchGroupRequestValidator.ValidateAsync(request, ct);
         if (!validation.IsValid)
         {
             return BadRequest(ValidationErrorFormatter.FormatErrors(validation));
         }
 
-        var response = await _groupService.CreateGroupAsync(createGroupRequest, ct);
+        var response = await _groupService.SearchGroupsAsync(request.SearchText, ct);
+
+        return StatusCode((int)response.StatusCode, response);
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> CreateGroup([FromBody] CreateGroupRequest request, CancellationToken ct)
+    {
+        if (request == null)
+        {
+            return BadRequest("Request body is required.");
+        }
+
+        var validation = await _createGroupRequestValidator.ValidateAsync(request, ct);
+        if (!validation.IsValid)
+        {
+            return BadRequest(ValidationErrorFormatter.FormatErrors(validation));
+        }
+
+        var response = await _groupService.CreateGroupAsync(request, ct);
 
         return StatusCode((int)response.StatusCode, response);
     }
@@ -58,15 +85,20 @@ public class GroupController(
     }
 
     [HttpPatch("{groupId}")]
-    public async Task<IActionResult> UpdateGroup([FromRoute] Guid groupId, [FromBody] UpdateGroupRequest updateGroupRequest, CancellationToken ct)
+    public async Task<IActionResult> UpdateGroup([FromRoute] Guid groupId, [FromBody] UpdateGroupRequest request, CancellationToken ct)
     {
-        var validation = await _updateGroupRequestValidator.ValidateAsync(updateGroupRequest, ct);
+        if (request == null)
+        {
+            return BadRequest("Request body is required.");
+        }
+
+        var validation = await _updateGroupRequestValidator.ValidateAsync(request, ct);
         if (!validation.IsValid)
         {
             return BadRequest(ValidationErrorFormatter.FormatErrors(validation));
         }
 
-        var response = await _groupService.UpdateGroupAsync(groupId, updateGroupRequest, ct);
+        var response = await _groupService.UpdateGroupAsync(groupId, request, ct);
 
         return StatusCode((int)response.StatusCode, response);
     }

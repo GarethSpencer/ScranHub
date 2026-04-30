@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using RepositoryLayer.Abstractions;
 using RepositoryLayer.Infrastructure.Generic;
 using Utilities.Models.Results;
-using Utilities.Models.Requests;
+using Utilities.Models.Requests.Groups;
 
 namespace RepositoryLayer.Infrastructure;
 
@@ -44,6 +44,20 @@ public sealed class GroupRepository(ScranHubDbContext dbContext) : EFRepository<
             Active = group.Active,
             CreatedBy = group.CreatedBy
         };
+    }
+
+    public async Task<IEnumerable<GroupResult>?> SearchByNameAsync(string name, CancellationToken ct)
+    {
+        var groups = await _dbSet.Where(x => EF.Functions.Like(x.GroupName, $"%{name}%"))
+            .ToListAsync(ct);
+
+        return groups.Select(g => new GroupResult
+        {
+            GroupId = g.GroupId,
+            GroupName = g.GroupName,
+            Active = g.Active,
+            CreatedBy = g.CreatedBy
+        });
     }
 
     public async Task<Guid> CreateAsync(string groupName, CancellationToken ct)

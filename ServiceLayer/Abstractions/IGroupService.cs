@@ -1,5 +1,5 @@
-﻿using Utilities.Models.Requests;
-using Utilities.Models.Responses.GenericResponses;
+﻿using Utilities.Models.Requests.Groups;
+using Utilities.Models.Responses.Generic;
 using Utilities.Models.Responses.Groups;
 
 namespace ServiceLayer.Abstractions;
@@ -9,6 +9,8 @@ public interface IGroupService
     Task<AddGroupResponse> CreateGroupAsync(CreateGroupRequest groupRequest, CancellationToken ct);
 
     Task<GetGroupResponse> GetGroupAsync(Guid groupId, CancellationToken ct);
+
+    Task<SearchGroupsResponse> SearchGroupsAsync(string searchText, CancellationToken ct);
 
     Task<CommonResponse> UpdateGroupAsync(Guid groupId, UpdateGroupRequest groupRequest, CancellationToken ct);
 
