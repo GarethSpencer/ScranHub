@@ -3,6 +3,7 @@ using DAL.Entities;
 using Microsoft.EntityFrameworkCore;
 using RepositoryLayer.Abstractions;
 using RepositoryLayer.Infrastructure.Generic;
+using Utilities.Models.Results;
 
 namespace RepositoryLayer.Infrastructure;
 
@@ -42,19 +43,39 @@ public sealed class UserRepository(ScranHubDbContext dbContext) : EFRepository<U
         return await query.ToListAsync(ct);
     }
 
-    public async Task<User?> GetUserWithFriendsByIdAsync(Guid userId, CancellationToken ct, bool trackChanges = false)
+    public async Task<IEnumerable<FriendResult>?> GetFriendsForUserAsync(Guid userId, CancellationToken ct)
     {
-        IQueryable<User> query = _dbSet
+        var friendInfo = await _dbSet
             .Where(x => x.UserId == userId)
             .Include(x => x.InitiatedFriendships).ThenInclude(x => x.Friend)
-            .Include(x => x.ReceivedFriendships).ThenInclude(x => x.User);
+            .Include(x => x.ReceivedFriendships).ThenInclude(x => x.User)
+            .FirstOrDefaultAsync(ct);
 
-        if (!trackChanges)
+        if (friendInfo == null)
         {
-            query = query.AsNoTracking();
+            return null;
         }
 
-        return await query.FirstOrDefaultAsync(ct);
+        var result = friendInfo.InitiatedFriendships.Select(f => new FriendResult
+        {
+            UserFriendId = f.UserFriendId,
+            FriendId = f.FriendId,
+            DisplayName = f.Friend!.DisplayName,
+            Active = f.Friend.Active,
+            Approved = f.Approved,
+            Initiator = true
+        })
+            .Concat(friendInfo.ReceivedFriendships.Select(f => new FriendResult
+        {
+            UserFriendId = f.UserFriendId,
+            FriendId = f.UserId,
+            DisplayName = f.User!.DisplayName,
+            Active = f.User.Active,
+            Approved = f.Approved,
+            Initiator = false
+        }));
+
+        return [.. result];
     }
 
     public async Task<User?> GetUserGroupsByIdAsync(Guid userId, CancellationToken ct, bool trackChanges = false)

@@ -1,5 +1,4 @@
 ﻿using Asp.Versioning;
-using Azure.Core;
 using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 using ServiceLayer.Abstractions;
