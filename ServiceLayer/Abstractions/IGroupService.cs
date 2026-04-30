@@ -13,4 +13,6 @@ public interface IGroupService
     Task<CommonResponse> LeaveGroupAsync(Guid groupId, CancellationToken ct);
 
     Task<CommonResponse> JoinGroupAsync(Guid groupId, CancellationToken ct);
+
+    Task<CommonResponse> DeleteGroupAsync(Guid groupId, CancellationToken ct);
 }

@@ -43,7 +43,7 @@ public sealed class GroupRepository(ScranHubDbContext dbContext) : EFRepository<
         return await query.ToListAsync(ct);
     }
 
-    public async Task<Guid> CreateGroupAsync(string groupName, CancellationToken ct)
+    public async Task<Guid> CreateAsync(string groupName, CancellationToken ct)
     {
         var group = new Group
         {
@@ -54,12 +54,21 @@ public sealed class GroupRepository(ScranHubDbContext dbContext) : EFRepository<
         return group.GroupId;
     }
 
-    public async Task DeactivateGroupAsync(Guid groupId, CancellationToken ct)
+    public async Task DeactivateAsync(Guid groupId, CancellationToken ct)
     {
         var group = await _dbSet.FindAsync([groupId], ct);
         if (group != null)
         {
             group.Active = false;
+        }
+    }
+
+    public async Task DeleteAsync(Guid groupId, CancellationToken ct)
+    {
+        var group = await _dbSet.FindAsync([groupId], ct);
+        if (group != null)
+        {
+            _dbSet.Remove(group);
         }
     }
 

@@ -10,6 +10,6 @@ namespace RepositoryLayer.Abstractions
         Task<User?> GetByIdAsync(Guid id, CancellationToken ct, bool trackChanges = false);
         Task<User?> GetUserWithFriendsByIdAsync(Guid id, CancellationToken ct, bool trackChanges = false);
         Task<User?> GetUserGroupsByIdAsync(Guid userId, CancellationToken ct, bool trackChanges = false);
-        Task<bool> IsUserAdmin(Guid userId, CancellationToken ct);
+        Task<bool> IsUserAdminAsync(Guid userId, CancellationToken ct);
     }
 }

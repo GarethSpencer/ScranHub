@@ -11,10 +11,12 @@ namespace RepositoryLayer.Abstractions
 
         Task<Group?> GetByNameAsync(string name, CancellationToken ct, bool trackChanges = false);
 
-        Task<Guid> CreateGroupAsync(string groupName, CancellationToken ct);
+        Task<Guid> CreateAsync(string groupName, CancellationToken ct);
+
+        Task DeleteAsync(Guid groupId, CancellationToken ct);
 
         Task<bool> DidUserCreateGroupAsync(Guid groupId, Guid userId, CancellationToken ct);
 
-        Task DeactivateGroupAsync(Guid groupId, CancellationToken ct);
+        Task DeactivateAsync(Guid groupId, CancellationToken ct);
     }
 }

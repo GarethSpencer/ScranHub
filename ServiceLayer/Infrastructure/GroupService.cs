@@ -49,7 +49,7 @@ public class GroupService(ITokenData tokenData,
             };
         }
 
-        Guid groupId = await _groupRepository.CreateGroupAsync(groupRequest.GroupName, ct);
+        Guid groupId = await _groupRepository.CreateAsync(groupRequest.GroupName, ct);
         _ = await _userGroupRepository.AddUserToGroupAsync(groupId, userId, ct);
 
         await this._unitOfWork.SaveChangesAsync(ct);
@@ -196,6 +196,55 @@ public class GroupService(ITokenData tokenData,
         {
             StatusCode = HttpStatusCode.OK,
             Message = "Successfully joined the group."
+        };
+    }
+
+    public async Task<CommonResponse> DeleteGroupAsync(Guid groupId, CancellationToken ct)
+    {
+        if (!_tokenData.UserId.HasValue)
+        {
+            _logger.LogWarning("DeleteGroupAsync called with no authenticated user.");
+            return new CommonResponse
+            {
+                StatusCode = HttpStatusCode.Unauthorized,
+                Message = "Unauthorized."
+            };
+        }
+
+        var groupExists = await _groupRepository.ExistsAsync(x => x.GroupId == groupId, ct);
+        if (!groupExists)
+        {
+            _logger.LogWarning("DeleteGroupAsync called with non-existent group {GroupId}.", groupId);
+            return new CommonResponse
+            {
+                StatusCode = HttpStatusCode.NotFound,
+                Message = "Group not found."
+            };
+        }
+
+        var userId = _tokenData.UserId!.Value;
+
+        var isAdmin = await _userRepository.IsUserAdminAsync(userId, ct);
+
+        if (!isAdmin)
+        {
+            _logger.LogWarning("User {UserId} is not an admin and cannot delete group {GroupId}.", userId, groupId);
+            return new CommonResponse
+            {
+                StatusCode = HttpStatusCode.BadRequest,
+                Message = "You are not an admin and cannot delete groups."
+            };
+        }
+
+        await _groupRepository.DeleteAsync(groupId, ct);
+
+        await this._unitOfWork.SaveChangesAsync(ct);
+        _logger.LogInformation("User {UserId} deleted group {GroupId} successfully.", userId, groupId);
+
+        return new CommonResponse
+        {
+            StatusCode = HttpStatusCode.OK,
+            Message = "Successfully deleted the group."
         };
     }
 }
