@@ -8,6 +8,8 @@ public interface IGroupService
 {
     Task<AddGroupResponse> CreateGroupAsync(CreateGroupRequest groupRequest, CancellationToken ct);
 
+    Task<GetGroupResponse> GetGroupAsync(Guid groupId, CancellationToken ct);
+
     Task<CommonResponse> UpdateGroupAsync(Guid groupId, UpdateGroupRequest groupRequest, CancellationToken ct);
 
     Task<UserGroupsResponse> GetGroupsForUserAsync(CancellationToken ct);

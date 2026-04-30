@@ -27,6 +27,14 @@ public class GroupController(
         return StatusCode((int)response.StatusCode, response);
     }
 
+    [HttpGet("{groupId}")]
+    public async Task<IActionResult> GetGroup([FromRoute] Guid groupId, CancellationToken ct)
+    {
+        var response = await _groupService.GetGroupAsync(groupId, ct);
+
+        return StatusCode((int)response.StatusCode, response);
+    }
+
     [HttpPost]
     public async Task<IActionResult> CreateGroup([FromBody] CreateGroupRequest createGroupRequest, CancellationToken ct)
     {

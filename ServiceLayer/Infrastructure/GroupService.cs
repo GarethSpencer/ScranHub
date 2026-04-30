@@ -63,6 +63,28 @@ public class GroupService(ITokenData tokenData,
         };
     }
 
+    public async Task<GetGroupResponse> GetGroupAsync(Guid groupId, CancellationToken ct)
+    {
+        var group = await _groupRepository.GetDetailsByIdAsync(groupId, ct);
+
+        if (group == null)
+        {
+            _logger.LogWarning("Group with ID {GroupId} not found.", groupId);
+            return new GetGroupResponse
+            {
+                StatusCode = HttpStatusCode.NotFound,
+                Message = $"Group with ID {groupId} not found."
+            };
+        }
+
+        return new GetGroupResponse
+        {
+            StatusCode = HttpStatusCode.OK,
+            Message = $"Group returned successfully.",
+            Group = group
+        };
+    }
+
     public async Task<CommonResponse> UpdateGroupAsync(Guid groupId, UpdateGroupRequest groupRequest, CancellationToken ct)
     {
         if (!_tokenData.UserId.HasValue)
