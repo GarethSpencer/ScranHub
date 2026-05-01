@@ -75,6 +75,19 @@ public class GroupService(ITokenData tokenData,
             };
         }
 
+        var callingUserId = _tokenData.UserId!.Value;
+
+        var isAdmin = await _userRepository.IsUserAdminAsync(callingUserId, ct);
+        if (!isAdmin)
+        {
+            _logger.LogWarning("User {UserId} is not an admin and cannot search groups by Id.", callingUserId);
+            return new GetGroupResponse
+            {
+                StatusCode = HttpStatusCode.Unauthorized,
+                Message = "Only admins can search for groups by Id."
+            };
+        }
+
         var group = await _groupRepository.GetDetailsByIdAsync(groupId, ct);
 
         if (group == null)

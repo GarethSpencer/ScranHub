@@ -120,6 +120,19 @@ public class UserService(ITokenData tokenData,
             };
         }
 
+        var callingUserId = _tokenData.UserId!.Value;
+
+        var isAdmin = await _userRepository.IsUserAdminAsync(callingUserId, ct);
+        if (!isAdmin)
+        {
+            _logger.LogWarning("User {UserId} is not an admin and cannot search users by Id.", callingUserId);
+            return new GetUserResponse
+            {
+                StatusCode = HttpStatusCode.Unauthorized,
+                Message = "Only admins can search for users by Id."
+            };
+        }
+
         var user = await _userRepository.GetDetailsByIdAsync(userId, ct);
 
         if (user == null)
