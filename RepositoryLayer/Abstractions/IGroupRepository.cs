@@ -11,13 +11,15 @@ namespace RepositoryLayer.Abstractions
 
         Task<GroupResult?> GetByNameAsync(string name, CancellationToken ct);
 
-        Task<(IEnumerable<GroupResult>, int)> SearchByNameAsync(SearchGroupRequest request, CancellationToken ct);
+        Task<(IEnumerable<GroupResult>, int)> SearchByNameAsync(SearchGroupRequest request, Guid userId, CancellationToken ct);
 
         Task<Guid> CreateAsync(string groupName, CancellationToken ct);
 
         Task DeleteAsync(Guid groupId, CancellationToken ct);
 
         Task<bool> DidUserCreateGroupAsync(Guid groupId, Guid userId, CancellationToken ct);
+
+        Task<bool> DoesUserHaveFriendInGroupAsync(Guid groupId, Guid userId, CancellationToken ct);
 
         Task DeactivateAsync(Guid groupId, CancellationToken ct);
 

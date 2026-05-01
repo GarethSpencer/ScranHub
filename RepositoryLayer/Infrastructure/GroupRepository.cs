@@ -8,8 +8,11 @@ using Utilities.Models.Requests.Groups;
 
 namespace RepositoryLayer.Infrastructure;
 
-public sealed class GroupRepository(ScranHubDbContext dbContext) : EFRepository<Group>(dbContext), IGroupRepository
+public sealed class GroupRepository(ScranHubDbContext dbContext,
+    IUserRepository userRepository) : EFRepository<Group>(dbContext), IGroupRepository
 {
+    private readonly IUserRepository _userRepository = userRepository;
+
     public async Task<GroupResult?> GetDetailsByIdAsync(Guid id, CancellationToken ct)
     {
         var group = await _dbSet.FindAsync([id], ct);
@@ -48,11 +51,18 @@ public sealed class GroupRepository(ScranHubDbContext dbContext) : EFRepository<
         };
     }
 
-    public async Task<(IEnumerable<GroupResult>, int)> SearchByNameAsync(SearchGroupRequest request, CancellationToken ct)
+    public async Task<(IEnumerable<GroupResult>, int)> SearchByNameAsync(SearchGroupRequest request, Guid userId, CancellationToken ct)
     {
-        var groupsQuery = _dbSet.Where(x => EF.Functions.Like(x.GroupName, $"%{request.SearchText}%"));
-        
-        //TODO filter by friend, admin
+        var groupsQuery = _dbSet
+            .Where(x => EF.Functions.Like(x.GroupName, $"%{request.SearchText}%"));
+
+        var isAdmin = await _userRepository.IsUserAdminAsync(userId, ct);
+
+        if (!isAdmin)
+        {
+            groupsQuery = groupsQuery.Where(g => g.UserGroups.Any(ug => ug.User!.InitiatedFriendships.Any(f => f.FriendId == userId && f.Approved))
+                || g.UserGroups.Any(ug => ug.User!.ReceivedFriendships.Any(f => f.UserId == userId && f.Approved)));
+        }
 
         var totalCount = await groupsQuery.CountAsync(ct);
 
@@ -105,6 +115,13 @@ public sealed class GroupRepository(ScranHubDbContext dbContext) : EFRepository<
     public async Task<bool> DidUserCreateGroupAsync(Guid groupId, Guid userId, CancellationToken ct)
     {
         return await _dbSet.AnyAsync(ug => ug.GroupId == groupId && ug.CreatedBy == userId, ct);
+    }
+
+    public async Task<bool> DoesUserHaveFriendInGroupAsync(Guid groupId, Guid userId, CancellationToken ct)
+    {
+        return await _dbSet.Where(x => x.GroupId == groupId)
+            .AnyAsync(g => g.UserGroups.Any(ug => ug.User!.InitiatedFriendships.Any(f => f.FriendId == userId && f.Approved)
+                || g.UserGroups.Any(ug => ug.User!.ReceivedFriendships.Any(f => f.UserId == userId && f.Approved))), ct);
     }
 
     public async Task UpdateAsync(Guid groupId, UpdateGroupRequest groupRequest, CancellationToken ct)

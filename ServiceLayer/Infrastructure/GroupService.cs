@@ -122,12 +122,9 @@ public class GroupService(ITokenData tokenData,
             };
         }
 
-        var (groups, totalCount) = await _groupRepository.SearchByNameAsync(request, ct);
-
         var userId = _tokenData.UserId!.Value;
-        var isAdmin = await _userRepository.IsUserAdminAsync(userId, ct);
 
-        //TODO filter by friend
+        var (groups, totalCount) = await _groupRepository.SearchByNameAsync(request, userId, ct);
 
         return new SearchGroupsResponse
         {
@@ -322,7 +319,17 @@ public class GroupService(ITokenData tokenData,
             };
         }
 
-        //TODO friend check
+        var hasFriendInGroup = await _groupRepository.DoesUserHaveFriendInGroupAsync(groupId, userId, ct);
+
+        if (!hasFriendInGroup)
+        {
+            _logger.LogWarning("User {UserId} is not friends with anyone in group {GroupId}.", userId, groupId);
+            return new CommonResponse
+            {
+                StatusCode = HttpStatusCode.BadRequest,
+                Message = "You are not friends with anyone in this group so you cannot join."
+            };
+        }
 
         await _userGroupRepository.AddUserToGroupAsync(groupId, userId, ct);
 
