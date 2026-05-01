@@ -75,16 +75,18 @@ public class GroupService(ITokenData tokenData,
             };
         }
 
-        var callingUserId = _tokenData.UserId!.Value;
+        var userId = _tokenData.UserId!.Value;
 
-        var isAdmin = await _userRepository.IsUserAdminAsync(callingUserId, ct);
-        if (!isAdmin)
+        var isAdmin = await _userRepository.IsUserAdminAsync(userId, ct);
+        var isMember = await _userGroupRepository.IsUserInGroupAsync(groupId, userId, ct);
+
+        if (!isAdmin && !isMember)
         {
-            _logger.LogWarning("User {UserId} is not an admin and cannot search groups by Id.", callingUserId);
+            _logger.LogWarning("User {UserId} is not an admin or group member so cannot search {GroupId} by Id.", userId, groupId);
             return new GetGroupResponse
             {
                 StatusCode = HttpStatusCode.Unauthorized,
-                Message = "Only admins can search for groups by Id."
+                Message = "Only admins or group members can search for a group by Id."
             };
         }
 

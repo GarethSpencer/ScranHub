@@ -1,12 +1,9 @@
 ﻿using Microsoft.Extensions.Logging;
 using RepositoryLayer.Abstractions;
 using RepositoryLayer.Abstractions.Generic;
-using RepositoryLayer.Infrastructure;
 using ServiceLayer.Abstractions;
 using System.Net;
 using Utilities.Models.Requests.Users;
-using Utilities.Models.Responses.Generic;
-using Utilities.Models.Responses.Groups;
 using Utilities.Models.Responses.Users;
 using Utilities.Token;
 
@@ -15,14 +12,16 @@ namespace ServiceLayer.Infrastructure;
 public class UserService(ITokenData tokenData,
     ILogger<UserService> logger,
     IUserRepository userRepository,
+    IUserFriendRepository userFriendRepository,
     IUnitOfWork unitOfWork) : IUserService
 {
     private readonly ITokenData _tokenData = tokenData;
     private readonly ILogger<UserService> _logger = logger;
     private readonly IUserRepository _userRepository = userRepository;
+    private readonly IUserFriendRepository _userFriendRepository = userFriendRepository;
     private readonly IUnitOfWork _unitOfWork = unitOfWork;
 
-    
+
     public async Task<UserFriendsResponse> GetFriendsForUserAsync(CancellationToken ct)
     {
         if (!_tokenData.UserId.HasValue)
@@ -121,15 +120,16 @@ public class UserService(ITokenData tokenData,
         }
 
         var callingUserId = _tokenData.UserId!.Value;
+        var areUsersFriends = await _userFriendRepository.AreUsersFriendsAsync(callingUserId, userId, ct);
 
         var isAdmin = await _userRepository.IsUserAdminAsync(callingUserId, ct);
-        if (!isAdmin)
+        if (!isAdmin && !areUsersFriends)
         {
-            _logger.LogWarning("User {UserId} is not an admin and cannot search users by Id.", callingUserId);
+            _logger.LogWarning("User {CallingUserId} is not an admin or friend so cannot search {UserId} by Id.", callingUserId, userId);
             return new GetUserResponse
             {
                 StatusCode = HttpStatusCode.Unauthorized,
-                Message = "Only admins can search for users by Id."
+                Message = "Only admins or friends can search for a user by Id."
             };
         }
 

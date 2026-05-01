@@ -39,6 +39,7 @@ public static class RepositoryLayerServiceExtensions
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IUserGroupRepository, UserGroupRepository>();
         services.AddScoped<IGroupVenueRepository, GroupVenueRepository>();
+        services.AddScoped<IUserFriendRepository, UserFriendRepository>();
 
         return services;
     }
