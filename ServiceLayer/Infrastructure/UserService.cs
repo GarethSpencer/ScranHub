@@ -1,8 +1,10 @@
 ﻿using Microsoft.Extensions.Logging;
 using RepositoryLayer.Abstractions;
 using RepositoryLayer.Abstractions.Generic;
+using RepositoryLayer.Infrastructure;
 using ServiceLayer.Abstractions;
 using System.Net;
+using Utilities.Models.Requests.Users;
 using Utilities.Models.Responses.Generic;
 using Utilities.Models.Responses.Groups;
 using Utilities.Models.Responses.Users;
@@ -56,6 +58,53 @@ public class UserService(ITokenData tokenData,
             FriendCount = userFriends.Count(x => x.Approved),
             StatusCode = HttpStatusCode.OK,
             Message = "Friends retrieved successfully."
+        };
+    }
+
+    public async Task<AddUserResponse> CreateUserAsync(CreateUserRequest request, CancellationToken ct)
+    {
+        if (!_tokenData.UserId.HasValue)
+        {
+            _logger.LogWarning("GetFriendsForUserAsync called with no authenticated user.");
+            return new AddUserResponse
+            {
+                StatusCode = HttpStatusCode.Unauthorized,
+                Message = "Unauthorized."
+            };
+        }
+
+        var userExists = await _userRepository.ExistsAsync(x => x.Email.ToLower() == request.Email.ToLower(), ct);
+        if (userExists)
+        {
+            _logger.LogWarning("User with email {Email} already exists.", request.Email);
+            return new AddUserResponse
+            {
+                StatusCode = HttpStatusCode.Conflict,
+                Message = $"User with email {request.Email} already exists."
+            };
+        }
+
+        var userNameExists = await _userRepository.ExistsAsync(x => x.DisplayName.ToLower() == request.DisplayName.ToLower(), ct);
+        if (userNameExists)
+        {
+            _logger.LogWarning("Display name {DisplayName} already taken.", request.DisplayName);
+            return new AddUserResponse
+            {
+                StatusCode = HttpStatusCode.Conflict,
+                Message = $"Display name {request.DisplayName} already taken."
+            };
+        }
+
+        var userId = await _userRepository.CreateUserAsync(request, ct);
+
+        await _unitOfWork.SaveChangesAsync(ct);
+        _logger.LogInformation("Successfully created user with id {UserId}", userId);
+
+        return new AddUserResponse
+        {
+            StatusCode = HttpStatusCode.Created,
+            Message = "User created successfully.",
+            UserId = userId
         };
     }
 }

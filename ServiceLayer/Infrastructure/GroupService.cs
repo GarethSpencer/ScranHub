@@ -38,7 +38,7 @@ public class GroupService(ITokenData tokenData,
 
         var userId = _tokenData.UserId!.Value;
 
-        var groupNameExists = await _groupRepository.ExistsAsync(x => String.Equals(x.GroupName, groupRequest.GroupName, StringComparison.OrdinalIgnoreCase), ct);
+        var groupNameExists = await _groupRepository.ExistsAsync(x => x.GroupName.ToLower() == groupRequest.GroupName.ToLower(), ct);
         if (groupNameExists)
         {
             _logger.LogWarning("Group with name {GroupName} already exists.", groupRequest.GroupName);
@@ -49,7 +49,7 @@ public class GroupService(ITokenData tokenData,
             };
         }
 
-        Guid groupId = await _groupRepository.CreateAsync(groupRequest.GroupName, ct);
+        var groupId = await _groupRepository.CreateAsync(groupRequest.GroupName, ct);
         _ = await _userGroupRepository.AddUserToGroupAsync(groupId, userId, ct);
 
         await _unitOfWork.SaveChangesAsync(ct);
@@ -161,7 +161,7 @@ public class GroupService(ITokenData tokenData,
 
         if (!String.Equals(group.GroupName, groupRequest.GroupName, StringComparison.OrdinalIgnoreCase))
         {
-            var groupNameExists = await _groupRepository.ExistsAsync(x => String.Equals(x.GroupName, groupRequest.GroupName, StringComparison.OrdinalIgnoreCase), ct);
+            var groupNameExists = await _groupRepository.ExistsAsync(x => x.GroupName.ToLower() == groupRequest.GroupName.ToLower(), ct);
             if (groupNameExists)
             {
                 _logger.LogWarning("Group with name {GroupName} already exists.", groupRequest.GroupName);

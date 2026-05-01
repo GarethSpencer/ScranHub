@@ -9,6 +9,7 @@ public class UpdateGroupRequestValidator : AbstractValidator<UpdateGroupRequest>
     {
         RuleFor(x => x.GroupName)
             .NotEmpty().WithMessage("Name is required.")
+            .Must(name => name == name.Trim()).WithMessage("Name cannot have leading or trailing spaces.")
             .MaximumLength(30).WithMessage("Name must not exceed 30 characters.")
             .Must(name => CheckProfanity(name)).WithMessage("Name must not contain profanity.");
 

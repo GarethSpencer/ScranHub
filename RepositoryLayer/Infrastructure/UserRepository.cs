@@ -3,6 +3,7 @@ using DAL.Entities;
 using Microsoft.EntityFrameworkCore;
 using RepositoryLayer.Abstractions;
 using RepositoryLayer.Infrastructure.Generic;
+using Utilities.Models.Requests.Users;
 using Utilities.Models.Results;
 
 namespace RepositoryLayer.Infrastructure;
@@ -96,5 +97,19 @@ public sealed class UserRepository(ScranHubDbContext dbContext) : EFRepository<U
     {
         var user = await _dbSet.FindAsync([userId], ct);
         return user != null && user.Admin;
+    }
+
+    public async Task<Guid> CreateUserAsync(CreateUserRequest request, CancellationToken ct)
+    {
+        var newUser = new User
+        {
+            DisplayName = request.DisplayName,
+            Email = request.Email,
+            Admin = request.Admin,
+            Active = true
+        };
+
+        await _dbSet.AddAsync(newUser, ct);
+        return newUser.UserId;
     }
 }

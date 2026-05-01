@@ -78,6 +78,7 @@ public sealed class GroupRepository(ScranHubDbContext dbContext) : EFRepository<
             GroupName = groupName,
             Active = true
         };
+
         await _dbSet.AddAsync(group, ct);
         return group.GroupId;
     }
@@ -85,10 +86,8 @@ public sealed class GroupRepository(ScranHubDbContext dbContext) : EFRepository<
     public async Task DeactivateAsync(Guid groupId, CancellationToken ct)
     {
         var group = await _dbSet.FindAsync([groupId], ct);
-        if (group != null)
-        {
-            group.Active = false;
-        }
+
+        group?.Active = false;
     }
 
     public async Task DeleteAsync(Guid groupId, CancellationToken ct)
