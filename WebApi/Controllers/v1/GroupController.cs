@@ -51,7 +51,7 @@ public class GroupController(
             return BadRequest(ValidationErrorFormatter.FormatErrors(validation));
         }
 
-        var response = await _groupService.SearchGroupsAsync(request.SearchText, ct);
+        var response = await _groupService.SearchGroupsAsync(request, ct);
 
         return StatusCode((int)response.StatusCode, response);
     }

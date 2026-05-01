@@ -95,7 +95,7 @@ public class GroupService(ITokenData tokenData,
         };
     }
 
-    public async Task<SearchGroupsResponse> SearchGroupsAsync(string searchText, CancellationToken ct)
+    public async Task<SearchGroupsResponse> SearchGroupsAsync(SearchGroupRequest request, CancellationToken ct)
     {
         if (!_tokenData.UserId.HasValue)
         {
@@ -107,7 +107,7 @@ public class GroupService(ITokenData tokenData,
             };
         }
 
-        var groups = await _groupRepository.SearchByNameAsync(searchText, ct);
+        var groups = await _groupRepository.SearchByNameAsync(request, ct);
 
         var userId = _tokenData.UserId!.Value;
         var isAdmin = await _userRepository.IsUserAdminAsync(userId, ct);

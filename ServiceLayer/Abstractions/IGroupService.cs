@@ -10,7 +10,7 @@ public interface IGroupService
 
     Task<GetGroupResponse> GetGroupAsync(Guid groupId, CancellationToken ct);
 
-    Task<SearchGroupsResponse> SearchGroupsAsync(string searchText, CancellationToken ct);
+    Task<SearchGroupsResponse> SearchGroupsAsync(SearchGroupRequest request, CancellationToken ct);
 
     Task<CommonResponse> UpdateGroupAsync(Guid groupId, UpdateGroupRequest groupRequest, CancellationToken ct);
 

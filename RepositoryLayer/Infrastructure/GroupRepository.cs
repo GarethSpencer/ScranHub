@@ -46,9 +46,14 @@ public sealed class GroupRepository(ScranHubDbContext dbContext) : EFRepository<
         };
     }
 
-    public async Task<IEnumerable<GroupResult>?> SearchByNameAsync(string name, CancellationToken ct)
+    public async Task<IEnumerable<GroupResult>?> SearchByNameAsync(SearchGroupRequest request, CancellationToken ct)
     {
-        var groups = await _dbSet.Where(x => EF.Functions.Like(x.GroupName, $"%{name}%"))
+        var groupsQuery = _dbSet.Where(x => EF.Functions.Like(x.GroupName, $"%{request.SearchText}%"));
+
+        var groups = await groupsQuery
+            .OrderBy(x => x.GroupName)
+            .Skip((request.PageNumber - 1) * request.PageSize)
+            .Take(request.PageSize)
             .ToListAsync(ct);
 
         return groups.Select(g => new GroupResult

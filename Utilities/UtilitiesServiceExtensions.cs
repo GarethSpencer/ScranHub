@@ -2,7 +2,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Utilities.Models.Requests.Groups;
 using Utilities.Token;
-using Utilities.Validators.Group;
+using Utilities.Validators.Groups;
 
 namespace Utilities;
 

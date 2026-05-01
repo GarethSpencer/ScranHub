@@ -1,16 +1,19 @@
 ﻿using FluentValidation;
 using Utilities.Models.Requests.Groups;
 
-namespace Utilities.Validators.Group;
+namespace Utilities.Validators.Groups;
 
-public class CreateGroupRequestValidator : AbstractValidator<CreateGroupRequest>
+public class UpdateGroupRequestValidator : AbstractValidator<UpdateGroupRequest>
 {
-    public CreateGroupRequestValidator()
+    public UpdateGroupRequestValidator()
     {
         RuleFor(x => x.GroupName)
             .NotEmpty().WithMessage("Name is required.")
             .MaximumLength(30).WithMessage("Name must not exceed 30 characters.")
             .Must(name => CheckProfanity(name)).WithMessage("Name must not contain profanity.");
+
+        RuleFor(x => x.Active)
+            .NotNull().WithMessage("Active status is required.");
     }
 
     private static bool CheckProfanity(string groupName)

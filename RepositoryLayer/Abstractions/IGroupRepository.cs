@@ -11,7 +11,7 @@ namespace RepositoryLayer.Abstractions
 
         Task<GroupResult?> GetByNameAsync(string name, CancellationToken ct);
 
-        Task<IEnumerable<GroupResult>?> SearchByNameAsync(string name, CancellationToken ct);
+        Task<IEnumerable<GroupResult>?> SearchByNameAsync(SearchGroupRequest request, CancellationToken ct);
 
         Task<Guid> CreateAsync(string groupName, CancellationToken ct);
 

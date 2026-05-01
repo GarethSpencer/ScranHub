@@ -1,6 +1,8 @@
-﻿namespace Utilities.Models.Requests.Groups;
+﻿using Utilities.Models.Requests.Generic;
 
-public record SearchGroupRequest
+namespace Utilities.Models.Requests.Groups;
+
+public record SearchGroupRequest : PaginationBaseRequest
 {
     public required string SearchText { get; set; }
 }
