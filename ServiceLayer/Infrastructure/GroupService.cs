@@ -107,23 +107,19 @@ public class GroupService(ITokenData tokenData,
             };
         }
 
-        var groups = await _groupRepository.SearchByNameAsync(request, ct);
+        var (groups, totalCount) = await _groupRepository.SearchByNameAsync(request, ct);
 
         var userId = _tokenData.UserId!.Value;
         var isAdmin = await _userRepository.IsUserAdminAsync(userId, ct);
 
-        if (!isAdmin && groups != null)
-        {
-            _logger.LogInformation("Groups filtered for non-admin user {UserId}.", userId);
-            groups = [.. groups.Where(g => g.Active)];
-            //TODO filter by friend
-        }
+        //TODO filter by friend
 
         return new SearchGroupsResponse
         {
             StatusCode = HttpStatusCode.OK,
             Message = $"Groups returned successfully.",
-            Groups = groups
+            Groups = groups,
+            TotalCount = totalCount
         };
     }
 

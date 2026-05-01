@@ -66,7 +66,7 @@ public class AuthService(IOptions<Authentication> jwtSettings, ILogger<AuthServi
             audience: _jwtAuth.Audience,
             claims: claims,
             notBefore: DateTime.UtcNow,
-            expires: DateTime.UtcNow.AddMinutes(1),
+            expires: DateTime.UtcNow.AddDays(1),
             signingCredentials: signingCredentials);
 
         return new JwtSecurityTokenHandler().WriteToken(token);
