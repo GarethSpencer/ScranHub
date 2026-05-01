@@ -7,7 +7,7 @@ using Utilities.Models.Requests.Authentication;
 namespace WebApi.Controllers.v1;
 
 [ApiController]
-[Route("v/{version:apiVersion}/[controller]")]
+[Route("v{version:apiVersion}/[controller]")]
 [ApiVersion("1.0")]
 public class AuthenticationController(IAuthService authenticationService) : ControllerBase
 {

@@ -8,7 +8,7 @@ using Utilities.Validators;
 namespace WebApi.Controllers.v1;
 
 [ApiController]
-[Route("v/{version:apiVersion}/[controller]")]
+[Route("v{version:apiVersion}/[controller]")]
 [ApiVersion("1.0")]
 public class UserController(
     IUserService userService) : ControllerBase
