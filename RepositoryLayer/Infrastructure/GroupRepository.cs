@@ -24,7 +24,8 @@ public sealed class GroupRepository(ScranHubDbContext dbContext) : EFRepository<
             GroupId = group.GroupId,
             GroupName = group.GroupName,
             Active = group.Active,
-            CreatedBy = group.CreatedBy
+            CreatedBy = group.CreatedBy,
+            CreatedOn = group.CreatedOn
         };
     }
 
@@ -42,7 +43,8 @@ public sealed class GroupRepository(ScranHubDbContext dbContext) : EFRepository<
             GroupId = group.GroupId,
             GroupName = group.GroupName,
             Active = group.Active,
-            CreatedBy = group.CreatedBy
+            CreatedBy = group.CreatedBy,
+            CreatedOn = group.CreatedOn
         };
     }
 
@@ -65,7 +67,8 @@ public sealed class GroupRepository(ScranHubDbContext dbContext) : EFRepository<
             GroupId = g.GroupId,
             GroupName = g.GroupName,
             Active = g.Active,
-            CreatedBy = g.CreatedBy
+            CreatedBy = g.CreatedBy,
+            CreatedOn = g.CreatedOn
         });
 
         return (groupResults, totalCount);

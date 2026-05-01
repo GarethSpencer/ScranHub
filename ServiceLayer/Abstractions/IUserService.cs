@@ -8,4 +8,6 @@ public interface IUserService
     Task<UserFriendsResponse> GetFriendsForUserAsync(CancellationToken ct);
 
     Task<AddUserResponse> CreateUserAsync(CreateUserRequest request, CancellationToken ct);
+
+    Task<GetUserResponse> GetUserAsync(Guid userId, CancellationToken ct);
 }

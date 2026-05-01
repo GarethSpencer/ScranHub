@@ -10,26 +10,48 @@ namespace RepositoryLayer.Infrastructure;
 
 public sealed class UserRepository(ScranHubDbContext dbContext) : EFRepository<User>(dbContext), IUserRepository
 {
-    public async Task<User?> GetByIdAsync(Guid id, CancellationToken ct, bool trackChanges = false)
+    public async Task<UserResult?> GetDetailsByIdAsync(Guid id, CancellationToken ct)
     {
-        if (trackChanges)
+        var user = await _dbSet.FindAsync([id], ct);
+
+        if (user == null)
         {
-            return await _dbSet.FindAsync([id], ct);
+            return null;
         }
 
-        return await _dbSet.AsNoTracking().FirstOrDefaultAsync(x => x.UserId == id, ct);
+        return new UserResult
+        {
+            UserId = user.UserId,
+            AuthId = user.AuthId,
+            DisplayName = user.DisplayName,
+            Email = user.Email,
+            Admin = user.Admin,
+            Active = user.Active,
+            CreatedBy = user.CreatedBy,
+            CreatedOn = user.CreatedOn
+        };
     }
 
-    public async Task<User?> GetByEmailAsync(string email, CancellationToken ct, bool trackChanges = false)
+    public async Task<UserResult?> GetByEmailAsync(string email, CancellationToken ct)
     {
-        IQueryable<User> query = _dbSet.Where(x => x.Email == email);
+        var user = await _dbSet.FirstOrDefaultAsync(x => x.Email == email, ct);
 
-        if (!trackChanges)
+        if (user == null)
         {
-            query = query.AsNoTracking();
+            return null;
         }
 
-        return await query.FirstOrDefaultAsync(ct);
+        return new UserResult
+        {
+            UserId = user.UserId,
+            AuthId = user.AuthId,
+            DisplayName = user.DisplayName,
+            Email = user.Email,
+            Admin = user.Admin,
+            Active = user.Active,
+            CreatedBy = user.CreatedBy,
+            CreatedOn = user.CreatedOn
+        };
     }
 
     public async Task<IEnumerable<User>> GetAllActiveAdminsAsync(CancellationToken ct, bool trackChanges = false)

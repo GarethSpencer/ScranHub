@@ -107,4 +107,36 @@ public class UserService(ITokenData tokenData,
             UserId = userId
         };
     }
+
+    public async Task<GetUserResponse> GetUserAsync(Guid userId, CancellationToken ct)
+    {
+        if (!_tokenData.UserId.HasValue)
+        {
+            _logger.LogWarning("GetUserAsync called with no authenticated user.");
+            return new GetUserResponse
+            {
+                StatusCode = HttpStatusCode.Unauthorized,
+                Message = "Unauthorized."
+            };
+        }
+
+        var user = await _userRepository.GetDetailsByIdAsync(userId, ct);
+
+        if (user == null)
+        {
+            _logger.LogWarning("User with ID {UserId} not found.", userId);
+            return new GetUserResponse
+            {
+                StatusCode = HttpStatusCode.NotFound,
+                Message = $"User with ID {userId} not found."
+            };
+        }
+
+        return new GetUserResponse
+        {
+            StatusCode = HttpStatusCode.OK,
+            Message = $"User returned successfully.",
+            User = user
+        };
+    }
 }

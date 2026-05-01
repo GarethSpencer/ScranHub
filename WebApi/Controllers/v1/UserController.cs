@@ -42,4 +42,12 @@ public class UserController(
         var response = await _userService.CreateUserAsync(request, ct);
         return StatusCode((int)response.StatusCode, response);
     }
+
+    [HttpGet("{userId}")]
+    public async Task<IActionResult> GetUser([FromRoute] Guid userId, CancellationToken ct)
+    {
+        var response = await _userService.GetUserAsync(userId, ct);
+
+        return StatusCode((int)response.StatusCode, response);
+    }
 }
