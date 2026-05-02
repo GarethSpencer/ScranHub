@@ -4,6 +4,7 @@ using RepositoryLayer.Abstractions.Generic;
 using ServiceLayer.Abstractions;
 using System.Net;
 using Utilities.Models.Requests.Users;
+using Utilities.Models.Responses.Generic;
 using Utilities.Models.Responses.Users;
 using Utilities.Token;
 
@@ -120,7 +121,7 @@ public class UserService(ITokenData tokenData,
         }
 
         var callingUserId = _tokenData.UserId!.Value;
-        var areUsersFriends = await _userFriendRepository.AreUsersFriendsAsync(callingUserId, userId, ct);
+        var areUsersFriends = await _userFriendRepository.IsFriendshipAcceptedAsync(callingUserId, userId, ct);
 
         var isAdmin = await _userRepository.IsUserAdminAsync(callingUserId, ct);
         if (!isAdmin && !areUsersFriends)
@@ -150,6 +151,64 @@ public class UserService(ITokenData tokenData,
             StatusCode = HttpStatusCode.OK,
             Message = $"User returned successfully.",
             User = user
+        };
+    }
+
+    public async Task<CommonResponse> AddUserFriendAsync(Guid friendId, CancellationToken ct)
+    {
+        if (!_tokenData.UserId.HasValue)
+        {
+            _logger.LogWarning("AddUserFriendAsync called with no authenticated user.");
+            return new CommonResponse
+            {
+                StatusCode = HttpStatusCode.Unauthorized,
+                Message = "Unauthorized."
+            };
+        }
+
+        if (friendId == _tokenData.UserId.Value)
+        {
+            _logger.LogWarning("User {UserId} cannot add themselves as a friend.", friendId);
+            return new CommonResponse
+            {
+                StatusCode = HttpStatusCode.BadRequest,
+                Message = "You cannot add yourself as a friend."
+            };
+        }
+
+        var friendExists = await _userRepository.ExistsAsync(x => x.UserId == friendId, ct);
+        if (!friendExists)
+        {
+            _logger.LogWarning("Cannot add friend {FriendId} because they do not exist.", friendId);
+            return new CommonResponse
+            {
+                StatusCode = HttpStatusCode.NotFound,
+                Message = $"Cannot add friend because they do not exist."
+            };
+        }
+
+        var userId = _tokenData.UserId!.Value;
+        var alreadyAdded = await _userFriendRepository.DoesUserFriendExist(userId, friendId, ct);
+
+        if (alreadyAdded)
+        {
+            _logger.LogWarning("UserFriend between {UserId} and {FriendId} already created, cannot add again.", userId, friendId);
+            return new CommonResponse
+            {
+                StatusCode = HttpStatusCode.BadRequest,
+                Message = $"Friend already requested."
+            };
+        }
+
+        await _userFriendRepository.CreateUserFriendAsync(userId, friendId, ct);
+
+        await _unitOfWork.SaveChangesAsync(ct);
+        _logger.LogInformation("Successfully sent friend request from {UserId} to {FriendId}.", userId, friendId);
+
+        return new CommonResponse
+        {
+            StatusCode = HttpStatusCode.OK,
+            Message = $"Successfully sent friend request to user."
         };
     }
 }

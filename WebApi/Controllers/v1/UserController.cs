@@ -17,7 +17,7 @@ public class UserController(
     private readonly IUserService _userService = userService;
     private readonly IValidator<CreateUserRequest> _createUserRequestValidator = createUserRequestValidator;
 
-    [HttpGet("friends/me")]
+    [HttpGet("me/friends")]
     public async Task<IActionResult> GetFriends(CancellationToken ct)
     {
         var response = await _userService.GetFriendsForUserAsync(ct);
@@ -47,6 +47,14 @@ public class UserController(
     public async Task<IActionResult> GetUser([FromRoute] Guid userId, CancellationToken ct)
     {
         var response = await _userService.GetUserAsync(userId, ct);
+
+        return StatusCode((int)response.StatusCode, response);
+    }
+
+    [HttpPost("me/friends/{friendId}")]
+    public async Task<IActionResult> AddFriend([FromRoute] Guid friendId, CancellationToken ct)
+    {
+        var response = await _userService.AddUserFriendAsync(friendId, ct);
 
         return StatusCode((int)response.StatusCode, response);
     }

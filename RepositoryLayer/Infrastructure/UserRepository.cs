@@ -3,6 +3,7 @@ using DAL.Entities;
 using Microsoft.EntityFrameworkCore;
 using RepositoryLayer.Abstractions;
 using RepositoryLayer.Infrastructure.Generic;
+using Utilities.Enums;
 using Utilities.Models.Requests.Users;
 using Utilities.Models.Results;
 
@@ -85,7 +86,7 @@ public sealed class UserRepository(ScranHubDbContext dbContext) : EFRepository<U
             FriendId = f.FriendId,
             DisplayName = f.Friend!.DisplayName,
             Active = f.Friend.Active,
-            Approved = f.Approved,
+            Approved = f.Status == FriendshipStatus.Accepted,
             Initiator = true
         })
             .Concat(friendInfo.ReceivedFriendships.Select(f => new FriendResult
@@ -94,7 +95,7 @@ public sealed class UserRepository(ScranHubDbContext dbContext) : EFRepository<U
             FriendId = f.UserId,
             DisplayName = f.User!.DisplayName,
             Active = f.User.Active,
-            Approved = f.Approved,
+            Approved = f.Status == FriendshipStatus.Accepted,
             Initiator = false
         }));
 

@@ -5,6 +5,7 @@ using RepositoryLayer.Abstractions;
 using RepositoryLayer.Infrastructure.Generic;
 using Utilities.Models.Results;
 using Utilities.Models.Requests.Groups;
+using Utilities.Enums;
 
 namespace RepositoryLayer.Infrastructure;
 
@@ -60,8 +61,8 @@ public sealed class GroupRepository(ScranHubDbContext dbContext,
 
         if (!isAdmin)
         {
-            groupsQuery = groupsQuery.Where(g => g.UserGroups.Any(ug => ug.User!.InitiatedFriendships.Any(f => f.FriendId == userId && f.Approved))
-                || g.UserGroups.Any(ug => ug.User!.ReceivedFriendships.Any(f => f.UserId == userId && f.Approved)));
+            groupsQuery = groupsQuery.Where(g => g.UserGroups.Any(ug => ug.User!.InitiatedFriendships.Any(f => f.FriendId == userId && f.Status == FriendshipStatus.Accepted))
+                || g.UserGroups.Any(ug => ug.User!.ReceivedFriendships.Any(f => f.UserId == userId && f.Status == FriendshipStatus.Accepted)));
         }
 
         var totalCount = await groupsQuery.CountAsync(ct);
@@ -120,8 +121,8 @@ public sealed class GroupRepository(ScranHubDbContext dbContext,
     public async Task<bool> DoesUserHaveFriendInGroupAsync(Guid groupId, Guid userId, CancellationToken ct)
     {
         return await _dbSet.Where(x => x.GroupId == groupId)
-            .AnyAsync(g => g.UserGroups.Any(ug => ug.User!.InitiatedFriendships.Any(f => f.FriendId == userId && f.Approved)
-                || g.UserGroups.Any(ug => ug.User!.ReceivedFriendships.Any(f => f.UserId == userId && f.Approved))), ct);
+            .AnyAsync(g => g.UserGroups.Any(ug => ug.User!.InitiatedFriendships.Any(f => f.FriendId == userId && f.Status == FriendshipStatus.Accepted)
+                || g.UserGroups.Any(ug => ug.User!.ReceivedFriendships.Any(f => f.UserId == userId && f.Status == FriendshipStatus.Accepted))), ct);
     }
 
     public async Task UpdateAsync(Guid groupId, UpdateGroupRequest groupRequest, CancellationToken ct)

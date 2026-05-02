@@ -14,8 +14,4 @@
     <PackageReference Include="Profanity.Detector" Version="0.1.8" />
   </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\DAL\DAL.csproj" />
-  </ItemGroup>
-
 </Project>
