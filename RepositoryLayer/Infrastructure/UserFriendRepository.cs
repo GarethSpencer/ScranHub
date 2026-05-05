@@ -61,10 +61,6 @@ public sealed class UserFriendRepository(ScranHubDbContext dbContext) : EFReposi
     public async Task UpdateUserFriendStatusAsync(Guid userFriendId, FriendshipStatus newStatus, CancellationToken ct)
     {
         var userFriend = await _dbSet.FindAsync([userFriendId], ct);
-        if (userFriend != null)
-        {
-            userFriend.Status = newStatus;
-            _dbSet.Update(userFriend);
-        }
+        userFriend?.Status = newStatus;
     }
 }

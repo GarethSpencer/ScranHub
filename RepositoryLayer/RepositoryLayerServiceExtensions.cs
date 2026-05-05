@@ -4,7 +4,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using RepositoryLayer.Abstractions;
 using RepositoryLayer.Abstractions.Generic;
-using RepositoryLayer.AutoMapper;
 using RepositoryLayer.Infrastructure;
 using RepositoryLayer.Infrastructure.Generic;
 
@@ -20,11 +19,6 @@ public static class RepositoryLayerServiceExtensions
         services.AddScoped(typeof(IEFRepository<>), typeof(EFRepository<>));
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddRepositories();
-
-        services.AddAutoMapper(cfg =>
-        {
-            cfg.AddProfile<DTOToResponseProfile>();
-        });
 
         return services;
     }
