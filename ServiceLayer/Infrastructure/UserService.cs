@@ -109,6 +109,31 @@ public class UserService(ITokenData tokenData,
         };
     }
 
+    public async Task<SearchUsersResponse> SearchUsersAsync(SearchUserRequest request, CancellationToken ct)
+    {
+        if (!_tokenData.UserId.HasValue)
+        {
+            _logger.LogWarning("SearchUsersAsync called with no authenticated user.");
+            return new SearchUsersResponse
+            {
+                StatusCode = HttpStatusCode.Unauthorized,
+                Message = "Unauthorized."
+            };
+        }
+
+        var userId = _tokenData.UserId!.Value;
+        var (users, totalCount) = await _userRepository.SearchByDisplayNameAsync(request, ct);
+
+        _logger.LogInformation("User search carried out by {UserId}.", userId);
+        return new SearchUsersResponse
+        {
+            StatusCode = HttpStatusCode.OK,
+            Message = "Users returned successfully.",
+            Users = users,
+            TotalCount = totalCount
+        };
+    }
+
     public async Task<CommonResponse> UpdateUserAsync(Guid userId, UpdateUserRequest request, CancellationToken ct)
     {
         if (!_tokenData.UserId.HasValue)
@@ -154,7 +179,9 @@ public class UserService(ITokenData tokenData,
             };
         }
 
-        if (userToUpdate.Admin && userToUpdate.UserId != callingUserId)
+        var userToUpdateIsAdmin = await _userRepository.IsUserAdminAsync(userId, ct);
+
+        if (userToUpdateIsAdmin && userId != callingUserId)
         {
             _logger.LogWarning("Admin {UserId} can only update their own information, so cannot be updated by {CallingUserId}.", userId, callingUserId);
             return new CommonResponse

@@ -1,5 +1,6 @@
 ﻿using DAL.Entities;
 using RepositoryLayer.Abstractions.Generic;
+using Utilities.Models.Requests.Groups;
 using Utilities.Models.Requests.Users;
 using Utilities.Models.Results;
 
@@ -15,5 +16,6 @@ namespace RepositoryLayer.Abstractions
         Task<bool> IsUserAdminAsync(Guid userId, CancellationToken ct);
         Task<Guid> CreateAsync(CreateUserRequest createRequest, CancellationToken ct);
         Task UpdateAsync(Guid userId, UpdateUserRequest userRequest, CancellationToken ct);
+        Task<(IEnumerable<UserResult>, int)> SearchByDisplayNameAsync(SearchUserRequest request, CancellationToken ct);
     }
 }

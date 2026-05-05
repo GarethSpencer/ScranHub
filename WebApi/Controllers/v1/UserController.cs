@@ -14,12 +14,14 @@ public class UserController(
     IUserService userService,
     IValidator<CreateUserRequest> createUserRequestValidator,
     IValidator<UpdateUserRequest> updateUserRequestValidator,
-    IValidator<UpdateUserFriendRequest> updateUserFriendRequestValidator) : ControllerBase
+    IValidator<UpdateUserFriendRequest> updateUserFriendRequestValidator,
+    IValidator<SearchUserRequest> searchUserRequestValidator) : ControllerBase
 {
     private readonly IUserService _userService = userService;
     private readonly IValidator<CreateUserRequest> _createUserRequestValidator = createUserRequestValidator;
     private readonly IValidator<UpdateUserRequest> _updateUserRequestValidator = updateUserRequestValidator;
     private readonly IValidator<UpdateUserFriendRequest> _updateUserFriendRequestValidator = updateUserFriendRequestValidator;
+    private readonly IValidator<SearchUserRequest> _searchUserRequestValidator = searchUserRequestValidator;
 
     [HttpGet("me/friends")]
     public async Task<IActionResult> GetFriends(CancellationToken ct)
@@ -67,6 +69,27 @@ public class UserController(
     public async Task<IActionResult> GetUser([FromRoute] Guid userId, CancellationToken ct)
     {
         var response = await _userService.GetUserAsync(userId, ct);
+
+        return StatusCode((int)response.StatusCode, response);
+    }
+
+    //TODO: Add by email
+
+    [HttpGet]
+    public async Task<IActionResult> SearchUsers([FromQuery] SearchUserRequest request, CancellationToken ct)
+    {
+        if (request == null)
+        {
+            return BadRequest("Request body is required.");
+        }
+
+        var validation = await _searchUserRequestValidator.ValidateAsync(request, ct);
+        if (!validation.IsValid)
+        {
+            return BadRequest(ValidationErrorFormatter.FormatErrors(validation));
+        }
+
+        var response = await _userService.SearchUsersAsync(request, ct);
 
         return StatusCode((int)response.StatusCode, response);
     }

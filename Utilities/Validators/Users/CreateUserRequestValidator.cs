@@ -11,6 +11,7 @@ public class CreateUserRequestValidator : AbstractValidator<CreateUserRequest>
         RuleFor(x => x.DisplayName)
             .NotEmpty().WithMessage("Display name is required.")
             .Must(name => name == name.Trim()).WithMessage("Display name cannot have leading or trailing spaces.")
+            .MinimumLength(3).WithMessage("Display name must be at least 3 characters long.")
             .MaximumLength(30).WithMessage("Display name must not exceed 30 characters.")
             .Must(name => CheckProfanity(name)).WithMessage("Display name must not contain profanity.");
 

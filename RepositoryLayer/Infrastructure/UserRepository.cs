@@ -22,13 +22,8 @@ public sealed class UserRepository(ScranHubDbContext dbContext) : EFRepository<U
         return new UserResult
         {
             UserId = user.UserId,
-            AuthId = user.AuthId,
             DisplayName = user.DisplayName,
-            Email = user.Email,
-            Admin = user.Admin,
-            Active = user.Active,
-            CreatedBy = user.CreatedBy,
-            CreatedOn = user.CreatedOn
+            Active = user.Active
         };
     }
 
@@ -44,13 +39,8 @@ public sealed class UserRepository(ScranHubDbContext dbContext) : EFRepository<U
         return new UserResult
         {
             UserId = user.UserId,
-            AuthId = user.AuthId,
             DisplayName = user.DisplayName,
-            Email = user.Email,
-            Admin = user.Admin,
             Active = user.Active,
-            CreatedBy = user.CreatedBy,
-            CreatedOn = user.CreatedOn
         };
     }
 
@@ -144,5 +134,28 @@ public sealed class UserRepository(ScranHubDbContext dbContext) : EFRepository<U
             user.Admin = userRequest.Admin;
             user.Active = userRequest.Active;
         }
+    }
+
+    public async Task<(IEnumerable<UserResult>, int)> SearchByDisplayNameAsync(SearchUserRequest request, CancellationToken ct)
+    {
+        var usersQuery = _dbSet
+            .Where(x => x.Active && EF.Functions.Like(x.DisplayName, $"%{request.SearchText}%"));
+
+        var totalCount = await usersQuery.CountAsync(ct);
+
+        var users = await usersQuery
+            .OrderBy(x => x.DisplayName)
+            .Skip((request.PageNumber - 1) * request.PageSize)
+            .Take(request.PageSize)
+            .ToListAsync(ct);
+
+        var userResults = users.Select(u => new UserResult
+        {
+            UserId = u.UserId,
+            DisplayName = u.DisplayName,
+            Active = u.Active
+        });
+
+        return (userResults, totalCount);
     }
 }
