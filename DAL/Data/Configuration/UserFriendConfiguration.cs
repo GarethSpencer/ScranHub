@@ -16,6 +16,6 @@ public class UserFriendConfiguration : IEntityTypeConfiguration<UserFriend>
         builder.HasOne(uf => uf.Friend)
             .WithMany(u => u.ReceivedFriendships)
             .HasForeignKey(uf => uf.FriendId)
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.NoAction);
     }
 }

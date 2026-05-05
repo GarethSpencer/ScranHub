@@ -15,13 +15,15 @@ public class UserController(
     IValidator<CreateUserRequest> createUserRequestValidator,
     IValidator<UpdateUserRequest> updateUserRequestValidator,
     IValidator<UpdateUserFriendRequest> updateUserFriendRequestValidator,
-    IValidator<SearchUserRequest> searchUserRequestValidator) : ControllerBase
+    IValidator<SearchUserRequest> searchUserRequestValidator,
+    IValidator<AddFriendRequest> addFriendRequestValidator) : ControllerBase
 {
     private readonly IUserService _userService = userService;
     private readonly IValidator<CreateUserRequest> _createUserRequestValidator = createUserRequestValidator;
     private readonly IValidator<UpdateUserRequest> _updateUserRequestValidator = updateUserRequestValidator;
     private readonly IValidator<UpdateUserFriendRequest> _updateUserFriendRequestValidator = updateUserFriendRequestValidator;
     private readonly IValidator<SearchUserRequest> _searchUserRequestValidator = searchUserRequestValidator;
+    private readonly IValidator<AddFriendRequest> _addFriendRequestValidator = addFriendRequestValidator;
 
     [HttpGet("me/friends")]
     public async Task<IActionResult> GetFriends(CancellationToken ct)
@@ -98,6 +100,25 @@ public class UserController(
         }
 
         var response = await _userService.SearchUsersAsync(request, ct);
+
+        return StatusCode((int)response.StatusCode, response);
+    }
+
+    [HttpPost("me/friends")]
+    public async Task<IActionResult> AddFriendByEmail([FromBody] AddFriendRequest request, CancellationToken ct)
+    {
+        if (request == null)
+        {
+            return BadRequest("Request body is required.");
+        }
+
+        var validation = await _addFriendRequestValidator.ValidateAsync(request, ct);
+        if (!validation.IsValid)
+        {
+            return BadRequest(ValidationErrorFormatter.FormatErrors(validation));
+        }
+
+        var response = await _userService.AddUserFriendByEmailAsync(request, ct);
 
         return StatusCode((int)response.StatusCode, response);
     }

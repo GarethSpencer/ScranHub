@@ -29,7 +29,7 @@ public sealed class UserRepository(ScranHubDbContext dbContext) : EFRepository<U
 
     public async Task<UserResult?> GetByEmailAsync(string email, CancellationToken ct)
     {
-        var user = await _dbSet.FirstOrDefaultAsync(x => x.Email == email, ct);
+        var user = await _dbSet.FirstOrDefaultAsync(x => x.Email.ToLower() == email.ToLower(), ct);
 
         if (user == null)
         {

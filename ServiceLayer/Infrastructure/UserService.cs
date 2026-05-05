@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using DAL.Entities;
+using Microsoft.Extensions.Logging;
 using RepositoryLayer.Abstractions;
 using RepositoryLayer.Abstractions.Generic;
 using ServiceLayer.Abstractions;
@@ -423,6 +424,64 @@ public class UserService(ITokenData tokenData,
         {
             StatusCode = HttpStatusCode.OK,
             Message = "Successfully deleted the user."
+        };
+    }
+
+    public async Task<CommonResponse> AddUserFriendByEmailAsync(AddFriendRequest request, CancellationToken ct)
+    {
+        if (!_tokenData.UserId.HasValue)
+        {
+            _logger.LogWarning("AddUserFriendByEmailAsync called with no authenticated user.");
+            return new CommonResponse
+            {
+                StatusCode = HttpStatusCode.Unauthorized,
+                Message = "Unauthorized."
+            };
+        }
+
+        var callingUserId = _tokenData.UserId!.Value;
+        var userToFriend = await _userRepository.GetByEmailAsync(request.Email, ct);
+
+        if (userToFriend == null)
+        {
+            _logger.LogWarning("User {CallingUserId} tried to add a friend with email {Email}, but no user was found.", callingUserId, request.Email);
+            return new CommonResponse
+            {
+                StatusCode = HttpStatusCode.OK,
+                Message = "If a user with this email exists, a friend request will be sent to them."
+            };
+        }
+
+        if (userToFriend.UserId == callingUserId)
+        {
+            _logger.LogWarning("User {UserId} cannot add themselves as a friend.", callingUserId);
+            return new CommonResponse
+            {
+                StatusCode = HttpStatusCode.OK,
+                Message = "If a user with this email exists, a friend request will be sent to them."
+            };
+        }
+
+        var existingUserFriend = await _userFriendRepository.GetUserFriendAsync(callingUserId, userToFriend.UserId, ct);
+        if (existingUserFriend != null)
+        {
+            _logger.LogWarning("UserFriend between {UserId} and {FriendId} already created, cannot add again.", callingUserId, userToFriend.UserId);
+            return new CommonResponse
+            {
+                StatusCode = HttpStatusCode.OK,
+                Message = "If a user with this email exists, a friend request will be sent to them."
+            };
+        }
+
+        _ = await _userFriendRepository.CreateUserFriendAsync(callingUserId, userToFriend.UserId, ct);
+
+        await _unitOfWork.SaveChangesAsync(ct);
+        _logger.LogInformation("Successfully sent friend request from {UserId} to {FriendId} using email address.", callingUserId, userToFriend.UserId);
+        
+        return new CommonResponse
+        {
+            StatusCode = HttpStatusCode.OK,
+            Message = "If a user with this email exists, a friend request will be sent to them."
         };
     }
 }
