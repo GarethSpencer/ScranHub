@@ -13,10 +13,12 @@ namespace WebApi.Controllers.v1;
 public class UserController(
     IUserService userService,
     IValidator<CreateUserRequest> createUserRequestValidator,
+    IValidator<UpdateUserRequest> updateUserRequestValidator,
     IValidator<UpdateUserFriendRequest> updateUserFriendRequestValidator) : ControllerBase
 {
     private readonly IUserService _userService = userService;
     private readonly IValidator<CreateUserRequest> _createUserRequestValidator = createUserRequestValidator;
+    private readonly IValidator<UpdateUserRequest> _updateUserRequestValidator = updateUserRequestValidator;
     private readonly IValidator<UpdateUserFriendRequest> _updateUserFriendRequestValidator = updateUserFriendRequestValidator;
 
     [HttpGet("me/friends")]
@@ -42,6 +44,22 @@ public class UserController(
         }
 
         var response = await _userService.CreateUserAsync(request, ct);
+        return StatusCode((int)response.StatusCode, response);
+    }
+
+    [HttpPatch("{userId}")]
+    public async Task<IActionResult> UpdateUser([FromRoute] Guid userId, [FromBody] UpdateUserRequest request, CancellationToken ct)
+    {
+        if (request == null)
+        {
+            return BadRequest("Request body is required.");
+        }
+        var validation = await _updateUserRequestValidator.ValidateAsync(request, ct);
+        if (!validation.IsValid)
+        {
+            return BadRequest(ValidationErrorFormatter.FormatErrors(validation));
+        }
+        var response = await _userService.UpdateUserAsync(userId, request, ct);
         return StatusCode((int)response.StatusCode, response);
     }
 

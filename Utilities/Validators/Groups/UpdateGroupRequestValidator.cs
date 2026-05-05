@@ -1,5 +1,6 @@
 ﻿using FluentValidation;
 using Utilities.Models.Requests.Groups;
+using static Utilities.Helpers.ValidationHelpers;
 
 namespace Utilities.Validators.Groups;
 
@@ -15,12 +16,5 @@ public class UpdateGroupRequestValidator : AbstractValidator<UpdateGroupRequest>
 
         RuleFor(x => x.Active)
             .NotNull().WithMessage("Active status is required.");
-    }
-
-    private static bool CheckProfanity(string groupName)
-    {
-        var filter = new ProfanityFilter.ProfanityFilter();
-        var detected = filter.DetectAllProfanities(groupName);
-        return detected == null || detected.Count == 0;
     }
 }

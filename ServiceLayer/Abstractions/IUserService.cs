@@ -10,6 +10,8 @@ public interface IUserService
 
     Task<AddUserResponse> CreateUserAsync(CreateUserRequest request, CancellationToken ct);
 
+    Task<CommonResponse> UpdateUserAsync(Guid userId, UpdateUserRequest request, CancellationToken ct);
+
     Task<GetUserResponse> GetUserAsync(Guid userId, CancellationToken ct);
 
     Task<AddUserFriendResponse> AddUserFriendAsync(Guid friendId, CancellationToken ct);

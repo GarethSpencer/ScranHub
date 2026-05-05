@@ -96,7 +96,7 @@ public class UserService(ITokenData tokenData,
             };
         }
 
-        var userId = await _userRepository.CreateUserAsync(request, ct);
+        var userId = await _userRepository.CreateAsync(request, ct);
 
         await _unitOfWork.SaveChangesAsync(ct);
         _logger.LogInformation("Successfully created user with id {UserId}", userId);
@@ -106,6 +106,73 @@ public class UserService(ITokenData tokenData,
             StatusCode = HttpStatusCode.Created,
             Message = "User created successfully.",
             UserId = userId
+        };
+    }
+
+    public async Task<CommonResponse> UpdateUserAsync(Guid userId, UpdateUserRequest request, CancellationToken ct)
+    {
+        if (!_tokenData.UserId.HasValue)
+        {
+            _logger.LogWarning("UpdateUserAsync called with no authenticated user.");
+            return new CommonResponse
+            {
+                StatusCode = HttpStatusCode.Unauthorized,
+                Message = "Unauthorized."
+            };
+        }
+
+        var callingUserId = _tokenData.UserId!.Value;
+        var isAdmin = await _userRepository.IsUserAdminAsync(callingUserId, ct);
+        if (!isAdmin && callingUserId != userId)
+        {
+            _logger.LogWarning("User {CallingUserId} is not an admin or the user {UserId} being updated.", callingUserId, userId);
+            return new CommonResponse
+            {
+                StatusCode = HttpStatusCode.Unauthorized,
+                Message = "You do not have permission to update this user."
+            };
+        }
+
+        if (!isAdmin && request.Admin)
+        {
+            _logger.LogWarning("Non-Admin user {CallingUserId} cannot make themselves an admin", callingUserId);
+            return new CommonResponse
+            {
+                StatusCode = HttpStatusCode.Unauthorized,
+                Message = "You cannot make yourself an admin."
+            };
+        }
+
+        var userToUpdate = await _userRepository.GetDetailsByIdAsync(userId, ct);
+        if (userToUpdate == null)
+        {
+            _logger.LogWarning("User with ID {UserId} not found.", userId);
+            return new CommonResponse
+            {
+                StatusCode = HttpStatusCode.NotFound,
+                Message = "User not found."
+            };
+        }
+
+        if (userToUpdate.Admin && userToUpdate.UserId != callingUserId)
+        {
+            _logger.LogWarning("Admin {UserId} can only update their own information, so cannot be updated by {CallingUserId}.", userId, callingUserId);
+            return new CommonResponse
+            {
+                StatusCode = HttpStatusCode.Unauthorized,
+                Message = "You do not have permission to update this user."
+            };
+        }
+
+        await _userRepository.UpdateAsync(userId, request, ct);
+
+        await _unitOfWork.SaveChangesAsync(ct);
+        _logger.LogInformation("Successfully updated user with id {UserId}", userId);
+
+        return new CommonResponse
+        {
+            StatusCode = HttpStatusCode.OK,
+            Message = "User updated successfully."
         };
     }
 

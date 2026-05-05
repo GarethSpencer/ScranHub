@@ -3,7 +3,6 @@ using DAL.Entities;
 using Microsoft.EntityFrameworkCore;
 using RepositoryLayer.Abstractions;
 using RepositoryLayer.Infrastructure.Generic;
-using Utilities.Enums;
 using Utilities.Models.Requests.Users;
 using Utilities.Models.Results;
 
@@ -90,14 +89,14 @@ public sealed class UserRepository(ScranHubDbContext dbContext) : EFRepository<U
             Initiator = true
         })
             .Concat(friendInfo.ReceivedFriendships.Select(f => new FriendResult
-        {
-            UserFriendId = f.UserFriendId,
-            FriendId = f.UserId,
-            DisplayName = f.User!.DisplayName,
-            Active = f.User.Active,
-            Status = f.Status,
-            Initiator = false
-        }));
+            {
+                UserFriendId = f.UserFriendId,
+                FriendId = f.UserId,
+                DisplayName = f.User!.DisplayName,
+                Active = f.User.Active,
+                Status = f.Status,
+                Initiator = false
+            }));
 
         return [.. result];
     }
@@ -122,17 +121,28 @@ public sealed class UserRepository(ScranHubDbContext dbContext) : EFRepository<U
         return user != null && user.Admin;
     }
 
-    public async Task<Guid> CreateUserAsync(CreateUserRequest request, CancellationToken ct)
+    public async Task<Guid> CreateAsync(CreateUserRequest createRequest, CancellationToken ct)
     {
         var newUser = new User
         {
-            DisplayName = request.DisplayName,
-            Email = request.Email,
-            Admin = request.Admin,
+            DisplayName = createRequest.DisplayName,
+            Email = createRequest.Email,
+            Admin = createRequest.Admin,
             Active = true
         };
 
         await _dbSet.AddAsync(newUser, ct);
         return newUser.UserId;
+    }
+
+    public async Task UpdateAsync(Guid userId, UpdateUserRequest userRequest, CancellationToken ct)
+    {
+        var user = await _dbSet.FindAsync([userId], ct);
+        if (user != null)
+        {
+            user.DisplayName = userRequest.DisplayName;
+            user.Admin = userRequest.Admin;
+            user.Active = userRequest.Active;
+        }
     }
 }
