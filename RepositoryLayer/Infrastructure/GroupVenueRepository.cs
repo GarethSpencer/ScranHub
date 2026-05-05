@@ -3,35 +3,41 @@ using DAL.Entities;
 using Microsoft.EntityFrameworkCore;
 using RepositoryLayer.Abstractions;
 using RepositoryLayer.Infrastructure.Generic;
+using Utilities.Models.Results;
 
 namespace RepositoryLayer.Infrastructure;
 
 public sealed class GroupVenueRepository(ScranHubDbContext dbContext) : EFRepository<GroupVenue>(dbContext), IGroupVenueRepository
 {
-    public async Task<GroupVenue?> GetByIdAsync(Guid id, CancellationToken ct, bool trackChanges = false)
+    public async Task<GroupVenueResult?> GetByIdAsync(Guid groupVenueId, CancellationToken ct)
     {
-        if (trackChanges)
+        return await _dbSet
+            .Include(x => x.VenueTypeOption)
+            .Include(x => x.FoodTypeOption)
+            .Select(x => new GroupVenueResult
         {
-            return await _dbSet.FindAsync([id], ct);
-        }
-
-        return await _dbSet.AsNoTracking().FirstOrDefaultAsync(x => x.GroupVenueId == id, ct);
+            GroupVenueId = x.GroupVenueId,
+            GroupId = x.GroupId,
+            VenueName = x.VenueName,
+            VenueType = x.VenueTypeOption!.Label,
+            FoodType = x.FoodTypeOption!.Label
+        }).FirstOrDefaultAsync(x => x.GroupVenueId == groupVenueId, ct);
     }
 
-    public async Task<IEnumerable<GroupVenue>> GetAllVenuesWithInfoByGroupIdAsync(Guid groupId, CancellationToken ct, bool trackChanges = false)
+    public async Task<IEnumerable<GroupVenueResult>> GetAllVenuesWithInfoByGroupIdAsync(Guid groupId, CancellationToken ct)
     {
-        IQueryable<GroupVenue> query = _dbSet.Where(x => x.GroupId == groupId)
+        var query = _dbSet.Where(x => x.GroupId == groupId)
             .Include(x => x.Group)
-            .Include(x => x.CostUserRatings)!.ThenInclude(x => x.CostOption)
             .Include(x => x.FoodTypeOption)
-            .Include(x => x.RatingUserRatings)!.ThenInclude(x => x.RatingOption)
             .Include(x => x.VenueTypeOption);
 
-        if (!trackChanges)
+        return await query.Select(x => new GroupVenueResult
         {
-            query = query.AsNoTracking();
-        }
-
-        return await query.ToListAsync(ct);
+            GroupVenueId = x.GroupVenueId,
+            GroupId = x.GroupId,
+            VenueName = x.VenueName,
+            VenueType = x.VenueTypeOption!.Label,
+            FoodType = x.FoodTypeOption!.Label
+        }).ToListAsync(ct);
     }
 }
