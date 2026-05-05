@@ -11,11 +11,11 @@ public class UserFriendConfiguration : IEntityTypeConfiguration<UserFriend>
         builder.HasOne(uf => uf.User)
             .WithMany(u => u.InitiatedFriendships)
             .HasForeignKey(uf => uf.UserId)
-            .OnDelete(DeleteBehavior.Restrict);
+            .OnDelete(DeleteBehavior.Cascade);
 
         builder.HasOne(uf => uf.Friend)
             .WithMany(u => u.ReceivedFriendships)
             .HasForeignKey(uf => uf.FriendId)
-            .OnDelete(DeleteBehavior.Restrict);
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

@@ -15,6 +15,7 @@ namespace RepositoryLayer.Abstractions
         Task<User?> GetUserGroupsByIdAsync(Guid userId, CancellationToken ct, bool trackChanges = false);
         Task<bool> IsUserAdminAsync(Guid userId, CancellationToken ct);
         Task<Guid> CreateAsync(CreateUserRequest createRequest, CancellationToken ct);
+        Task DeleteAsync(Guid userId, CancellationToken ct);
         Task UpdateAsync(Guid userId, UpdateUserRequest userRequest, CancellationToken ct);
         Task<(IEnumerable<UserResult>, int)> SearchByDisplayNameAsync(SearchUserRequest request, CancellationToken ct);
     }

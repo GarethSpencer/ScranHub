@@ -49,6 +49,14 @@ public class UserController(
         return StatusCode((int)response.StatusCode, response);
     }
 
+    [HttpDelete("{userId}")]
+    public async Task<IActionResult> DeleteUser([FromRoute] Guid userId, CancellationToken ct)
+    {
+        var response = await _userService.DeleteUserAsync(userId, ct);
+
+        return StatusCode((int)response.StatusCode, response);
+    }
+
     [HttpPatch("{userId}")]
     public async Task<IActionResult> UpdateUser([FromRoute] Guid userId, [FromBody] UpdateUserRequest request, CancellationToken ct)
     {

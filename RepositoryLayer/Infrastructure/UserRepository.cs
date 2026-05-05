@@ -158,4 +158,13 @@ public sealed class UserRepository(ScranHubDbContext dbContext) : EFRepository<U
 
         return (userResults, totalCount);
     }
+
+    public async Task DeleteAsync(Guid userId, CancellationToken ct)
+    {
+        var user = await _dbSet.FindAsync([userId], ct);
+        if (user != null)
+        {
+            _dbSet.Remove(user);
+        }
+    }
 }

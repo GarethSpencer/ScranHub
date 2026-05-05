@@ -96,6 +96,18 @@ public class UserService(ITokenData tokenData,
             };
         }
 
+        var callingUserId = _tokenData.UserId!.Value;
+        var isAdmin = await _userRepository.IsUserAdminAsync(callingUserId, ct);
+        if (!isAdmin && request.Admin)
+        {
+            _logger.LogWarning("Non-Admin user {CallingUserId} cannot create an admin user.", callingUserId);
+            return new AddUserResponse
+            {
+                StatusCode = HttpStatusCode.Unauthorized,
+                Message = "You cannot create an admin user."
+            };
+        }
+
         var userId = await _userRepository.CreateAsync(request, ct);
 
         await _unitOfWork.SaveChangesAsync(ct);
@@ -363,6 +375,54 @@ public class UserService(ITokenData tokenData,
         {
             StatusCode = HttpStatusCode.OK,
             Message = $"Successfully updated friend status to {request.Status}."
+        };
+    }
+
+    public async Task<CommonResponse> DeleteUserAsync(Guid userId, CancellationToken ct)
+    {
+        if (!_tokenData.UserId.HasValue)
+        {
+            _logger.LogWarning("DeleteUserAsync called with no authenticated user.");
+            return new CommonResponse
+            {
+                StatusCode = HttpStatusCode.Unauthorized,
+                Message = "Unauthorized."
+            };
+        }
+
+        var userExists = await _userRepository.ExistsAsync(x => x.UserId == userId, ct);
+        if (!userExists)
+        {
+            _logger.LogWarning("No user found with id {UserId}", userId);
+            return new CommonResponse
+            {
+                StatusCode = HttpStatusCode.NotFound,
+                Message = "User not found."
+            };
+        }
+
+        var callingUserId = _tokenData.UserId!.Value;
+        var isAdmin = await _userRepository.IsUserAdminAsync(callingUserId, ct);
+
+        if (!isAdmin && callingUserId != userId)
+        {
+            _logger.LogWarning("User {UserId} is not an admin and can only delete their own account.", userId);
+            return new CommonResponse
+            {
+                StatusCode = HttpStatusCode.Forbidden,
+                Message = "You cannot delete other users."
+            };
+        }
+
+        await _userRepository.DeleteAsync(userId, ct);
+
+        await _unitOfWork.SaveChangesAsync(ct);
+        _logger.LogInformation("User {UserId} deleted successfully by user {CallingUserId}.", userId, callingUserId);
+
+        return new CommonResponse
+        {
+            StatusCode = HttpStatusCode.OK,
+            Message = "Successfully deleted the user."
         };
     }
 }
