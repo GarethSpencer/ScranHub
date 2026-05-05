@@ -12,10 +12,12 @@ namespace WebApi.Controllers.v1;
 [ApiVersion("1.0")]
 public class UserController(
     IUserService userService,
-    IValidator<CreateUserRequest> createUserRequestValidator) : ControllerBase
+    IValidator<CreateUserRequest> createUserRequestValidator,
+    IValidator<UpdateUserFriendRequest> updateUserFriendRequestValidator) : ControllerBase
 {
     private readonly IUserService _userService = userService;
     private readonly IValidator<CreateUserRequest> _createUserRequestValidator = createUserRequestValidator;
+    private readonly IValidator<UpdateUserFriendRequest> _updateUserFriendRequestValidator = updateUserFriendRequestValidator;
 
     [HttpGet("me/friends")]
     public async Task<IActionResult> GetFriends(CancellationToken ct)
@@ -56,6 +58,24 @@ public class UserController(
     {
         var response = await _userService.AddUserFriendAsync(friendId, ct);
 
+        return StatusCode((int)response.StatusCode, response);
+    }
+
+    [HttpPatch("me/friends/{friendId}")]
+    public async Task<IActionResult> UpdateFriend([FromRoute] Guid friendId, [FromBody] UpdateUserFriendRequest request, CancellationToken ct)
+    {
+        if (request == null)
+        {
+            return BadRequest("Request body is required.");
+        }
+
+        var validation = await _updateUserFriendRequestValidator.ValidateAsync(request, ct);
+        if (!validation.IsValid)
+        {
+            return BadRequest(ValidationErrorFormatter.FormatErrors(validation));
+        }
+
+        var response = await _userService.UpdateUserFriendAsync(friendId, request, ct);
         return StatusCode((int)response.StatusCode, response);
     }
 }

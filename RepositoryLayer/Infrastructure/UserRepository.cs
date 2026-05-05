@@ -86,7 +86,7 @@ public sealed class UserRepository(ScranHubDbContext dbContext) : EFRepository<U
             FriendId = f.FriendId,
             DisplayName = f.Friend!.DisplayName,
             Active = f.Friend.Active,
-            Approved = f.Status == FriendshipStatus.Accepted,
+            Status = f.Status,
             Initiator = true
         })
             .Concat(friendInfo.ReceivedFriendships.Select(f => new FriendResult
@@ -95,7 +95,7 @@ public sealed class UserRepository(ScranHubDbContext dbContext) : EFRepository<U
             FriendId = f.UserId,
             DisplayName = f.User!.DisplayName,
             Active = f.User.Active,
-            Approved = f.Status == FriendshipStatus.Accepted,
+            Status = f.Status,
             Initiator = false
         }));
 

@@ -4,16 +4,25 @@ using Microsoft.EntityFrameworkCore;
 using RepositoryLayer.Abstractions;
 using RepositoryLayer.Infrastructure.Generic;
 using Utilities.Enums;
+using Utilities.Models.Results;
 
 namespace RepositoryLayer.Infrastructure;
 
 public sealed class UserFriendRepository(ScranHubDbContext dbContext) : EFRepository<UserFriend>(dbContext), IUserFriendRepository
 {
-    public async Task<bool> DoesUserFriendExist(Guid userId1, Guid userId2, CancellationToken ct)
+    public async Task<UserFriendResult?> GetUserFriendAsync(Guid userId1, Guid userId2, CancellationToken ct)
     {
-        return await _dbSet.AnyAsync(uf =>
+        var userFriend = await _dbSet.FirstOrDefaultAsync(uf =>
             ((uf.UserId == userId1 && uf.FriendId == userId2) ||
             (uf.UserId == userId2 && uf.FriendId == userId1)), ct);
+
+        return userFriend != null ? new UserFriendResult
+        {
+            UserFriendId = userFriend.UserFriendId,
+            UserId = userFriend.UserId,
+            FriendId = userFriend.FriendId,
+            Status = userFriend.Status
+        } : null;
     }
 
     public async Task<bool> IsFriendshipAcceptedAsync(Guid userId1, Guid userId2, CancellationToken ct)
@@ -47,5 +56,15 @@ public sealed class UserFriendRepository(ScranHubDbContext dbContext) : EFReposi
         };
         await _dbSet.AddAsync(userFriend, ct);
         return userFriend.UserFriendId;
+    }
+
+    public async Task UpdateUserFriendStatusAsync(Guid userFriendId, FriendshipStatus newStatus, CancellationToken ct)
+    {
+        var userFriend = await _dbSet.FindAsync([userFriendId], ct);
+        if (userFriend != null)
+        {
+            userFriend.Status = newStatus;
+            _dbSet.Update(userFriend);
+        }
     }
 }

@@ -25,5 +25,6 @@ public static class UtilitiesServiceExtensions
         services.AddScoped<IValidator<UpdateGroupRequest>, UpdateGroupRequestValidator>();
         services.AddScoped<IValidator<SearchGroupRequest>, SearchGroupRequestValidator>();
         services.AddScoped<IValidator<CreateUserRequest>, CreateUserRequestValidator>();
+        services.AddScoped<IValidator<UpdateUserFriendRequest>, UpdateUserFriendRequestValidator>();
     }
 }
