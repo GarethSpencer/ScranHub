@@ -1,6 +1,6 @@
 ﻿using DAL.Entities;
 using RepositoryLayer.Abstractions.Generic;
-using Utilities.Models.Requests.Groups;
+using Utilities.Models.Requests.Generic;
 using Utilities.Models.Requests.Users;
 using Utilities.Models.Results;
 
@@ -8,6 +8,7 @@ namespace RepositoryLayer.Abstractions
 {
     public interface IUserRepository : IEFRepository<User>
     {
+        Task<(IEnumerable<UserDetailedResult>, int)> GetAllAsync(PaginationBaseRequest request, CancellationToken ct);
         Task<IEnumerable<User>> GetAllActiveAdminsAsync(CancellationToken ct, bool trackChanges = false);
         Task<UserResult?> GetByEmailAsync(string email, CancellationToken ct);
         Task<UserResult?> GetDetailsByIdAsync(Guid id, CancellationToken ct);

@@ -1,4 +1,5 @@
-﻿using Utilities.Models.Requests.Groups;
+﻿using Utilities.Models.Requests.Generic;
+using Utilities.Models.Requests.Groups;
 using Utilities.Models.Responses.Generic;
 using Utilities.Models.Responses.Groups;
 
@@ -10,7 +11,7 @@ public interface IGroupService
 
     Task<GetGroupResponse> GetGroupAsync(Guid groupId, CancellationToken ct);
 
-    Task<SearchGroupsResponse> SearchGroupsAsync(SearchGroupRequest request, CancellationToken ct);
+    Task<GetGroupsResponse> SearchGroupsAsync(SearchGroupRequest request, CancellationToken ct);
 
     Task<CommonResponse> UpdateGroupAsync(Guid groupId, UpdateGroupRequest groupRequest, CancellationToken ct);
 
@@ -21,4 +22,6 @@ public interface IGroupService
     Task<CommonResponse> JoinGroupAsync(Guid groupId, CancellationToken ct);
 
     Task<CommonResponse> DeleteGroupAsync(Guid groupId, CancellationToken ct);
+
+    Task<GetGroupsDetailedResponse> GetAllGroupsAsync(PaginationBaseRequest request, CancellationToken ct);
 }

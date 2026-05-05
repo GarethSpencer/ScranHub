@@ -3,6 +3,7 @@ using RepositoryLayer.Abstractions;
 using RepositoryLayer.Abstractions.Generic;
 using ServiceLayer.Abstractions;
 using System.Net;
+using Utilities.Models.Requests.Generic;
 using Utilities.Models.Requests.Groups;
 using Utilities.Models.Responses.Generic;
 using Utilities.Models.Responses.Groups;
@@ -110,12 +111,12 @@ public class GroupService(ITokenData tokenData,
         };
     }
 
-    public async Task<SearchGroupsResponse> SearchGroupsAsync(SearchGroupRequest request, CancellationToken ct)
+    public async Task<GetGroupsResponse> SearchGroupsAsync(SearchGroupRequest request, CancellationToken ct)
     {
         if (!_tokenData.UserId.HasValue)
         {
             _logger.LogWarning("SearchGroupsAsync called with no authenticated user.");
-            return new SearchGroupsResponse
+            return new GetGroupsResponse
             {
                 StatusCode = HttpStatusCode.Unauthorized,
                 Message = "Unauthorized."
@@ -126,7 +127,7 @@ public class GroupService(ITokenData tokenData,
 
         var (groups, totalCount) = await _groupRepository.SearchByNameAsync(request, userId, ct);
 
-        return new SearchGroupsResponse
+        return new GetGroupsResponse
         {
             StatusCode = HttpStatusCode.OK,
             Message = $"Groups returned successfully.",
@@ -389,6 +390,43 @@ public class GroupService(ITokenData tokenData,
         {
             StatusCode = HttpStatusCode.OK,
             Message = "Successfully deleted the group."
+        };
+    }
+
+    public async Task<GetGroupsDetailedResponse> GetAllGroupsAsync(PaginationBaseRequest request, CancellationToken ct)
+    {
+        if (!_tokenData.UserId.HasValue)
+        {
+            _logger.LogWarning("GetAllGroupsAsync called with no authenticated user.");
+            return new GetGroupsDetailedResponse
+            {
+                StatusCode = HttpStatusCode.Unauthorized,
+                Message = "Unauthorized."
+            };
+        }
+
+        var userId = _tokenData.UserId!.Value;
+        var isAdmin = await _userRepository.IsUserAdminAsync(userId, ct);
+
+        if (!isAdmin)
+        {
+            _logger.LogWarning("User {UserId} is not an admin and cannot retrieve all groups.", userId);
+            return new GetGroupsDetailedResponse
+            {
+                StatusCode = HttpStatusCode.Forbidden,
+                Message = "You are not an admin."
+            };
+        }
+
+        var (groups, totalCount) = await _groupRepository.GetAllAsync(request, ct);
+        _logger.LogInformation("Successfully retrieved all groups for user {UserId}", userId);
+
+        return new GetGroupsDetailedResponse
+        {
+            StatusCode = HttpStatusCode.OK,
+            Message = "Groups retrieved successfully.",
+            Groups = groups,
+            TotalCount = totalCount,
         };
     }
 }

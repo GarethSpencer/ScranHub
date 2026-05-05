@@ -1,5 +1,7 @@
-﻿using Utilities.Models.Requests.Users;
+﻿using Utilities.Models.Requests.Generic;
+using Utilities.Models.Requests.Users;
 using Utilities.Models.Responses.Generic;
+using Utilities.Models.Responses.Groups;
 using Utilities.Models.Responses.Users;
 
 namespace ServiceLayer.Abstractions;
@@ -10,7 +12,7 @@ public interface IUserService
 
     Task<AddUserResponse> CreateUserAsync(CreateUserRequest request, CancellationToken ct);
 
-    Task<SearchUsersResponse> SearchUsersAsync(SearchUserRequest request, CancellationToken ct);
+    Task<GetUsersResponse> SearchUsersAsync(SearchUserRequest request, CancellationToken ct);
 
     Task<CommonResponse> UpdateUserAsync(Guid userId, UpdateUserRequest request, CancellationToken ct);
 
@@ -23,4 +25,6 @@ public interface IUserService
     Task<CommonResponse> DeleteUserAsync(Guid userId, CancellationToken ct);
 
     Task<CommonResponse> AddUserFriendByEmailAsync(AddFriendRequest request, CancellationToken ct);
+
+    Task<GetUsersDetailedResponse> GetAllUsersAsync(PaginationBaseRequest request, CancellationToken ct);
 }

@@ -3,7 +3,7 @@ using Utilities.Models.Results;
 
 namespace Utilities.Models.Responses.Groups;
 
-public class SearchGroupsResponse : CommonPaginationResponse
+public class GetGroupsResponse : CommonPaginationResponse
 {
     public IEnumerable<GroupResult>? Groups { get; set; }
 }

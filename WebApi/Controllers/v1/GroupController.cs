@@ -21,14 +21,6 @@ public class GroupController(
     private readonly IValidator<UpdateGroupRequest> _updateGroupRequestValidator = updateGroupRequestValidator;
     private readonly IValidator<SearchGroupRequest> _searchGroupRequestValidator = searchGroupRequestValidator;
 
-    [HttpGet("me")]
-    public async Task<IActionResult> GetUserGroups(CancellationToken ct)
-    {
-        var response = await _groupService.GetGroupsForUserAsync(ct);
-
-        return StatusCode((int)response.StatusCode, response);
-    }
-
     [HttpGet("{groupId}")]
     public async Task<IActionResult> GetGroup([FromRoute] Guid groupId, CancellationToken ct)
     {
@@ -75,14 +67,6 @@ public class GroupController(
         return StatusCode((int)response.StatusCode, response);
     }
 
-    [HttpDelete("{groupId}")]
-    public async Task<IActionResult> DeleteGroup([FromRoute] Guid groupId, CancellationToken ct)
-    {
-        var response = await _groupService.DeleteGroupAsync(groupId, ct);
-
-        return StatusCode((int)response.StatusCode, response);
-    }
-
     [HttpPatch("{groupId}")]
     public async Task<IActionResult> UpdateGroup([FromRoute] Guid groupId, [FromBody] UpdateGroupRequest request, CancellationToken ct)
     {
@@ -102,10 +86,18 @@ public class GroupController(
         return StatusCode((int)response.StatusCode, response);
     }
 
-    [HttpDelete("{groupId}/members/me")]
-    public async Task<IActionResult> LeaveGroup([FromRoute] Guid groupId, CancellationToken ct)
+    [HttpDelete("{groupId}")]
+    public async Task<IActionResult> DeleteGroup([FromRoute] Guid groupId, CancellationToken ct)
     {
-        var response = await _groupService.LeaveGroupAsync(groupId, ct);
+        var response = await _groupService.DeleteGroupAsync(groupId, ct);
+
+        return StatusCode((int)response.StatusCode, response);
+    }
+
+    [HttpGet("me")]
+    public async Task<IActionResult> GetUserGroups(CancellationToken ct)
+    {
+        var response = await _groupService.GetGroupsForUserAsync(ct);
 
         return StatusCode((int)response.StatusCode, response);
     }
@@ -114,6 +106,14 @@ public class GroupController(
     public async Task<IActionResult> JoinGroup([FromRoute] Guid groupId, CancellationToken ct)
     {
         var response = await _groupService.JoinGroupAsync(groupId, ct);
+
+        return StatusCode((int)response.StatusCode, response);
+    }
+
+    [HttpDelete("{groupId}/members/me")]
+    public async Task<IActionResult> LeaveGroup([FromRoute] Guid groupId, CancellationToken ct)
+    {
+        var response = await _groupService.LeaveGroupAsync(groupId, ct);
 
         return StatusCode((int)response.StatusCode, response);
     }

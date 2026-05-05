@@ -3,6 +3,7 @@ using DAL.Entities;
 using Microsoft.EntityFrameworkCore;
 using RepositoryLayer.Abstractions;
 using RepositoryLayer.Infrastructure.Generic;
+using Utilities.Models.Requests.Generic;
 using Utilities.Models.Requests.Users;
 using Utilities.Models.Results;
 
@@ -10,6 +11,32 @@ namespace RepositoryLayer.Infrastructure;
 
 public sealed class UserRepository(ScranHubDbContext dbContext) : EFRepository<User>(dbContext), IUserRepository
 {
+    public async Task<(IEnumerable<UserDetailedResult>, int)> GetAllAsync(PaginationBaseRequest request, CancellationToken ct)
+    {
+        var users = await _dbSet
+            .Include(u => u.InitiatedFriendships)
+            .Include(u => u.ReceivedFriendships)
+            .OrderBy(u => u.DisplayName)
+            .Skip((request.PageNumber - 1) * request.PageSize)
+            .Take(request.PageSize)
+            .ToListAsync(ct);
+
+        var userResults = users.Select(u => new UserDetailedResult
+        {
+            UserId = u.UserId,
+            DisplayName = u.DisplayName,
+            Active = u.Active,
+            Admin = u.Admin,
+            FriendCount = u.InitiatedFriendships.Count + u.ReceivedFriendships.Count,
+            CreatedOn = u.CreatedOn,
+            CreatedBy = u.CreatedBy,
+            UpdatedOn = u.UpdatedOn,
+            UpdatedBy = u.UpdatedBy
+        });
+
+        return (userResults, userResults.Count());
+    }
+
     public async Task<UserResult?> GetDetailsByIdAsync(Guid id, CancellationToken ct)
     {
         var user = await _dbSet.FindAsync([id], ct);

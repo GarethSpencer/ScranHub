@@ -5,8 +5,10 @@ using RepositoryLayer.Abstractions.Generic;
 using ServiceLayer.Abstractions;
 using System.Net;
 using Utilities.Enums;
+using Utilities.Models.Requests.Generic;
 using Utilities.Models.Requests.Users;
 using Utilities.Models.Responses.Generic;
+using Utilities.Models.Responses.Groups;
 using Utilities.Models.Responses.Users;
 using Utilities.Token;
 
@@ -122,12 +124,12 @@ public class UserService(ITokenData tokenData,
         };
     }
 
-    public async Task<SearchUsersResponse> SearchUsersAsync(SearchUserRequest request, CancellationToken ct)
+    public async Task<GetUsersResponse> SearchUsersAsync(SearchUserRequest request, CancellationToken ct)
     {
         if (!_tokenData.UserId.HasValue)
         {
             _logger.LogWarning("SearchUsersAsync called with no authenticated user.");
-            return new SearchUsersResponse
+            return new GetUsersResponse
             {
                 StatusCode = HttpStatusCode.Unauthorized,
                 Message = "Unauthorized."
@@ -138,7 +140,7 @@ public class UserService(ITokenData tokenData,
         var (users, totalCount) = await _userRepository.SearchByDisplayNameAsync(request, ct);
 
         _logger.LogInformation("User search carried out by {UserId}.", userId);
-        return new SearchUsersResponse
+        return new GetUsersResponse
         {
             StatusCode = HttpStatusCode.OK,
             Message = "Users returned successfully.",
@@ -482,6 +484,43 @@ public class UserService(ITokenData tokenData,
         {
             StatusCode = HttpStatusCode.OK,
             Message = "If a user with this email exists, a friend request will be sent to them."
+        };
+    }
+
+    public async Task<GetUsersDetailedResponse> GetAllUsersAsync(PaginationBaseRequest request, CancellationToken ct)
+    {
+        if (!_tokenData.UserId.HasValue)
+        {
+            _logger.LogWarning("GetAllUsersAsync called with no authenticated user.");
+            return new GetUsersDetailedResponse
+            {
+                StatusCode = HttpStatusCode.Unauthorized,
+                Message = "Unauthorized."
+            };
+        }
+
+        var userId = _tokenData.UserId!.Value;
+        var isAdmin = await _userRepository.IsUserAdminAsync(userId, ct);
+
+        if (!isAdmin)
+        {
+            _logger.LogWarning("User {UserId} is not an admin and cannot retrieve all users.", userId);
+            return new GetUsersDetailedResponse
+            {
+                StatusCode = HttpStatusCode.Forbidden,
+                Message = "You are not an admin."
+            };
+        }
+
+        var (users, totalCount) = await _userRepository.GetAllAsync(request, ct);
+        _logger.LogInformation("Successfully retrieved all users for admin {UserId}.", userId);
+
+        return new GetUsersDetailedResponse
+        {
+            StatusCode = HttpStatusCode.OK,
+            Message = "Users returned successfully.",
+            Users = users,
+            TotalCount = totalCount,
         };
     }
 }

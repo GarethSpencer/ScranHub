@@ -1,8 +1,10 @@
 ﻿using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
+using Utilities.Models.Requests.Generic;
 using Utilities.Models.Requests.Groups;
 using Utilities.Models.Requests.Users;
 using Utilities.Token;
+using Utilities.Validators.Generic;
 using Utilities.Validators.Groups;
 using Utilities.Validators.Users;
 
@@ -21,6 +23,7 @@ public static class UtilitiesServiceExtensions
 
     private static void RegisterValidators(this IServiceCollection services)
     {
+        services.AddScoped<IValidator<PaginationBaseRequest>, PaginationBaseRequestValidator>();
         services.AddScoped<IValidator<CreateGroupRequest>, CreateGroupRequestValidator>();
         services.AddScoped<IValidator<UpdateGroupRequest>, UpdateGroupRequestValidator>();
         services.AddScoped<IValidator<SearchGroupRequest>, SearchGroupRequestValidator>();

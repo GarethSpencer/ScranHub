@@ -25,10 +25,29 @@ public class UserController(
     private readonly IValidator<SearchUserRequest> _searchUserRequestValidator = searchUserRequestValidator;
     private readonly IValidator<AddFriendRequest> _addFriendRequestValidator = addFriendRequestValidator;
 
-    [HttpGet("me/friends")]
-    public async Task<IActionResult> GetFriends(CancellationToken ct)
+    [HttpGet("{userId}")]
+    public async Task<IActionResult> GetUser([FromRoute] Guid userId, CancellationToken ct)
     {
-        var response = await _userService.GetFriendsForUserAsync(ct);
+        var response = await _userService.GetUserAsync(userId, ct);
+
+        return StatusCode((int)response.StatusCode, response);
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> SearchUsers([FromQuery] SearchUserRequest request, CancellationToken ct)
+    {
+        if (request == null)
+        {
+            return BadRequest("Request body is required.");
+        }
+
+        var validation = await _searchUserRequestValidator.ValidateAsync(request, ct);
+        if (!validation.IsValid)
+        {
+            return BadRequest(ValidationErrorFormatter.FormatErrors(validation));
+        }
+
+        var response = await _userService.SearchUsersAsync(request, ct);
 
         return StatusCode((int)response.StatusCode, response);
     }
@@ -51,14 +70,6 @@ public class UserController(
         return StatusCode((int)response.StatusCode, response);
     }
 
-    [HttpDelete("{userId}")]
-    public async Task<IActionResult> DeleteUser([FromRoute] Guid userId, CancellationToken ct)
-    {
-        var response = await _userService.DeleteUserAsync(userId, ct);
-
-        return StatusCode((int)response.StatusCode, response);
-    }
-
     [HttpPatch("{userId}")]
     public async Task<IActionResult> UpdateUser([FromRoute] Guid userId, [FromBody] UpdateUserRequest request, CancellationToken ct)
     {
@@ -75,31 +86,26 @@ public class UserController(
         return StatusCode((int)response.StatusCode, response);
     }
 
-    [HttpGet("{userId}")]
-    public async Task<IActionResult> GetUser([FromRoute] Guid userId, CancellationToken ct)
+    [HttpDelete("{userId}")]
+    public async Task<IActionResult> DeleteUser([FromRoute] Guid userId, CancellationToken ct)
     {
-        var response = await _userService.GetUserAsync(userId, ct);
+        var response = await _userService.DeleteUserAsync(userId, ct);
 
         return StatusCode((int)response.StatusCode, response);
     }
 
-    //TODO: Add by email
-
-    [HttpGet]
-    public async Task<IActionResult> SearchUsers([FromQuery] SearchUserRequest request, CancellationToken ct)
+    [HttpGet("me/friends")]
+    public async Task<IActionResult> GetFriends(CancellationToken ct)
     {
-        if (request == null)
-        {
-            return BadRequest("Request body is required.");
-        }
+        var response = await _userService.GetFriendsForUserAsync(ct);
 
-        var validation = await _searchUserRequestValidator.ValidateAsync(request, ct);
-        if (!validation.IsValid)
-        {
-            return BadRequest(ValidationErrorFormatter.FormatErrors(validation));
-        }
+        return StatusCode((int)response.StatusCode, response);
+    }
 
-        var response = await _userService.SearchUsersAsync(request, ct);
+    [HttpPost("me/friends/{friendId}")]
+    public async Task<IActionResult> AddFriend([FromRoute] Guid friendId, CancellationToken ct)
+    {
+        var response = await _userService.AddUserFriendAsync(friendId, ct);
 
         return StatusCode((int)response.StatusCode, response);
     }
@@ -119,14 +125,6 @@ public class UserController(
         }
 
         var response = await _userService.AddUserFriendByEmailAsync(request, ct);
-
-        return StatusCode((int)response.StatusCode, response);
-    }
-
-    [HttpPost("me/friends/{friendId}")]
-    public async Task<IActionResult> AddFriend([FromRoute] Guid friendId, CancellationToken ct)
-    {
-        var response = await _userService.AddUserFriendAsync(friendId, ct);
 
         return StatusCode((int)response.StatusCode, response);
     }

@@ -3,7 +3,7 @@ using Utilities.Models.Results;
 
 namespace Utilities.Models.Responses.Users;
 
-public class SearchUsersResponse : CommonPaginationResponse
+public class GetUsersResponse : CommonPaginationResponse
 {
     public IEnumerable<UserResult>? Users { get; set; }
 }

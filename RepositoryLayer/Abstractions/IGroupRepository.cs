@@ -1,5 +1,6 @@
 ﻿using DAL.Entities;
 using RepositoryLayer.Abstractions.Generic;
+using Utilities.Models.Requests.Generic;
 using Utilities.Models.Requests.Groups;
 using Utilities.Models.Results;
 
@@ -7,6 +8,8 @@ namespace RepositoryLayer.Abstractions
 {
     public interface IGroupRepository : IEFRepository<Group>
     {
+        Task<(IEnumerable<GroupDetailedResult>, int)> GetAllAsync(PaginationBaseRequest request, CancellationToken ct);
+
         Task<GroupResult?> GetDetailsByIdAsync(Guid id, CancellationToken ct);
 
         Task<GroupResult?> GetByNameAsync(string name, CancellationToken ct);

@@ -6,6 +6,7 @@ using RepositoryLayer.Infrastructure.Generic;
 using Utilities.Models.Results;
 using Utilities.Models.Requests.Groups;
 using Utilities.Enums;
+using Utilities.Models.Requests.Generic;
 
 namespace RepositoryLayer.Infrastructure;
 
@@ -13,6 +14,32 @@ public sealed class GroupRepository(ScranHubDbContext dbContext,
     IUserRepository userRepository) : EFRepository<Group>(dbContext), IGroupRepository
 {
     private readonly IUserRepository _userRepository = userRepository;
+
+    public async Task<(IEnumerable<GroupDetailedResult>, int)> GetAllAsync(PaginationBaseRequest request, CancellationToken ct)
+    {
+        var groups = await _dbSet
+            .Include(x => x.UserGroups)
+            .Include(x => x.GroupVenues)
+            .OrderBy(g => g.GroupName)
+            .Skip((request.PageNumber - 1) * request.PageSize)
+            .Take(request.PageSize)
+            .ToListAsync(ct);
+
+        var groupResults = groups.Select(g => new GroupDetailedResult
+        {
+            GroupId = g.GroupId,
+            GroupName = g.GroupName,
+            Active = g.Active,
+            UserCount = g.UserGroups.Count,
+            VenueCount = g.GroupVenues.Count,
+            CreatedOn = g.CreatedOn,
+            CreatedBy = g.CreatedBy,
+            UpdatedOn = g.UpdatedOn,
+            UpdatedBy = g.UpdatedBy,
+        });
+
+        return (groupResults, groupResults.Count());
+    }
 
     public async Task<GroupResult?> GetDetailsByIdAsync(Guid id, CancellationToken ct)
     {
@@ -28,8 +55,6 @@ public sealed class GroupRepository(ScranHubDbContext dbContext,
             GroupId = group.GroupId,
             GroupName = group.GroupName,
             Active = group.Active,
-            CreatedBy = group.CreatedBy,
-            CreatedOn = group.CreatedOn
         };
     }
 
@@ -47,8 +72,6 @@ public sealed class GroupRepository(ScranHubDbContext dbContext,
             GroupId = group.GroupId,
             GroupName = group.GroupName,
             Active = group.Active,
-            CreatedBy = group.CreatedBy,
-            CreatedOn = group.CreatedOn
         };
     }
 
@@ -78,8 +101,6 @@ public sealed class GroupRepository(ScranHubDbContext dbContext,
             GroupId = g.GroupId,
             GroupName = g.GroupName,
             Active = g.Active,
-            CreatedBy = g.CreatedBy,
-            CreatedOn = g.CreatedOn
         });
 
         return (groupResults, totalCount);
