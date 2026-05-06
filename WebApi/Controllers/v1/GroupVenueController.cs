@@ -1,6 +1,9 @@
 ﻿using Asp.Versioning;
+using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 using ServiceLayer.Abstractions;
+using Utilities.Models.Requests.GroupVenues;
+using Utilities.Validators;
 
 namespace WebApi.Controllers.v1;
 
@@ -9,15 +12,34 @@ namespace WebApi.Controllers.v1;
 [ApiVersion("1.0")]
 public class GroupVenueController(
     IGroupVenueService groupVenueService,
-    IGroupService groupService) : ControllerBase
+    IValidator<CreateGroupVenueRequest> createGroupVenueRequestValidator) : ControllerBase
 {
     private readonly IGroupVenueService _groupVenueService = groupVenueService;
-    private readonly IGroupService _groupService = groupService;
+    private readonly IValidator<CreateGroupVenueRequest> _createGroupVenueRequestValidator = createGroupVenueRequestValidator;
 
     [HttpGet("{groupVenueId}")]
     public async Task<IActionResult> GetGroupVenue([FromRoute] Guid groupVenueId, CancellationToken ct)
     {
         var response = await _groupVenueService.GetGroupVenueAsync(groupVenueId, ct);
+
+        return StatusCode((int)response.StatusCode, response);
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> CreateGroupVenue([FromBody] CreateGroupVenueRequest request, CancellationToken ct)
+    {
+        if (request == null)
+        {
+            return BadRequest("Request body is required.");
+        }
+
+        var validation = await _createGroupVenueRequestValidator.ValidateAsync(request, ct);
+        if (!validation.IsValid)
+        {
+            return BadRequest(ValidationErrorFormatter.FormatErrors(validation));
+        }
+
+        var response = await _groupVenueService.CreateGroupVenueAsync(request, ct);
 
         return StatusCode((int)response.StatusCode, response);
     }

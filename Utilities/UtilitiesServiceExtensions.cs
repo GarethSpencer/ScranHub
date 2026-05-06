@@ -2,10 +2,12 @@
 using Microsoft.Extensions.DependencyInjection;
 using Utilities.Models.Requests.Generic;
 using Utilities.Models.Requests.Groups;
+using Utilities.Models.Requests.GroupVenues;
 using Utilities.Models.Requests.Users;
 using Utilities.Token;
 using Utilities.Validators.Generic;
 using Utilities.Validators.Groups;
+using Utilities.Validators.GroupVenues;
 using Utilities.Validators.Users;
 
 namespace Utilities;
@@ -32,5 +34,6 @@ public static class UtilitiesServiceExtensions
         services.AddScoped<IValidator<UpdateUserRequest>, UpdateUserRequestValidator>();
         services.AddScoped<IValidator<SearchUserRequest>, SearchUserRequestValidator>();
         services.AddScoped<IValidator<AddFriendRequest>, AddFriendRequestValidator>();
+        services.AddScoped<IValidator<CreateGroupVenueRequest>, CreateGroupVenueRequestValidator>();
     }
 }

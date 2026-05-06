@@ -1,7 +1,7 @@
 ﻿using Utilities.Models.Responses.Generic;
 using Utilities.Models.Results;
 
-namespace Utilities.Models.Responses.GroupVenue;
+namespace Utilities.Models.Responses.GroupVenues;
 
 public class GetGroupVenueResponse : CommonResponse
 {

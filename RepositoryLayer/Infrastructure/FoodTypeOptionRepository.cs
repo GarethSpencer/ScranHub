@@ -3,6 +3,7 @@ using DAL.Entities;
 using Microsoft.EntityFrameworkCore;
 using RepositoryLayer.Abstractions;
 using RepositoryLayer.Infrastructure.Generic;
+using Utilities.Models.Results;
 
 namespace RepositoryLayer.Infrastructure;
 
@@ -18,15 +19,27 @@ public sealed class FoodTypeOptionRepository(ScranHubDbContext dbContext) : EFRe
         return await _dbSet.AsNoTracking().FirstOrDefaultAsync(x => x.FoodTypeOptionId == id, ct);
     }
 
-    public async Task<IEnumerable<FoodTypeOption>> GetByGroupIdAsync(Guid groupId, CancellationToken ct, bool trackChanges = false)
+    public async Task<IEnumerable<FoodTypeOptionResult>> GetForGroupIdAsync(Guid groupId, CancellationToken ct)
     {
-        IQueryable<FoodTypeOption> query = _dbSet.Where(x => x.GroupId == groupId).OrderBy(x => x.DisplayOrder);
+        var query = _dbSet.Where(x => x.GroupId == groupId).OrderBy(x => x.DisplayOrder);
 
-        if (!trackChanges)
-        {
-            query = query.AsNoTracking();
+        if (!query.Any()) {
+            var defaultOptions = await _dbSet.Where(x => x.GroupId == null).OrderBy(x => x.DisplayOrder).ToListAsync(ct);
+            return defaultOptions.Select(x => new FoodTypeOptionResult
+            {
+                FoodTypeOptionId = x.FoodTypeOptionId,
+                GroupId = x.GroupId,
+                Label = x.Label,
+                DisplayOrder = x.DisplayOrder
+            });
         }
 
-        return await query.ToListAsync(ct);
+        return await query.Select(x => new FoodTypeOptionResult
+        {
+            FoodTypeOptionId = x.FoodTypeOptionId,
+            GroupId = x.GroupId,
+            Label = x.Label,
+            DisplayOrder = x.DisplayOrder
+        }).ToListAsync(ct);
     }
 }

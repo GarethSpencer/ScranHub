@@ -3,6 +3,7 @@ using DAL.Entities;
 using Microsoft.EntityFrameworkCore;
 using RepositoryLayer.Abstractions;
 using RepositoryLayer.Infrastructure.Generic;
+using Utilities.Models.Requests.GroupVenues;
 using Utilities.Models.Results;
 
 namespace RepositoryLayer.Infrastructure;
@@ -39,5 +40,20 @@ public sealed class GroupVenueRepository(ScranHubDbContext dbContext) : EFReposi
             VenueType = x.VenueTypeOption!.Label,
             FoodType = x.FoodTypeOption!.Label
         }).ToListAsync(ct);
+    }
+
+    public async Task<Guid> CreateGroupVenue(CreateGroupVenueRequest request, CancellationToken ct)
+    {
+        var newGroupVenue = new GroupVenue
+        {
+            GroupId = request.GroupId,
+            VenueName = request.VenueName,
+            VenueTypeOptionId = request.VenueTypeOptionId,
+            FoodTypeOptionId = request.FoodTypeOptionId,
+            Visited = false
+        };
+
+        await _dbSet.AddAsync(newGroupVenue, ct);
+        return newGroupVenue.GroupVenueId;
     }
 }

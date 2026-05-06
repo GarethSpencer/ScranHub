@@ -3,6 +3,7 @@ using DAL.Entities;
 using Microsoft.EntityFrameworkCore;
 using RepositoryLayer.Abstractions;
 using RepositoryLayer.Infrastructure.Generic;
+using Utilities.Models.Results;
 
 namespace RepositoryLayer.Infrastructure;
 
@@ -18,15 +19,28 @@ public sealed class VenueTypeOptionRepository(ScranHubDbContext dbContext) : EFR
         return await _dbSet.AsNoTracking().FirstOrDefaultAsync(x => x.VenueTypeOptionId == id, ct);
     }
 
-    public async Task<IEnumerable<VenueTypeOption>> GetByGroupIdAsync(Guid groupId, CancellationToken ct, bool trackChanges = false)
+    public async Task<IEnumerable<VenueTypeOptionResult>> GetForGroupIdAsync(Guid groupId, CancellationToken ct)
     {
-        IQueryable<VenueTypeOption> query = _dbSet.Where(x => x.GroupId == groupId).OrderBy(x => x.DisplayOrder);
+        var query = _dbSet.Where(x => x.GroupId == groupId).OrderBy(x => x.DisplayOrder);
 
-        if (!trackChanges)
+        if (!query.Any())
         {
-            query = query.AsNoTracking();
+            var defaultOptions = await _dbSet.Where(x => x.GroupId == null).OrderBy(x => x.DisplayOrder).ToListAsync(ct);
+            return defaultOptions.Select(x => new VenueTypeOptionResult
+            {
+                VenueTypeOptionId = x.VenueTypeOptionId,
+                GroupId = x.GroupId,
+                Label = x.Label,
+                DisplayOrder = x.DisplayOrder
+            });
         }
 
-        return await query.ToListAsync(ct);
+        return await query.Select(x => new VenueTypeOptionResult
+        {
+            VenueTypeOptionId = x.VenueTypeOptionId,
+            GroupId = x.GroupId,
+            Label = x.Label,
+            DisplayOrder = x.DisplayOrder
+        }).ToListAsync(ct);
     }
 }
