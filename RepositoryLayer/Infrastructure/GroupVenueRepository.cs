@@ -44,6 +44,35 @@ public sealed class GroupVenueRepository(ScranHubDbContext dbContext) : EFReposi
         }).ToListAsync(ct);
     }
 
+    public async Task<(IEnumerable<GroupVenueResult>, int)> SearchByNameAsync(Guid groupId, SearchGroupVenueRequest request, CancellationToken ct)
+    {
+        var groupVenueQuery = _dbSet
+            .Include(x => x.VenueTypeOption)
+            .Include(x => x.FoodTypeOption)
+            .Where(x => x.GroupId == groupId);
+
+        if (request.SearchText != null)
+        {
+            groupVenueQuery = groupVenueQuery.Where(x => EF.Functions.Like(x.VenueName, $"%{request.SearchText}%"));
+        }
+
+        var totalCount = await groupVenueQuery.CountAsync(ct);
+
+        var results = await groupVenueQuery
+            .Skip((request.PageNumber - 1) * request.PageSize)
+            .Take(request.PageSize)
+            .Select(x => new GroupVenueResult
+            {
+                GroupVenueId = x.GroupVenueId,
+                GroupId = x.GroupId,
+                VenueName = x.VenueName,
+                Visited = x.Visited,
+                VenueType = x.VenueTypeOption!.Label,
+                FoodType = x.FoodTypeOption!.Label
+            }).ToListAsync(ct);
+        return (results, totalCount);
+    }
+
     public async Task<Guid> CreateAsync(CreateGroupVenueRequest request, CancellationToken ct)
     {
         var newGroupVenue = new GroupVenue

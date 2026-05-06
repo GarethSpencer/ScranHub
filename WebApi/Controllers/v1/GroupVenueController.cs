@@ -13,16 +13,37 @@ namespace WebApi.Controllers.v1;
 public class GroupVenueController(
     IGroupVenueService groupVenueService,
     IValidator<CreateGroupVenueRequest> createGroupVenueRequestValidator,
-    IValidator<UpdateGroupVenueRequest> updateGroupVenueRequestValidator) : ControllerBase
+    IValidator<UpdateGroupVenueRequest> updateGroupVenueRequestValidator,
+    IValidator<SearchGroupVenueRequest> searchGroupVenueRequestValidator) : ControllerBase
 {
     private readonly IGroupVenueService _groupVenueService = groupVenueService;
     private readonly IValidator<CreateGroupVenueRequest> _createGroupVenueRequestValidator = createGroupVenueRequestValidator;
     private readonly IValidator<UpdateGroupVenueRequest> _updateGroupVenueRequestValidator = updateGroupVenueRequestValidator;
+    private readonly IValidator<SearchGroupVenueRequest> _searchGroupVenueRequestValidator = searchGroupVenueRequestValidator;
 
     [HttpGet("{groupVenueId}")]
     public async Task<IActionResult> GetGroupVenue([FromRoute] Guid groupVenueId, CancellationToken ct)
     {
         var response = await _groupVenueService.GetGroupVenueAsync(groupVenueId, ct);
+
+        return StatusCode((int)response.StatusCode, response);
+    }
+
+    [HttpGet("group/{groupId}")]
+    public async Task<IActionResult> SearchGroupVenues([FromRoute] Guid groupId, [FromQuery] SearchGroupVenueRequest request, CancellationToken ct)
+    {
+        if (request == null)
+        {
+            return BadRequest("Request body is required.");
+        }
+
+        var validation = await _searchGroupVenueRequestValidator.ValidateAsync(request, ct);
+        if (!validation.IsValid)
+        {
+            return BadRequest(ValidationErrorFormatter.FormatErrors(validation));
+        }
+
+        var response = await _groupVenueService.SearchGroupVenuesAsync(groupId, request, ct);
 
         return StatusCode((int)response.StatusCode, response);
     }

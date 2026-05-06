@@ -78,6 +78,53 @@ public class GroupVenueService(ITokenData tokenData,
         };
     }
 
+    public async Task<GetGroupVenuesResponse> SearchGroupVenuesAsync(Guid groupId, SearchGroupVenueRequest request, CancellationToken ct)
+    {
+        if (!_tokenData.UserId.HasValue)
+        {
+            _logger.LogWarning("SearchGroupVenuesAsync called with no authenticated user.");
+            return new GetGroupVenuesResponse
+            {
+                StatusCode = HttpStatusCode.Unauthorized,
+                Message = "Unauthorized."
+            };
+        }
+
+        var userId = _tokenData.UserId!.Value;
+        var isGroupActive = await _groupRepository.ExistsAsync(x => x.GroupId == groupId && x.Active, ct);
+        if (!isGroupActive)
+        {
+            _logger.LogWarning("Group with ID {GroupId} not found or inactive so user {UserId} cannot search venues.", groupId, userId);
+            return new GetGroupVenuesResponse
+            {
+                StatusCode = HttpStatusCode.NotFound,
+                Message = "Group not found or inactive."
+            };
+        }
+
+        var isAdmin = await _userRepository.IsUserAdminAsync(userId, ct);
+        var isUserInGroup = await _userGroupRepository.IsUserInGroupAsync(groupId, userId, ct);
+        if (!isAdmin && !isUserInGroup)
+        {
+            _logger.LogWarning("User {UserId} is not an admin or group member and cannot search venues in this group {GroupId}.", userId, groupId);
+            return new GetGroupVenuesResponse
+            {
+                StatusCode = HttpStatusCode.Forbidden,
+                Message = "You cannot search venues in this group."
+            };
+        }
+
+        var (groupVenues, totalCount) = await _groupVenueRepository.SearchByNameAsync(groupId, request, ct);
+
+        return new GetGroupVenuesResponse
+        {
+            StatusCode = HttpStatusCode.OK,
+            Message = "Venues returned successfully.",
+            GroupVenues = groupVenues,
+            TotalCount = totalCount
+        };
+    }
+
     public async Task<AddGroupVenueResponse> CreateGroupVenueAsync(CreateGroupVenueRequest request, CancellationToken ct)
     {
         if (!_tokenData.UserId.HasValue)

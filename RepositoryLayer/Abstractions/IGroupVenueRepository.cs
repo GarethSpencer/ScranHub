@@ -12,5 +12,6 @@ namespace RepositoryLayer.Abstractions
         Task<Guid> CreateAsync(CreateGroupVenueRequest request, CancellationToken ct);
         Task UpdateAsync(Guid groupVenueId, UpdateGroupVenueRequest request, CancellationToken ct);
         Task DeleteAsync(Guid groupVenueId, CancellationToken ct);
+        Task<(IEnumerable<GroupVenueResult>, int)> SearchByNameAsync(Guid groupId, SearchGroupVenueRequest request, CancellationToken ct);
     }
 }
