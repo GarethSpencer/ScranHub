@@ -183,6 +183,17 @@ public class GroupVenueService(ITokenData tokenData,
             };
         }
 
+        var doesGroupVenueNameExist = await _groupVenueRepository.ExistsAsync(x => x.GroupId == request.GroupId && x.VenueName.ToLower() == request.VenueName.ToLower(), ct);
+        if (doesGroupVenueNameExist)
+        {
+            _logger.LogWarning("Venue with name {VenueName} already exists in group {GroupId}.", request.VenueName, request.GroupId);
+            return new AddGroupVenueResponse
+            {
+                StatusCode = HttpStatusCode.Conflict,
+                Message = "Venue with this name already exists in the group."
+            };
+        }
+
         var groupVenueId = await _groupVenueRepository.CreateAsync(request, ct);
 
         await _unitOfWork.SaveChangesAsync(ct);
@@ -262,6 +273,20 @@ public class GroupVenueService(ITokenData tokenData,
                 StatusCode = HttpStatusCode.BadRequest,
                 Message = "Invalid venue type provided."
             };
+        }
+
+        if (!String.Equals(groupVenue.VenueName, request.VenueName, StringComparison.OrdinalIgnoreCase))
+        {
+            var groupVenueNameExists = await _groupVenueRepository.ExistsAsync(x => x.GroupId == groupVenue.GroupId && x.VenueName.ToLower() == request.VenueName.ToLower(), ct);
+            if (groupVenueNameExists)
+            {
+                _logger.LogWarning("GroupVenue with name {GroupName} already exists.", request.VenueName);
+                return new CommonResponse
+                {
+                    StatusCode = HttpStatusCode.Conflict,
+                    Message = $"Venue with name {request.VenueName} already exists in this group."
+                };
+            }
         }
 
         await _groupVenueRepository.UpdateAsync(groupVenueId, request, ct);
