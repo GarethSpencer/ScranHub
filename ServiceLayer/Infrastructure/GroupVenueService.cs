@@ -4,6 +4,7 @@ using RepositoryLayer.Abstractions.Generic;
 using ServiceLayer.Abstractions;
 using System.Net;
 using Utilities.Models.Requests.GroupVenues;
+using Utilities.Models.Responses.Generic;
 using Utilities.Models.Responses.GroupVenues;
 using Utilities.Token;
 
@@ -72,7 +73,7 @@ public class GroupVenueService(ITokenData tokenData,
         return new GetGroupVenueResponse
         {
             StatusCode = HttpStatusCode.OK,
-            Message = "GroupVenue returned successfully.",
+            Message = "Venue returned successfully.",
             GroupVenue = groupVenue
         };
     }
@@ -136,14 +137,95 @@ public class GroupVenueService(ITokenData tokenData,
         }
 
         var groupVenueId = await _groupVenueRepository.CreateGroupVenue(request, ct);
+
         await _unitOfWork.SaveChangesAsync(ct);
         _logger.LogInformation("GroupVenue [{GroupVenueId}] created successfully.", groupVenueId);
 
         return new AddGroupVenueResponse
         {
             StatusCode = HttpStatusCode.OK,
-            Message = "GroupVenue created successfully.",
+            Message = "Venue created successfully.",
             GroupVenueId = groupVenueId,
+        };
+    }
+
+    public async Task<CommonResponse> UpdateGroupVenueAsync(Guid groupVenueId, UpdateGroupVenueRequest request, CancellationToken ct)
+    {
+        if (!_tokenData.UserId.HasValue)
+        {
+            _logger.LogWarning("UpdateGroupVenueAsync called with no authenticated user.");
+            return new CommonResponse
+            {
+                StatusCode = HttpStatusCode.Unauthorized,
+                Message = "Unauthorized."
+            };
+        }
+
+        var callingUserId = _tokenData.UserId.Value;
+        var groupVenue = await _groupVenueRepository.GetByIdAsync(groupVenueId, ct);
+        if (groupVenue == null)
+        {
+            _logger.LogWarning("GroupVenue with ID {GroupVenueId} not found, so user {UserId} cannot update it.", groupVenueId, callingUserId);
+            return new CommonResponse
+            {
+                StatusCode = HttpStatusCode.NotFound,
+                Message = "Venue not found."
+            };
+        }
+
+        var isGroupActive = await _groupRepository.ExistsAsync(x => x.GroupId == groupVenue.GroupId && x.Active, ct);
+        if (!isGroupActive)
+        {
+            _logger.LogWarning("Group with ID {GroupId} not found or inactive, so user {UserId} cannot update it.", groupVenue.GroupId, callingUserId);
+            return new AddGroupVenueResponse
+            {
+                StatusCode = HttpStatusCode.NotFound,
+                Message = "Group not found or inactive."
+            };
+        }
+
+        var isUserInGroup = await _userGroupRepository.IsUserInGroupAsync(groupVenue.GroupId, callingUserId, ct);
+        if (!isUserInGroup)
+        {
+            _logger.LogWarning("User {UserId} is not in group {GroupId} so cannot update it.", callingUserId, groupVenue.GroupId);
+            return new AddGroupVenueResponse
+            {
+                StatusCode = HttpStatusCode.Forbidden,
+                Message = "User is not in group."
+            };
+        }
+
+        var validFoodTypes = await _foodTypeOptionRepository.GetForGroupIdAsync(groupVenue.GroupId, ct);
+        if (!validFoodTypes.Any(fto => fto.FoodTypeOptionId == request.FoodTypeOptionId))
+        {
+            _logger.LogWarning("Invalid food type ID {FoodTypeOptionId} provided for group {GroupId}.", request.FoodTypeOptionId, groupVenue.GroupId);
+            return new AddGroupVenueResponse
+            {
+                StatusCode = HttpStatusCode.BadRequest,
+                Message = "Invalid food type provided."
+            };
+        }
+
+        var validVenueTypes = await _venueTypeOptionRepository.GetForGroupIdAsync(groupVenue.GroupId, ct);
+        if (!validVenueTypes.Any(vto => vto.VenueTypeOptionId == request.VenueTypeOptionId))
+        {
+            _logger.LogWarning("Invalid venue type ID {VenueTypeOptionId} provided for group {GroupId}.", request.VenueTypeOptionId, groupVenue.GroupId);
+            return new AddGroupVenueResponse
+            {
+                StatusCode = HttpStatusCode.BadRequest,
+                Message = "Invalid venue type provided."
+            };
+        }
+
+        await _groupVenueRepository.UpdateGroupVenueAsync(groupVenueId, request, ct);
+
+        await _unitOfWork.SaveChangesAsync(ct);
+        _logger.LogInformation("GroupVenue [{GroupVenueId}] updated successfully.", groupVenueId);
+
+        return new CommonResponse
+        {
+            StatusCode = HttpStatusCode.OK,
+            Message = "GroupVenue updated successfully.",
         };
     }
 }

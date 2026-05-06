@@ -27,42 +27,4 @@ public class EFRepository<T> : IEFRepository<T> where T : class
             ? await _dbSet.AsNoTracking().CountAsync(ct)
             : await _dbSet.AsNoTracking().CountAsync(predicate, ct);
     }
-
-    public virtual async Task<List<T>> ListAsync(Expression<Func<T, bool>>? predicate = null, int? skip = null, int? take = null, CancellationToken ct = default)
-    {
-        IQueryable<T> query = _dbSet.AsNoTracking();
-        if (predicate != null)
-        {
-            query = query.Where(predicate);
-        }
-        if (skip.HasValue)
-        {
-            query = query.Skip(skip.Value);
-        }
-        if (take.HasValue)
-        {
-            query = query.Take(take.Value);
-        }
-        return await query.ToListAsync(ct);
-    }
-
-    public virtual async Task AddAsync(T entity, CancellationToken ct = default)
-    {
-        await _dbSet.AddAsync(entity, ct);
-    }
-
-    public virtual async Task AddRangeAsync(IEnumerable<T> entities, CancellationToken ct = default)
-    {
-        await _dbSet.AddRangeAsync(entities, ct);
-    }
-
-    public virtual void Update(T entity)
-    {
-        _dbSet.Update(entity);
-    }
-
-    public virtual void Delete(T entity)
-    {
-        _dbSet.Remove(entity);
-    }
 }

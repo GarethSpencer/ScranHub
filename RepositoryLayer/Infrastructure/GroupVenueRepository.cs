@@ -20,6 +20,7 @@ public sealed class GroupVenueRepository(ScranHubDbContext dbContext) : EFReposi
             GroupVenueId = x.GroupVenueId,
             GroupId = x.GroupId,
             VenueName = x.VenueName,
+            Visited = x.Visited,
             VenueType = x.VenueTypeOption!.Label,
             FoodType = x.FoodTypeOption!.Label
         }).FirstOrDefaultAsync(x => x.GroupVenueId == groupVenueId, ct);
@@ -37,6 +38,7 @@ public sealed class GroupVenueRepository(ScranHubDbContext dbContext) : EFReposi
             GroupVenueId = x.GroupVenueId,
             GroupId = x.GroupId,
             VenueName = x.VenueName,
+            Visited = x.Visited,
             VenueType = x.VenueTypeOption!.Label,
             FoodType = x.FoodTypeOption!.Label
         }).ToListAsync(ct);
@@ -55,5 +57,17 @@ public sealed class GroupVenueRepository(ScranHubDbContext dbContext) : EFReposi
 
         await _dbSet.AddAsync(newGroupVenue, ct);
         return newGroupVenue.GroupVenueId;
+    }
+
+    public async Task UpdateGroupVenueAsync(Guid groupVenueId, UpdateGroupVenueRequest request, CancellationToken ct)
+    {
+        var groupVenue = await _dbSet.FindAsync([groupVenueId], ct);
+        if (groupVenue != null)
+        {
+            groupVenue.VenueName = request.VenueName;
+            groupVenue.VenueTypeOptionId = request.VenueTypeOptionId;
+            groupVenue.FoodTypeOptionId = request.FoodTypeOptionId;
+            groupVenue.Visited = request.Visited;
+        }
     }
 }

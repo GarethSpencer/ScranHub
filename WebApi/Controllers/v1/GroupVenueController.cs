@@ -12,10 +12,12 @@ namespace WebApi.Controllers.v1;
 [ApiVersion("1.0")]
 public class GroupVenueController(
     IGroupVenueService groupVenueService,
-    IValidator<CreateGroupVenueRequest> createGroupVenueRequestValidator) : ControllerBase
+    IValidator<CreateGroupVenueRequest> createGroupVenueRequestValidator,
+    IValidator<UpdateGroupVenueRequest> updateGroupVenueRequestValidator) : ControllerBase
 {
     private readonly IGroupVenueService _groupVenueService = groupVenueService;
     private readonly IValidator<CreateGroupVenueRequest> _createGroupVenueRequestValidator = createGroupVenueRequestValidator;
+    private readonly IValidator<UpdateGroupVenueRequest> _updateGroupVenueRequestValidator = updateGroupVenueRequestValidator;
 
     [HttpGet("{groupVenueId}")]
     public async Task<IActionResult> GetGroupVenue([FromRoute] Guid groupVenueId, CancellationToken ct)
@@ -40,6 +42,25 @@ public class GroupVenueController(
         }
 
         var response = await _groupVenueService.CreateGroupVenueAsync(request, ct);
+
+        return StatusCode((int)response.StatusCode, response);
+    }
+
+    [HttpPatch("{groupVenueId}")]
+    public async Task<IActionResult> UpdateGroupVenue([FromRoute] Guid groupVenueId, [FromBody] UpdateGroupVenueRequest request, CancellationToken ct)
+    {
+        if (request == null)
+        {
+            return BadRequest("Request body is required.");
+        }
+
+        var validation = await _updateGroupVenueRequestValidator.ValidateAsync(request, ct);
+        if (!validation.IsValid)
+        {
+            return BadRequest(ValidationErrorFormatter.FormatErrors(validation));
+        }
+
+        var response = await _groupVenueService.UpdateGroupVenueAsync(groupVenueId, request, ct);
 
         return StatusCode((int)response.StatusCode, response);
     }
