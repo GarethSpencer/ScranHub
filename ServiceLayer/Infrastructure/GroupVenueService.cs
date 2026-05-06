@@ -136,7 +136,7 @@ public class GroupVenueService(ITokenData tokenData,
             };
         }
 
-        var groupVenueId = await _groupVenueRepository.CreateGroupVenue(request, ct);
+        var groupVenueId = await _groupVenueRepository.CreateAsync(request, ct);
 
         await _unitOfWork.SaveChangesAsync(ct);
         _logger.LogInformation("GroupVenue [{GroupVenueId}] created successfully.", groupVenueId);
@@ -217,7 +217,7 @@ public class GroupVenueService(ITokenData tokenData,
             };
         }
 
-        await _groupVenueRepository.UpdateGroupVenueAsync(groupVenueId, request, ct);
+        await _groupVenueRepository.UpdateAsync(groupVenueId, request, ct);
 
         await _unitOfWork.SaveChangesAsync(ct);
         _logger.LogInformation("GroupVenue [{GroupVenueId}] updated successfully.", groupVenueId);
@@ -226,6 +226,55 @@ public class GroupVenueService(ITokenData tokenData,
         {
             StatusCode = HttpStatusCode.OK,
             Message = "GroupVenue updated successfully.",
+        };
+    }
+
+    public async Task<CommonResponse> DeleteGroupVenueAsync(Guid groupVenueId, CancellationToken ct)
+    {
+        if (!_tokenData.UserId.HasValue)
+        {
+            _logger.LogWarning("DeleteGroupVenueAsync called with no authenticated user.");
+            return new CommonResponse
+            {
+                StatusCode = HttpStatusCode.Unauthorized,
+                Message = "Unauthorized."
+            };
+        }
+
+        var userId = _tokenData.UserId!.Value;
+        var groupVenue = await _groupVenueRepository.GetByIdAsync(groupVenueId, ct);
+        if (groupVenue == null)
+        {
+            _logger.LogWarning("GroupVenue with ID {GroupVenueId} not found, so user {UserId} cannot update it.", groupVenueId, userId);
+            return new CommonResponse
+            {
+                StatusCode = HttpStatusCode.NotFound,
+                Message = "Venue not found."
+            };
+        }
+
+        var isAdmin = await _userRepository.IsUserAdminAsync(userId, ct);
+        var isUserInGroup = await _userGroupRepository.IsUserInGroupAsync(groupVenue.GroupId, userId, ct);
+
+        if (!isAdmin && !isUserInGroup)
+        {
+            _logger.LogWarning("User {UserId} is not an admin or group member and cannot delete group venue {GroupVenueId}.", userId, groupVenueId);
+            return new CommonResponse
+            {
+                StatusCode = HttpStatusCode.Forbidden,
+                Message = "You are not an admin or group member and cannot delete this venue."
+            };
+        }
+
+        await _groupVenueRepository.DeleteAsync(groupVenueId, ct);
+
+        await _unitOfWork.SaveChangesAsync(ct);
+        _logger.LogInformation("User {UserId} deleted group venue {GroupVenueId} successfully.", userId, groupVenueId);
+
+        return new CommonResponse
+        {
+            StatusCode = HttpStatusCode.OK,
+            Message = "Successfully deleted the venue."
         };
     }
 }

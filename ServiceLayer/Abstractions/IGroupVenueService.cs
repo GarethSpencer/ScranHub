@@ -11,4 +11,6 @@ public interface IGroupVenueService
     Task<AddGroupVenueResponse> CreateGroupVenueAsync(CreateGroupVenueRequest request, CancellationToken ct);
 
     Task<CommonResponse> UpdateGroupVenueAsync(Guid groupVenueId, UpdateGroupVenueRequest request, CancellationToken ct);
+
+    Task<CommonResponse> DeleteGroupVenueAsync(Guid groupVenueId, CancellationToken ct);
 }

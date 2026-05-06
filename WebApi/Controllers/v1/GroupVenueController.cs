@@ -64,4 +64,12 @@ public class GroupVenueController(
 
         return StatusCode((int)response.StatusCode, response);
     }
+
+    [HttpDelete("{groupVenueId}")]
+    public async Task<IActionResult> DeleteGroupVenue([FromRoute] Guid groupVenueId, CancellationToken ct)
+    {
+        var response = await _groupVenueService.DeleteGroupVenueAsync(groupVenueId, ct);
+
+        return StatusCode((int)response.StatusCode, response);
+    }
 }
