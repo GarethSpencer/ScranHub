@@ -16,6 +16,7 @@ public static class ServiceLayerServiceExtensions
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<IGroupVenueService, GroupVenueService>();
         services.AddScoped<ICostRatingService, CostRatingService>();
+        services.AddScoped<IQualityRatingService, QualityRatingService>();
 
         return services;
     }

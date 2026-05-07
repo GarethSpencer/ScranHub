@@ -3,30 +3,34 @@ using DAL.Entities;
 using Microsoft.EntityFrameworkCore;
 using RepositoryLayer.Abstractions;
 using RepositoryLayer.Infrastructure.Generic;
+using Utilities.Models.Results;
 
 namespace RepositoryLayer.Infrastructure;
 
 public sealed class QualityOptionRepository(ScranHubDbContext dbContext) : EFRepository<QualityOption>(dbContext), IQualityOptionRepository
 {
-    public async Task<QualityOption?> GetByIdAsync(Guid id, CancellationToken ct, bool trackChanges = false)
+    public async Task<IEnumerable<QualityOptionResult>> GetForGroupIdAsync(Guid groupId, CancellationToken ct)
     {
-        if (trackChanges)
+        var query = _dbSet.Where(x => x.GroupId == groupId).OrderBy(x => x.DisplayOrder);
+
+        if (!query.Any())
         {
-            return await _dbSet.FindAsync([id], ct);
+            var defaultOptions = await _dbSet.Where(x => x.GroupId == null).OrderBy(x => x.DisplayOrder).ToListAsync(ct);
+            return defaultOptions.Select(x => new QualityOptionResult
+            {
+                QualityOptionId = x.QualityOptionId,
+                GroupId = x.GroupId,
+                Label = x.Label,
+                DisplayOrder = x.DisplayOrder
+            });
         }
 
-        return await _dbSet.AsNoTracking().FirstOrDefaultAsync(x => x.QualityOptionId == id, ct);
-    }
-
-    public async Task<IEnumerable<QualityOption>> GetByGroupIdAsync(Guid groupId, CancellationToken ct, bool trackChanges = false)
-    {
-        IQueryable<QualityOption> query = _dbSet.Where(x => x.GroupId == groupId).OrderBy(x => x.DisplayOrder);
-
-        if (!trackChanges)
+        return await query.Select(x => new QualityOptionResult
         {
-            query = query.AsNoTracking();
-        }
-
-        return await query.ToListAsync(ct);
+            QualityOptionId = x.QualityOptionId,
+            GroupId = x.GroupId,
+            Label = x.Label,
+            DisplayOrder = x.DisplayOrder
+        }).ToListAsync(ct);
     }
 }

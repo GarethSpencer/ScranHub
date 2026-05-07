@@ -35,6 +35,7 @@ public static class RepositoryLayerServiceExtensions
         services.AddScoped<IGroupVenueRepository, GroupVenueRepository>();
         services.AddScoped<IUserFriendRepository, UserFriendRepository>();
         services.AddScoped<ICostRatingRepository, CostRatingRepository>();
+        services.AddScoped<IQualityRatingRepository, QualityRatingRepository>();
 
         return services;
     }
