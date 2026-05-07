@@ -39,4 +39,12 @@ public class CostRatingController(ICostRatingService costRatingService) : Contro
 
         return StatusCode((int)response.StatusCode, response);
     }
+
+    [HttpDelete("{costRatingId}")]
+    public async Task<IActionResult> DeleteCostRating([FromRoute] Guid costRatingId, CancellationToken ct)
+    {
+        var response = await _costRatingService.DeleteCostRatingAsync(costRatingId, ct);
+
+        return StatusCode((int)response.StatusCode, response);
+    }
 }

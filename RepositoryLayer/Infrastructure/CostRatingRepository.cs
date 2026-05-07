@@ -47,4 +47,13 @@ public sealed class CostRatingRepository(ScranHubDbContext dbContext) : EFReposi
             CostOptionId = costRating.CostOptionId,
         };
     }
+
+    public async Task DeleteAsync(Guid costRatingId, CancellationToken ct)
+    {
+        var costRating = await _dbSet.FindAsync([costRatingId], ct);
+        if (costRating != null)
+        {
+            _dbSet.Remove(costRating);
+        }
+    }
 }

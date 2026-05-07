@@ -12,5 +12,7 @@ namespace RepositoryLayer.Abstractions
         Task UpdateAsync(Guid costRatingId, UpdateCostRatingRequest request, CancellationToken ct);
 
         Task<CostRatingResult?> GetDetailsByIdAsync(Guid id, CancellationToken ct);
+
+        Task DeleteAsync(Guid costRatingId, CancellationToken ct);
     }
 }
