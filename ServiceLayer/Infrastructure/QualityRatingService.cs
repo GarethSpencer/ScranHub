@@ -4,8 +4,8 @@ using RepositoryLayer.Abstractions.Generic;
 using ServiceLayer.Abstractions;
 using System.Net;
 using Utilities.Models.Requests.QualityRatings;
-using Utilities.Models.Responses.QualityRatings;
 using Utilities.Models.Responses.Generic;
+using Utilities.Models.Responses.QualityRatings;
 using Utilities.Token;
 
 namespace ServiceLayer.Infrastructure;
@@ -14,6 +14,7 @@ public class QualityRatingService(ITokenData tokenData,
     ILogger<QualityRatingService> logger,
     IQualityRatingRepository qualityRatingRepository,
     IQualityOptionRepository qualityOptionRepository,
+    IGroupRepository groupRepository,
     IUserGroupRepository userGroupRepository,
     IGroupVenueRepository groupVenueRepository,
     IUnitOfWork unitOfWork) : IQualityRatingService
@@ -22,6 +23,7 @@ public class QualityRatingService(ITokenData tokenData,
     private readonly ILogger<QualityRatingService> _logger = logger;
     private readonly IQualityRatingRepository _qualityRatingRepository = qualityRatingRepository;
     private readonly IQualityOptionRepository _qualityOptionRepository = qualityOptionRepository;
+    private readonly IGroupRepository _groupRepository = groupRepository;
     private readonly IUserGroupRepository _userGroupRepository = userGroupRepository;
     private readonly IGroupVenueRepository _groupVenueRepository = groupVenueRepository;
     private readonly IUnitOfWork _unitOfWork = unitOfWork;
@@ -169,7 +171,7 @@ public class QualityRatingService(ITokenData tokenData,
         }
 
         var userId = _tokenData.UserId!.Value;
-        
+
         var currentQualityRating = await _qualityRatingRepository.GetDetailsByIdAsync(qualityRatingId, ct);
 
         if (currentQualityRating == null || currentQualityRating.UserId != userId)
@@ -190,7 +192,7 @@ public class QualityRatingService(ITokenData tokenData,
         {
             StatusCode = HttpStatusCode.OK,
             Message = "Quality rating deleted successfully."
-        };  
+        };
     }
 
     public async Task<GetQualityRatingResponse> GetQualityRatingAsync(Guid qualityRatingId, CancellationToken ct)
@@ -330,7 +332,7 @@ public class QualityRatingService(ITokenData tokenData,
             };
         }
 
-        var qualityRatings = await _qualityRatingRepository.GetDetailsForGroupAsync(groupId, ct);
+        var qualityRatings = await _groupRepository.GetVenueQualityRatingsForGroupAsync(groupId, ct);
 
         return new GetGroupQualityRatingsResponse
         {

@@ -14,6 +14,7 @@ public class CostRatingService(ITokenData tokenData,
     ILogger<CostRatingService> logger,
     ICostRatingRepository costRatingRepository,
     ICostOptionRepository costOptionRepository,
+    IGroupRepository groupRepository,
     IUserGroupRepository userGroupRepository,
     IGroupVenueRepository groupVenueRepository,
     IUnitOfWork unitOfWork) : ICostRatingService
@@ -22,6 +23,7 @@ public class CostRatingService(ITokenData tokenData,
     private readonly ILogger<CostRatingService> _logger = logger;
     private readonly ICostRatingRepository _costRatingRepository = costRatingRepository;
     private readonly ICostOptionRepository _costOptionRepository = costOptionRepository;
+    private readonly IGroupRepository _groupRepository = groupRepository;
     private readonly IUserGroupRepository _userGroupRepository = userGroupRepository;
     private readonly IGroupVenueRepository _groupVenueRepository = groupVenueRepository;
     private readonly IUnitOfWork _unitOfWork = unitOfWork;
@@ -169,7 +171,7 @@ public class CostRatingService(ITokenData tokenData,
         }
 
         var userId = _tokenData.UserId!.Value;
-        
+
         var currentCostRating = await _costRatingRepository.GetDetailsByIdAsync(costRatingId, ct);
 
         if (currentCostRating == null || currentCostRating.UserId != userId)
@@ -190,7 +192,7 @@ public class CostRatingService(ITokenData tokenData,
         {
             StatusCode = HttpStatusCode.OK,
             Message = "Cost rating deleted successfully."
-        };  
+        };
     }
 
     public async Task<GetCostRatingResponse> GetCostRatingAsync(Guid costRatingId, CancellationToken ct)
@@ -330,7 +332,7 @@ public class CostRatingService(ITokenData tokenData,
             };
         }
 
-        var costRatings = await _costRatingRepository.GetDetailsForGroupAsync(groupId, ct);
+        var costRatings = await _groupRepository.GetVenueCostRatingsForGroupAsync(groupId, ct);
 
         return new GetGroupCostRatingsResponse
         {

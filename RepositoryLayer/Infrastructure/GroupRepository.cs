@@ -155,4 +155,60 @@ public sealed class GroupRepository(ScranHubDbContext dbContext,
             group.Active = groupRequest.Active;
         }
     }
+
+    public async Task<IEnumerable<GroupVenueCostRatingResult>> GetVenueCostRatingsForGroupAsync(Guid groupId, CancellationToken ct)
+    {
+        var group = await _dbSet
+            .Include(x => x.GroupVenues)
+            .ThenInclude(x => x.CostRatings)
+            .ThenInclude(x => x.CostOption)
+            .FirstOrDefaultAsync(x => x.GroupId == groupId, ct);
+
+        if (group == null || group.GroupVenues.Count == 0)
+        {
+            return [];
+        }
+
+        return group.GroupVenues.Select(gv => new GroupVenueCostRatingResult
+        {
+            GroupId = gv.GroupId,
+            GroupVenueId = gv.GroupVenueId,
+            VenueName = gv.VenueName,
+            CostRatings = gv.CostRatings.Select(cr => new CostRatingVenueResult
+            {
+                CostRatingId = cr.CostRatingId,
+                UserId = cr.UserId,
+                CostOptionId = cr.CostOptionId,
+                Label = cr.CostOption!.Label
+            })
+        });
+    }
+
+    public async Task<IEnumerable<GroupVenueQualityRatingResult>> GetVenueQualityRatingsForGroupAsync(Guid groupId, CancellationToken ct)
+    {
+        var group = await _dbSet
+            .Include(x => x.GroupVenues)
+            .ThenInclude(x => x.QualityRatings)
+            .ThenInclude(x => x.QualityOption)
+            .FirstOrDefaultAsync(x => x.GroupId == groupId, ct);
+
+        if (group == null || group.GroupVenues.Count == 0)
+        {
+            return [];
+        }
+
+        return group.GroupVenues.Select(gv => new GroupVenueQualityRatingResult
+        {
+            GroupId = gv.GroupId,
+            GroupVenueId = gv.GroupVenueId,
+            VenueName = gv.VenueName,
+            QualityRatings = gv.QualityRatings.Select(qr => new QualityRatingVenueResult
+            {
+                QualityRatingId = qr.QualityRatingId,
+                UserId = qr.UserId,
+                QualityOptionId = qr.QualityOptionId,
+                Label = qr.QualityOption!.Label
+            })
+        });
+    }
 }

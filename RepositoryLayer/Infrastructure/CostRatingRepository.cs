@@ -101,33 +101,6 @@ public sealed class CostRatingRepository(ScranHubDbContext dbContext) : EFReposi
         });
     }
 
-    public async Task<IEnumerable<GroupVenueCostRatingResult>> GetDetailsForGroupAsync(Guid groupId, CancellationToken ct)
-    {
-        var costRatings = await _dbSet
-            .Include(c => c.GroupVenue)
-            .Include(c => c.CostOption)
-            .Where(c => c.GroupVenue!.GroupId == groupId).ToListAsync(ct);
-
-        if (costRatings == null || costRatings.Count == 0)
-        {
-            return [];
-        }
-
-        return costRatings.Select(costRating => new GroupVenueCostRatingResult
-        {
-            GroupId = costRating.GroupVenue!.GroupId,
-            GroupVenueId = costRating.GroupVenueId,
-            VenueName = costRating.GroupVenue!.VenueName,
-            CostRatings = costRatings.Where(cr => cr.GroupVenueId == costRating.GroupVenueId).Select(cr => new CostRatingVenueResult
-            {
-                CostRatingId = cr.CostRatingId,
-                UserId = cr.UserId,
-                CostOptionId = cr.CostOptionId,
-                Label = cr.CostOption!.Label
-            })
-        });
-    }
-
     public async Task DeleteAsync(Guid costRatingId, CancellationToken ct)
     {
         var costRating = await _dbSet.FindAsync([costRatingId], ct);

@@ -27,5 +27,9 @@ namespace RepositoryLayer.Abstractions
         Task DeactivateAsync(Guid groupId, CancellationToken ct);
 
         Task UpdateAsync(Guid groupId, UpdateGroupRequest groupRequest, CancellationToken ct);
+
+        Task<IEnumerable<GroupVenueCostRatingResult>> GetVenueCostRatingsForGroupAsync(Guid groupId, CancellationToken ct);
+
+        Task<IEnumerable<GroupVenueQualityRatingResult>> GetVenueQualityRatingsForGroupAsync(Guid groupId, CancellationToken ct);
     }
 }

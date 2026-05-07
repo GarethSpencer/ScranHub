@@ -101,33 +101,6 @@ public sealed class QualityRatingRepository(ScranHubDbContext dbContext) : EFRep
         });
     }
 
-    public async Task<IEnumerable<GroupVenueQualityRatingResult>> GetDetailsForGroupAsync(Guid groupId, CancellationToken ct)
-    {
-        var qualityRatings = await _dbSet
-            .Include(q => q.GroupVenue)
-            .Include(q => q.QualityOption)
-            .Where(q => q.GroupVenue!.GroupId == groupId).ToListAsync(ct);
-
-        if (qualityRatings == null || qualityRatings.Count == 0)
-        {
-            return [];
-        }
-
-        return qualityRatings.Select(qualityRating => new GroupVenueQualityRatingResult
-        {
-            GroupId = qualityRating.GroupVenue!.GroupId,
-            GroupVenueId = qualityRating.GroupVenueId,
-            VenueName = qualityRating.GroupVenue!.VenueName,
-            QualityRatings = qualityRatings.Where(qr => qr.GroupVenueId == qualityRating.GroupVenueId).Select(qr => new QualityRatingVenueResult
-            {
-                QualityRatingId = qr.QualityRatingId,
-                UserId = qr.UserId,
-                QualityOptionId = qr.QualityOptionId,
-                Label = qr.QualityOption!.Label
-            })
-        });
-    }
-
     public async Task DeleteAsync(Guid qualityRatingId, CancellationToken ct)
     {
         var qualityRating = await _dbSet.FindAsync([qualityRatingId], ct);

@@ -18,7 +18,5 @@ namespace RepositoryLayer.Abstractions
         Task<IEnumerable<CostRatingResult>> GetDetailsByGroupVenueIdAsync(Guid groupVenueId, CancellationToken ct);
 
         Task<IEnumerable<CostRatingResult>> GetUserDetailsForGroupAsync(Guid userId, Guid groupId, CancellationToken ct);
-
-        Task<IEnumerable<GroupVenueCostRatingResult>> GetDetailsForGroupAsync(Guid groupId, CancellationToken ct);
     }
 }
