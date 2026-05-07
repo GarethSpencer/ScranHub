@@ -54,7 +54,27 @@ public class CostRatingController(ICostRatingService costRatingService) : Contro
         return StatusCode((int)response.StatusCode, response);
     }
 
-    //TODO: Get all for a venue
-    //TODO: Get all for a group (multiple venues)
-    //TODO: Get all for current userId for a group (multiple venues)
+    [HttpGet("groupvenue/{groupVenueId}")]
+    public async Task<IActionResult> GetCostRatingsForGroupVenue([FromRoute] Guid groupVenueId, CancellationToken ct)
+    {
+        var response = await _costRatingService.GetCostRatingsForGroupVenueAsync(groupVenueId, ct);
+
+        return StatusCode((int)response.StatusCode, response);
+    }
+
+    [HttpGet("group/{groupId}/me")]
+    public async Task<IActionResult> GetUserCostRatingsForGroup([FromRoute] Guid groupId, CancellationToken ct)
+    {
+        var response = await _costRatingService.GetUserCostRatingsForGroupAsync(groupId, ct);
+
+        return StatusCode((int)response.StatusCode, response);
+    }
+
+    [HttpGet("group/{groupId}")]
+    public async Task<IActionResult> GetCostRatingsForGroup([FromRoute] Guid groupId, CancellationToken ct)
+    {
+        var response = await _costRatingService.GetCostRatingsForGroupAsync(groupId, ct);
+
+        return StatusCode((int)response.StatusCode, response);
+    }
 }

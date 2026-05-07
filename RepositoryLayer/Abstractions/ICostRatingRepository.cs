@@ -11,8 +11,14 @@ namespace RepositoryLayer.Abstractions
 
         Task UpdateAsync(Guid costRatingId, UpdateCostRatingRequest request, CancellationToken ct);
 
-        Task<CostRatingResult?> GetDetailsByIdAsync(Guid id, CancellationToken ct);
+        Task<CostRatingResult?> GetDetailsByIdAsync(Guid costRatingId, CancellationToken ct);
 
         Task DeleteAsync(Guid costRatingId, CancellationToken ct);
+
+        Task<IEnumerable<CostRatingResult>> GetDetailsByGroupVenueIdAsync(Guid groupVenueId, CancellationToken ct);
+
+        Task<IEnumerable<CostRatingResult>> GetUserDetailsForGroupAsync(Guid userId, Guid groupId, CancellationToken ct);
+
+        Task<IEnumerable<GroupVenueCostRatingResult>> GetDetailsForGroupAsync(Guid groupId, CancellationToken ct);
     }
 }

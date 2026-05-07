@@ -10,4 +10,7 @@ public interface ICostRatingService
     Task<CommonResponse> UpdateCostRatingAsync(Guid costRatingId, UpdateCostRatingRequest request, CancellationToken ct);
     Task<CommonResponse> DeleteCostRatingAsync(Guid costRatingId, CancellationToken ct);
     Task<GetCostRatingResponse> GetCostRatingAsync(Guid costRatingId, CancellationToken ct);
+    Task<GetCostRatingsResponse> GetCostRatingsForGroupVenueAsync(Guid groupVenueId, CancellationToken ct);
+    Task<GetCostRatingsResponse> GetUserCostRatingsForGroupAsync(Guid groupId, CancellationToken ct);
+    Task<GetGroupCostRatingsResponse> GetCostRatingsForGroupAsync(Guid groupId, CancellationToken ct);
 }

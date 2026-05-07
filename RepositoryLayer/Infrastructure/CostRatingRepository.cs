@@ -30,12 +30,12 @@ public sealed class CostRatingRepository(ScranHubDbContext dbContext) : EFReposi
         costRating?.CostOptionId = request.CostOptionId;
     }
 
-    public async Task<CostRatingResult?> GetDetailsByIdAsync(Guid id, CancellationToken ct)
+    public async Task<CostRatingResult?> GetDetailsByIdAsync(Guid costRatingId, CancellationToken ct)
     {
         var costRating = await _dbSet
             .Include(c => c.GroupVenue)
             .Include(c => c.CostOption)
-            .FirstOrDefaultAsync(c => c.CostRatingId == id, ct);
+            .FirstOrDefaultAsync(c => c.CostRatingId == costRatingId, ct);
 
         if (costRating == null)
         {
@@ -52,6 +52,81 @@ public sealed class CostRatingRepository(ScranHubDbContext dbContext) : EFReposi
             CostOptionId = costRating.CostOptionId,
             Label = costRating.CostOption!.Label
         };
+    }
+
+    public async Task<IEnumerable<CostRatingResult>> GetDetailsByGroupVenueIdAsync(Guid groupVenueId, CancellationToken ct)
+    {
+        var costRatings = await _dbSet
+            .Include(c => c.GroupVenue)
+            .Include(c => c.CostOption)
+            .Where(c => c.GroupVenueId == groupVenueId).ToListAsync(ct);
+
+        if (costRatings == null || costRatings.Count == 0)
+        {
+            return [];
+        }
+
+        return costRatings.Select(costRating => new CostRatingResult
+        {
+            CostRatingId = costRating.CostRatingId,
+            UserId = costRating.UserId,
+            GroupVenueId = costRating.GroupVenueId,
+            VenueName = costRating.GroupVenue!.VenueName,
+            GroupId = costRating.GroupVenue.GroupId,
+            CostOptionId = costRating.CostOptionId,
+            Label = costRating.CostOption!.Label
+        });
+    }
+
+    public async Task<IEnumerable<CostRatingResult>> GetUserDetailsForGroupAsync(Guid userId, Guid groupId, CancellationToken ct)
+    {
+        var costRatings = await _dbSet
+            .Include(c => c.GroupVenue)
+            .Include(c => c.CostOption)
+            .Where(c => c.UserId == userId && c.GroupVenue!.GroupId == groupId).ToListAsync(ct);
+
+        if (costRatings == null || costRatings.Count == 0)
+        {
+            return [];
+        }
+
+        return costRatings.Select(costRating => new CostRatingResult
+        {
+            CostRatingId = costRating.CostRatingId,
+            UserId = costRating.UserId,
+            GroupVenueId = costRating.GroupVenueId,
+            VenueName = costRating.GroupVenue!.VenueName,
+            GroupId = costRating.GroupVenue.GroupId,
+            CostOptionId = costRating.CostOptionId,
+            Label = costRating.CostOption!.Label
+        });
+    }
+
+    public async Task<IEnumerable<GroupVenueCostRatingResult>> GetDetailsForGroupAsync(Guid groupId, CancellationToken ct)
+    {
+        var costRatings = await _dbSet
+            .Include(c => c.GroupVenue)
+            .Include(c => c.CostOption)
+            .Where(c => c.GroupVenue!.GroupId == groupId).ToListAsync(ct);
+
+        if (costRatings == null || costRatings.Count == 0)
+        {
+            return [];
+        }
+
+        return costRatings.Select(costRating => new GroupVenueCostRatingResult
+        {
+            GroupId = costRating.GroupVenue!.GroupId,
+            GroupVenueId = costRating.GroupVenueId,
+            VenueName = costRating.GroupVenue!.VenueName,
+            CostRatings = costRatings.Where(cr => cr.GroupVenueId == costRating.GroupVenueId).Select(cr => new CostRatingVenueResult
+            {
+                CostRatingId = cr.CostRatingId,
+                UserId = cr.UserId,
+                CostOptionId = cr.CostOptionId,
+                Label = cr.CostOption!.Label
+            })
+        });
     }
 
     public async Task DeleteAsync(Guid costRatingId, CancellationToken ct)

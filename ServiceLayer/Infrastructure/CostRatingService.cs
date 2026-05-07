@@ -1,5 +1,4 @@
-﻿using DAL.Entities;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using RepositoryLayer.Abstractions;
 using RepositoryLayer.Abstractions.Generic;
 using ServiceLayer.Abstractions;
@@ -224,6 +223,120 @@ public class CostRatingService(ITokenData tokenData,
             StatusCode = HttpStatusCode.OK,
             Message = "Cost rating retrieved successfully.",
             CostRating = costRating
+        };
+    }
+
+    public async Task<GetCostRatingsResponse> GetCostRatingsForGroupVenueAsync(Guid groupVenueId, CancellationToken ct)
+    {
+        if (!_tokenData.UserId.HasValue)
+        {
+            _logger.LogWarning("GetCostRatingsForGroupVenueAsync called with no authenticated user.");
+            return new GetCostRatingsResponse
+            {
+                StatusCode = HttpStatusCode.Unauthorized,
+                Message = "Unauthorized."
+            };
+        }
+
+        var userId = _tokenData.UserId!.Value;
+
+        var groupVenue = await _groupVenueRepository.GetByIdAsync(groupVenueId, ct);
+        if (groupVenue == null)
+        {
+            _logger.LogWarning("Group venue {GroupVenueId} not found for user {UserId}.", groupVenueId, userId);
+            return new GetCostRatingsResponse
+            {
+                StatusCode = HttpStatusCode.NotFound,
+                Message = "Venue not found."
+            };
+        }
+
+        var isUserInGroup = await _userGroupRepository.IsUserInGroupAsync(groupVenue.GroupId, userId, ct);
+        if (!isUserInGroup)
+        {
+            _logger.LogWarning("User {UserId} is not a member of group {GroupId}.", userId, groupVenue.GroupId);
+            return new GetCostRatingsResponse
+            {
+                StatusCode = HttpStatusCode.Forbidden,
+                Message = "You do not have permission to rate this venue."
+            };
+        }
+
+        var costRatings = await _costRatingRepository.GetDetailsByGroupVenueIdAsync(groupVenueId, ct);
+
+        return new GetCostRatingsResponse
+        {
+            StatusCode = HttpStatusCode.OK,
+            Message = "Cost ratings retrieved successfully.",
+            CostRatings = costRatings
+        };
+    }
+
+    public async Task<GetCostRatingsResponse> GetUserCostRatingsForGroupAsync(Guid groupId, CancellationToken ct)
+    {
+        if (!_tokenData.UserId.HasValue)
+        {
+            _logger.LogWarning("GetUserCostRatingsForGroupAsync called with no authenticated user.");
+            return new GetCostRatingsResponse
+            {
+                StatusCode = HttpStatusCode.Unauthorized,
+                Message = "Unauthorized."
+            };
+        }
+
+        var userId = _tokenData.UserId!.Value;
+        var isUserInGroup = await _userGroupRepository.IsUserInGroupAsync(groupId, userId, ct);
+        if (!isUserInGroup)
+        {
+            _logger.LogWarning("User {UserId} is not a member of group {GroupId}.", userId, groupId);
+            return new GetCostRatingsResponse
+            {
+                StatusCode = HttpStatusCode.Forbidden,
+                Message = "You do not have permission to see ratings for this group."
+            };
+        }
+
+        var costRatings = await _costRatingRepository.GetUserDetailsForGroupAsync(userId, groupId, ct);
+
+        return new GetCostRatingsResponse
+        {
+            StatusCode = HttpStatusCode.OK,
+            Message = "Cost ratings retrieved successfully.",
+            CostRatings = costRatings
+        };
+    }
+
+    public async Task<GetGroupCostRatingsResponse> GetCostRatingsForGroupAsync(Guid groupId, CancellationToken ct)
+    {
+        if (!_tokenData.UserId.HasValue)
+        {
+            _logger.LogWarning("GetCostRatingsForGroupAsync called with no authenticated user.");
+            return new GetGroupCostRatingsResponse
+            {
+                StatusCode = HttpStatusCode.Unauthorized,
+                Message = "Unauthorized."
+            };
+        }
+
+        var userId = _tokenData.UserId!.Value;
+        var isUserInGroup = await _userGroupRepository.IsUserInGroupAsync(groupId, userId, ct);
+        if (!isUserInGroup)
+        {
+            _logger.LogWarning("User {UserId} is not a member of group {GroupId}.", userId, groupId);
+            return new GetGroupCostRatingsResponse
+            {
+                StatusCode = HttpStatusCode.Forbidden,
+                Message = "You do not have permission to see ratings for this group."
+            };
+        }
+
+        var costRatings = await _costRatingRepository.GetDetailsForGroupAsync(groupId, ct);
+
+        return new GetGroupCostRatingsResponse
+        {
+            StatusCode = HttpStatusCode.OK,
+            Message = "Cost ratings retrieved successfully.",
+            GroupVenueCostRatingsResults = costRatings
         };
     }
 }
