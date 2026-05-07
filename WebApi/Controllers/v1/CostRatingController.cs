@@ -1,9 +1,7 @@
 ﻿using Asp.Versioning;
-using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 using ServiceLayer.Abstractions;
 using Utilities.Models.Requests.CostRatings;
-using Utilities.Validators;
 
 namespace WebApi.Controllers.v1;
 
@@ -47,4 +45,16 @@ public class CostRatingController(ICostRatingService costRatingService) : Contro
 
         return StatusCode((int)response.StatusCode, response);
     }
+
+    [HttpGet("{costRatingId}")]
+    public async Task<IActionResult> GetCostRating([FromRoute] Guid costRatingId, CancellationToken ct)
+    {
+        var response = await _costRatingService.GetCostRatingAsync(costRatingId, ct);
+
+        return StatusCode((int)response.StatusCode, response);
+    }
+
+    //TODO: Get all for a venue
+    //TODO: Get all for a group (multiple venues)
+    //TODO: Get all for current userId for a group (multiple venues)
 }

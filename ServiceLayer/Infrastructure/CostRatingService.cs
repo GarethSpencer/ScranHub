@@ -193,4 +193,37 @@ public class CostRatingService(ITokenData tokenData,
             Message = "Cost rating deleted successfully."
         };  
     }
+
+    public async Task<GetCostRatingResponse> GetCostRatingAsync(Guid costRatingId, CancellationToken ct)
+    {
+        if (!_tokenData.UserId.HasValue)
+        {
+            _logger.LogWarning("GetCostRatingAsync called with no authenticated user.");
+            return new GetCostRatingResponse
+            {
+                StatusCode = HttpStatusCode.Unauthorized,
+                Message = "Unauthorized."
+            };
+        }
+
+        var userId = _tokenData.UserId!.Value;
+
+        var costRating = await _costRatingRepository.GetDetailsByIdAsync(costRatingId, ct);
+        if (costRating == null || costRating.UserId != userId)
+        {
+            _logger.LogWarning("Cost rating {CostRatingId} not found for user {UserId}.", costRatingId, userId);
+            return new GetCostRatingResponse
+            {
+                StatusCode = HttpStatusCode.NotFound,
+                Message = "Rating not found."
+            };
+        }
+
+        return new GetCostRatingResponse
+        {
+            StatusCode = HttpStatusCode.OK,
+            Message = "Cost rating retrieved successfully.",
+            CostRating = costRating
+        };
+    }
 }

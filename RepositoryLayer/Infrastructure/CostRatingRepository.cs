@@ -32,7 +32,10 @@ public sealed class CostRatingRepository(ScranHubDbContext dbContext) : EFReposi
 
     public async Task<CostRatingResult?> GetDetailsByIdAsync(Guid id, CancellationToken ct)
     {
-        var costRating = await _dbSet.FindAsync([id], ct);
+        var costRating = await _dbSet
+            .Include(c => c.GroupVenue)
+            .Include(c => c.CostOption)
+            .FirstOrDefaultAsync(c => c.CostRatingId == id, ct);
 
         if (costRating == null)
         {
@@ -44,7 +47,10 @@ public sealed class CostRatingRepository(ScranHubDbContext dbContext) : EFReposi
             CostRatingId = costRating.CostRatingId,
             UserId = costRating.UserId,
             GroupVenueId = costRating.GroupVenueId,
+            VenueName = costRating.GroupVenue!.VenueName,
+            GroupId = costRating.GroupVenue.GroupId,
             CostOptionId = costRating.CostOptionId,
+            Label = costRating.CostOption!.Label
         };
     }
 
