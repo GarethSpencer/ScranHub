@@ -1,11 +1,11 @@
 ﻿using DAL.Entities;
 using RepositoryLayer.Abstractions.Generic;
+using Utilities.Models.Results;
 
 namespace RepositoryLayer.Abstractions
 {
     public interface ICostOptionRepository : IEFRepository<CostOption>
     {
-        Task<CostOption?> GetByIdAsync(Guid id, CancellationToken ct, bool trackChanges = false);
-        Task<IEnumerable<CostOption>> GetByGroupIdAsync(Guid groupId, CancellationToken ct, bool trackChanges = false);
+        Task<IEnumerable<CostOptionResult>> GetForGroupIdAsync(Guid groupId, CancellationToken ct);
     }
 }

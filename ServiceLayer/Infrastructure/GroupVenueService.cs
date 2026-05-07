@@ -231,17 +231,6 @@ public class GroupVenueService(ITokenData tokenData,
             };
         }
 
-        var isGroupActive = await _groupRepository.ExistsAsync(x => x.GroupId == groupVenue.GroupId && x.Active, ct);
-        if (!isGroupActive)
-        {
-            _logger.LogWarning("Group with ID {GroupId} not found or inactive, so user {UserId} cannot update it.", groupVenue.GroupId, callingUserId);
-            return new AddGroupVenueResponse
-            {
-                StatusCode = HttpStatusCode.NotFound,
-                Message = "Group not found or inactive."
-            };
-        }
-
         var isUserInGroup = await _userGroupRepository.IsUserInGroupAsync(groupVenue.GroupId, callingUserId, ct);
         if (!isUserInGroup)
         {

@@ -78,7 +78,7 @@ public sealed class GroupRepository(ScranHubDbContext dbContext,
     public async Task<(IEnumerable<GroupResult>, int)> SearchByNameAsync(SearchGroupRequest request, Guid userId, CancellationToken ct)
     {
         var groupsQuery = _dbSet
-            .Where(x => EF.Functions.Like(x.GroupName, $"%{request.SearchText}%"));
+            .Where(x => x.Active && EF.Functions.Like(x.GroupName, $"%{request.SearchText}%"));
 
         var isAdmin = await _userRepository.IsUserAdminAsync(userId, ct);
 

@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Mvc;
 using ServiceLayer.Abstractions;
 using Utilities.Models.Requests.Generic;
 using Utilities.Validators;
-using Utilities.Validators.Users;
 
 namespace WebApi.Controllers.v1;
 

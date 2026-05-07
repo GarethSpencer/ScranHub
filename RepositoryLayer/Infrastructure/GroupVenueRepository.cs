@@ -15,6 +15,8 @@ public sealed class GroupVenueRepository(ScranHubDbContext dbContext) : EFReposi
         return await _dbSet
             .Include(x => x.VenueTypeOption)
             .Include(x => x.FoodTypeOption)
+            .Include(x => x.Group)
+            .Where(x => x.Group!.Active)
             .Select(x => new GroupVenueResult
         {
             GroupVenueId = x.GroupVenueId,

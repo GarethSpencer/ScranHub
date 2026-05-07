@@ -1,7 +1,6 @@
 ﻿using Utilities.Models.Requests.Generic;
 using Utilities.Models.Requests.Users;
 using Utilities.Models.Responses.Generic;
-using Utilities.Models.Responses.Groups;
 using Utilities.Models.Responses.Users;
 
 namespace ServiceLayer.Abstractions;
