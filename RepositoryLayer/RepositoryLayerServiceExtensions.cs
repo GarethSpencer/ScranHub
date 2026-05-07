@@ -28,7 +28,7 @@ public static class RepositoryLayerServiceExtensions
         services.AddScoped<IGroupRepository, GroupRepository>();
         services.AddScoped<ICostOptionRepository, CostOptionRepository>();
         services.AddScoped<IFoodTypeOptionRepository, FoodTypeOptionRepository>();
-        services.AddScoped<IRatingOptionRepository, RatingOptionRepository>();
+        services.AddScoped<IQualityOptionRepository, QualityOptionRepository>();
         services.AddScoped<IVenueTypeOptionRepository, VenueTypeOptionRepository>();
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IUserGroupRepository, UserGroupRepository>();

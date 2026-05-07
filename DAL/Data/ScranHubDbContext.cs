@@ -13,11 +13,11 @@ public class ScranHubDbContext(DbContextOptions<ScranHubDbContext> options) : Db
     public DbSet<UserGroup> UserGroups => Set<UserGroup>();
     public DbSet<GroupVenue> GroupVenues => Set<GroupVenue>();
     public DbSet<CostOption> CostOptions => Set<CostOption>();
-    public DbSet<RatingOption> RatingOptions => Set<RatingOption>();
+    public DbSet<QualityOption> QualityOptions => Set<QualityOption>();
     public DbSet<FoodTypeOption> FoodTypeOptions => Set<FoodTypeOption>();
     public DbSet<VenueTypeOption> VenueTypeOptions => Set<VenueTypeOption>();
     public DbSet<CostRating> CostRatings => Set<CostRating>();
-    public DbSet<RatingUserRating> RatingUserRatings => Set<RatingUserRating>();
+    public DbSet<QualityRating> QualityRatings => Set<QualityRating>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

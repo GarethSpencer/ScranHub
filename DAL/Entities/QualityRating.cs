@@ -2,14 +2,14 @@
 
 namespace DAL.Entities;
 
-public class RatingUserRating : AuditableEntity
+public class QualityRating : AuditableEntity
 {
-    public Guid RatingUserRatingId { get; set; }
+    public Guid QualityRatingId { get; set; }
     public required Guid GroupVenueId { get; set; }
     public required Guid UserId { get; set; }
-    public required Guid RatingOptionId { get; set; }
+    public required Guid QualityOptionId { get; set; }
 
     public GroupVenue? GroupVenue { get; set; }
     public User? User { get; set; }
-    public RatingOption? RatingOption { get; set; }
+    public QualityOption? QualityOption { get; set; }
 }

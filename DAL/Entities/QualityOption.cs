@@ -2,13 +2,13 @@ using DAL.Entities.Base;
 
 namespace DAL.Entities;
 
-public class RatingOption : AuditableEntity
+public class QualityOption : AuditableEntity
 {
-    public Guid RatingOptionId { get; set; }
+    public Guid QualityOptionId { get; set; }
     public Guid? GroupId { get; set; }
     public required string Label { get; set; }
     public required int DisplayOrder { get; set; }
 
     public Group? Group { get; set; }
-    public ICollection<RatingUserRating> RatingUserRatings { get; set; } = [];
+    public ICollection<QualityRating> QualityRatings { get; set; } = [];
 }

@@ -4,23 +4,23 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace DAL.Data.Configuration;
 
-public class RatingUserRatingConfiguration : IEntityTypeConfiguration<RatingUserRating>
+public class QualityRatingConfiguration : IEntityTypeConfiguration<QualityRating>
 {
-    public void Configure(EntityTypeBuilder<RatingUserRating> builder)
+    public void Configure(EntityTypeBuilder<QualityRating> builder)
     {
         builder.HasOne(co => co.GroupVenue)
-            .WithMany(g => g.RatingUserRatings)
+            .WithMany(g => g.QualityRatings)
             .HasForeignKey(co => co.GroupVenueId)
             .OnDelete(DeleteBehavior.Cascade);
 
         builder.HasOne(co => co.User)
-            .WithMany(u => u.RatingUserRatings)
+            .WithMany(u => u.QualityRatings)
             .HasForeignKey(co => co.UserId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        builder.HasOne(co => co.RatingOption)
-            .WithMany(u => u.RatingUserRatings)
-            .HasForeignKey(co => co.RatingOptionId)
+        builder.HasOne(co => co.QualityOption)
+            .WithMany(u => u.QualityRatings)
+            .HasForeignKey(co => co.QualityOptionId)
             .OnDelete(DeleteBehavior.Restrict);
     }
 }
