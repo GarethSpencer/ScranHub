@@ -2,9 +2,9 @@
 
 namespace DAL.Entities;
 
-public class CostUserRating : AuditableEntity
+public class CostRating : AuditableEntity
 {
-    public Guid CostUserRatingId { get; set; }
+    public Guid CostRatingId { get; set; }
     public required Guid GroupVenueId { get; set; }
     public required Guid UserId { get; set; }
     public required Guid CostOptionId { get; set; }

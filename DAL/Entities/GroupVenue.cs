@@ -12,7 +12,7 @@ public class GroupVenue : AuditableEntity
     public Guid? VenueTypeOptionId { get; set; }
 
     public Group? Group { get; set; }
-    public ICollection<CostUserRating> CostUserRatings { get; set; } = [];
+    public ICollection<CostRating> CostRatings { get; set; } = [];
     public ICollection<RatingUserRating> RatingUserRatings { get; set; } = [];
     public FoodTypeOption? FoodTypeOption { get; set; }
     public VenueTypeOption? VenueTypeOption { get; set; }

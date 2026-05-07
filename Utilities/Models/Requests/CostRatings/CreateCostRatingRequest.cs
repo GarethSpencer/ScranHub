@@ -1,6 +1,6 @@
-﻿namespace Utilities.Models.Requests.CostUserRatings;
+﻿namespace Utilities.Models.Requests.CostRatings;
 
-public record class CreateCostUserRatingRequest
+public record class CreateCostRatingRequest
 {
     public required Guid GroupVenueId { get; set; }
     public required Guid CostOptionId { get; set; }

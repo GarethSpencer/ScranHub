@@ -3,34 +3,34 @@ using RepositoryLayer.Abstractions;
 using RepositoryLayer.Abstractions.Generic;
 using ServiceLayer.Abstractions;
 using System.Net;
-using Utilities.Models.Requests.CostUserRatings;
-using Utilities.Models.Responses.CostUserRatings;
+using Utilities.Models.Requests.CostRatings;
+using Utilities.Models.Responses.CostRatings;
 using Utilities.Token;
 
 namespace ServiceLayer.Infrastructure;
 
-public class CostUserRatingService(ITokenData tokenData,
-    ILogger<CostUserRatingService> logger,
-    ICostUserRatingRepository costUserRatingRepository,
+public class CostRatingService(ITokenData tokenData,
+    ILogger<CostRatingService> logger,
+    ICostRatingRepository costRatingRepository,
     ICostOptionRepository costOptionRepository,
     IUserGroupRepository userGroupRepository,
     IGroupVenueRepository groupVenueRepository,
-    IUnitOfWork unitOfWork) : ICostUserRatingService
+    IUnitOfWork unitOfWork) : ICostRatingService
 {
     private readonly ITokenData _tokenData = tokenData;
-    private readonly ILogger<CostUserRatingService> _logger = logger;
-    private readonly ICostUserRatingRepository _costUserRatingRepository = costUserRatingRepository;
+    private readonly ILogger<CostRatingService> _logger = logger;
+    private readonly ICostRatingRepository _costRatingRepository = costRatingRepository;
     private readonly ICostOptionRepository _costOptionRepository = costOptionRepository;
     private readonly IUserGroupRepository _userGroupRepository = userGroupRepository;
     private readonly IGroupVenueRepository _groupVenueRepository = groupVenueRepository;
     private readonly IUnitOfWork _unitOfWork = unitOfWork;
 
-    public async Task<AddCostUserRatingResponse> CreateCostUserRatingAsync(CreateCostUserRatingRequest request, CancellationToken ct)
+    public async Task<AddCostRatingResponse> CreateCostRatingAsync(CreateCostRatingRequest request, CancellationToken ct)
     {
         if (!_tokenData.UserId.HasValue)
         {
-            _logger.LogWarning("CreateCostUserRatingAsync called with no authenticated user.");
-            return new AddCostUserRatingResponse
+            _logger.LogWarning("CreateCostRatingAsync called with no authenticated user.");
+            return new AddCostRatingResponse
             {
                 StatusCode = HttpStatusCode.Unauthorized,
                 Message = "Unauthorized."
@@ -43,7 +43,7 @@ public class CostUserRatingService(ITokenData tokenData,
         if (groupVenue == null)
         {
             _logger.LogWarning("Group venue {GroupVenueId} not found for user {UserId}.", request.GroupVenueId, userId);
-            return new AddCostUserRatingResponse
+            return new AddCostRatingResponse
             {
                 StatusCode = HttpStatusCode.NotFound,
                 Message = "Group venue not found."
@@ -54,7 +54,7 @@ public class CostUserRatingService(ITokenData tokenData,
         if (!isUserInGroup)
         {
             _logger.LogWarning("User {UserId} is not a member of group {GroupId}.", userId, groupVenue.GroupId);
-            return new AddCostUserRatingResponse
+            return new AddCostRatingResponse
             {
                 StatusCode = HttpStatusCode.Forbidden,
                 Message = "You do not have permission to rate this venue."
@@ -65,34 +65,34 @@ public class CostUserRatingService(ITokenData tokenData,
         if (!costOptions.Any(fto => fto.CostOptionId == request.CostOptionId))
         {
             _logger.LogWarning("Invalid cost option ID {CostOptionId} provided for group {GroupId}.", request.CostOptionId, groupVenue.GroupId);
-            return new AddCostUserRatingResponse
+            return new AddCostRatingResponse
             {
                 StatusCode = HttpStatusCode.BadRequest,
                 Message = "Invalid cost option provided."
             };
         }
 
-        var isRatedAlready = await _costUserRatingRepository.ExistsAsync(x => x.GroupVenueId == request.GroupVenueId && x.UserId == userId, ct);
+        var isRatedAlready = await _costRatingRepository.ExistsAsync(x => x.GroupVenueId == request.GroupVenueId && x.UserId == userId, ct);
         if (isRatedAlready)
         {
             _logger.LogWarning("Cost rating for venue {GroupVenueId} already exists for user {UserId}.", request.GroupVenueId, userId);
-            return new AddCostUserRatingResponse
+            return new AddCostRatingResponse
             {
                 StatusCode = HttpStatusCode.BadRequest,
                 Message = "You have already rated the cost of this venue."
             };
         }
 
-        var costUserRatingId = await _costUserRatingRepository.CreateAsync(userId, request, ct);
+        var costRatingId = await _costRatingRepository.CreateAsync(userId, request, ct);
 
         await _unitOfWork.SaveChangesAsync(ct);
-        _logger.LogInformation("Cost user rating {CostUserRatingId} created successfully for user {UserId}.", costUserRatingId, userId);
+        _logger.LogInformation("Cost rating {CostRatingId} created successfully for user {UserId}.", costRatingId, userId);
 
-        return new AddCostUserRatingResponse
+        return new AddCostRatingResponse
         {
             StatusCode = HttpStatusCode.Created,
-            Message = $"Cost user rating created successfully.",
-            CostUserRatingId = costUserRatingId
+            Message = $"Cost rating created successfully.",
+            CostRatingId = costRatingId
         };
     }
 }
