@@ -26,4 +26,17 @@ public class CostRatingController(ICostRatingService costRatingService) : Contro
 
         return StatusCode((int)response.StatusCode, response);
     }
+
+    [HttpPatch("{costRatingId}")]
+    public async Task<IActionResult> UpdateCostRating([FromRoute] Guid costRatingId, [FromBody] UpdateCostRatingRequest request, CancellationToken ct)
+    {
+        if (request == null)
+        {
+            return BadRequest("Request body is required.");
+        }
+
+        var response = await _costRatingService.UpdateCostRatingAsync(costRatingId, request, ct);
+
+        return StatusCode((int)response.StatusCode, response);
+    }
 }

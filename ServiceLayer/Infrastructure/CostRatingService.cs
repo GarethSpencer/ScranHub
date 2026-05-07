@@ -1,10 +1,12 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using DAL.Entities;
+using Microsoft.Extensions.Logging;
 using RepositoryLayer.Abstractions;
 using RepositoryLayer.Abstractions.Generic;
 using ServiceLayer.Abstractions;
 using System.Net;
 using Utilities.Models.Requests.CostRatings;
 using Utilities.Models.Responses.CostRatings;
+using Utilities.Models.Responses.Generic;
 using Utilities.Token;
 
 namespace ServiceLayer.Infrastructure;
@@ -46,7 +48,7 @@ public class CostRatingService(ITokenData tokenData,
             return new AddCostRatingResponse
             {
                 StatusCode = HttpStatusCode.NotFound,
-                Message = "Group venue not found."
+                Message = "Venue not found."
             };
         }
 
@@ -93,6 +95,65 @@ public class CostRatingService(ITokenData tokenData,
             StatusCode = HttpStatusCode.Created,
             Message = $"Cost rating created successfully.",
             CostRatingId = costRatingId
+        };
+    }
+
+    public async Task<CommonResponse> UpdateCostRatingAsync(Guid costRatingId, UpdateCostRatingRequest request, CancellationToken ct)
+    {
+        if (!_tokenData.UserId.HasValue)
+        {
+            _logger.LogWarning("CreateCostRatingAsync called with no authenticated user.");
+            return new CommonResponse
+            {
+                StatusCode = HttpStatusCode.Unauthorized,
+                Message = "Unauthorized."
+            };
+        }
+
+        var userId = _tokenData.UserId!.Value;
+
+        var currentCostRating = await _costRatingRepository.GetDetailsByIdAsync(costRatingId, ct);
+        if (currentCostRating == null || currentCostRating.UserId != userId)
+        {
+            _logger.LogWarning("Cost rating {CostRatingId} not found for user {UserId}.", costRatingId, userId);
+            return new CommonResponse
+            {
+                StatusCode = HttpStatusCode.NotFound,
+                Message = "Rating not found."
+            };
+        }
+
+        var groupVenue = await _groupVenueRepository.GetByIdAsync(currentCostRating.GroupVenueId, ct);
+        if (groupVenue == null)
+        {
+            _logger.LogWarning("Active group venue {GroupVenueId} not found for cost rating {CostRatingId}.", currentCostRating.GroupVenueId, costRatingId);
+            return new CommonResponse
+            {
+                StatusCode = HttpStatusCode.NotFound,
+                Message = "Associated venue not found for this rating."
+            };
+        }
+
+        var costOptions = await _costOptionRepository.GetForGroupIdAsync(groupVenue.GroupId, ct);
+        if (!costOptions.Any(fto => fto.CostOptionId == request.CostOptionId))
+        {
+            _logger.LogWarning("Invalid cost option ID {CostOptionId} provided for group {GroupId}.", request.CostOptionId, groupVenue.GroupId);
+            return new AddCostRatingResponse
+            {
+                StatusCode = HttpStatusCode.BadRequest,
+                Message = "Invalid cost option provided."
+            };
+        }
+
+        await _costRatingRepository.UpdateAsync(costRatingId, request, ct);
+
+        await _unitOfWork.SaveChangesAsync(ct);
+        _logger.LogInformation("Cost rating {CostRatingId} updated successfully for user {UserId}.", costRatingId, userId);
+
+        return new CommonResponse
+        {
+            StatusCode = HttpStatusCode.OK,
+            Message = "Cost rating updated successfully."
         };
     }
 }

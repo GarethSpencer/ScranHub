@@ -7,4 +7,5 @@ namespace ServiceLayer.Abstractions;
 public interface ICostRatingService
 {
     Task<AddCostRatingResponse> CreateCostRatingAsync(CreateCostRatingRequest request, CancellationToken ct);
+    Task<CommonResponse> UpdateCostRatingAsync(Guid costRatingId, UpdateCostRatingRequest request, CancellationToken ct);
 }

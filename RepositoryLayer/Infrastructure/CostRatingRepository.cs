@@ -3,7 +3,9 @@ using DAL.Entities;
 using Microsoft.EntityFrameworkCore;
 using RepositoryLayer.Abstractions;
 using RepositoryLayer.Infrastructure.Generic;
+using System.Text.RegularExpressions;
 using Utilities.Models.Requests.CostRatings;
+using Utilities.Models.Results;
 
 namespace RepositoryLayer.Infrastructure;
 
@@ -20,5 +22,29 @@ public sealed class CostRatingRepository(ScranHubDbContext dbContext) : EFReposi
 
         await _dbSet.AddAsync(costRating, ct);
         return costRating.CostRatingId;
+    }
+
+    public async Task UpdateAsync(Guid costRatingId, UpdateCostRatingRequest request, CancellationToken ct)
+    {
+        var costRating = await _dbSet.FindAsync([costRatingId], ct);
+        costRating?.CostOptionId = request.CostOptionId;
+    }
+
+    public async Task<CostRatingResult?> GetDetailsByIdAsync(Guid id, CancellationToken ct)
+    {
+        var costRating = await _dbSet.FindAsync([id], ct);
+
+        if (costRating == null)
+        {
+            return null;
+        }
+
+        return new CostRatingResult
+        {
+            CostRatingId = costRating.CostRatingId,
+            UserId = costRating.UserId,
+            GroupVenueId = costRating.GroupVenueId,
+            CostOptionId = costRating.CostOptionId,
+        };
     }
 }
