@@ -1,36 +1,11 @@
 ﻿using DAL.Data;
 using DAL.Entities;
-using Microsoft.EntityFrameworkCore;
 using RepositoryLayer.Abstractions;
-using RepositoryLayer.Infrastructure.Generic;
 using Utilities.Models.Results;
 
 namespace RepositoryLayer.Infrastructure;
 
-public sealed class CostOptionRepository(ScranHubDbContext dbContext) : EFRepository<CostOption>(dbContext), ICostOptionRepository
+public sealed class CostOptionRepository(ScranHubDbContext dbContext)
+    : OptionRepository<CostOption, CostOptionResult>(dbContext), ICostOptionRepository
 {
-    public async Task<IEnumerable<CostOptionResult>> GetForGroupIdAsync(Guid groupId, CancellationToken ct)
-    {
-        var query = _dbSet.Where(x => x.GroupId == groupId).OrderBy(x => x.DisplayOrder);
-
-        if (!query.Any())
-        {
-            var defaultOptions = await _dbSet.Where(x => x.GroupId == null).OrderBy(x => x.DisplayOrder).ToListAsync(ct);
-            return defaultOptions.Select(x => new CostOptionResult
-            {
-                CostOptionId = x.CostOptionId,
-                GroupId = x.GroupId,
-                Label = x.Label,
-                DisplayOrder = x.DisplayOrder
-            });
-        }
-
-        return await query.Select(x => new CostOptionResult
-        {
-            CostOptionId = x.CostOptionId,
-            GroupId = x.GroupId,
-            Label = x.Label,
-            DisplayOrder = x.DisplayOrder
-        }).ToListAsync(ct);
-    }
 }

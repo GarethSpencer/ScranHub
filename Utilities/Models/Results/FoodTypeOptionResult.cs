@@ -1,9 +1,24 @@
-﻿namespace Utilities.Models.Results;
+﻿using Utilities.Models.Results.Abstractions;
 
-public record FoodTypeOptionResult
+namespace Utilities.Models.Results;
+
+public record FoodTypeOptionResult : IOptionResult
 {
-    public required Guid FoodTypeOptionId { get; init; }
-    public required Guid? GroupId { get; init; }
-    public required string Label { get; init; }
-    public required int DisplayOrder { get; init; }
+    public Guid FoodTypeOptionId { get; init; }
+    public Guid? GroupId { get; init; }
+    public string Label { get; init; } = string.Empty;
+    public int DisplayOrder { get; init; }
+
+    public Guid OptionId
+    {
+        get
+        {
+            return FoodTypeOptionId;
+        }
+
+        init
+        {
+            FoodTypeOptionId = value;
+        }
+    }
 }

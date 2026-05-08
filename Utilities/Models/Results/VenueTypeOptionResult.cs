@@ -1,9 +1,24 @@
-﻿namespace Utilities.Models.Results;
+﻿using Utilities.Models.Results.Abstractions;
 
-public record VenueTypeOptionResult
+namespace Utilities.Models.Results;
+
+public record VenueTypeOptionResult : IOptionResult
 {
-    public required Guid VenueTypeOptionId { get; init; }
-    public required Guid? GroupId { get; init; }
-    public required string Label { get; init; }
-    public required int DisplayOrder { get; init; }
+    public Guid VenueTypeOptionId { get; init; }
+    public Guid? GroupId { get; init; }
+    public string Label { get; init; } = string.Empty;
+    public int DisplayOrder { get; init; }
+
+    public Guid OptionId
+    {
+        get
+        {
+            return VenueTypeOptionId;
+        }
+
+        init
+        {
+            VenueTypeOptionId = value;
+        }
+    }
 }

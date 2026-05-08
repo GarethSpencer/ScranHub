@@ -1,9 +1,23 @@
-﻿namespace Utilities.Models.Results;
+﻿using Utilities.Models.Results.Abstractions;
 
-public record CostOptionResult
+namespace Utilities.Models.Results;
+
+public record CostOptionResult: IOptionResult
 {
-    public required Guid CostOptionId { get; init; }
-    public required Guid? GroupId { get; init; }
-    public required string Label { get; init; }
-    public required int DisplayOrder { get; init; }
+    public Guid CostOptionId { get; init; }
+    public Guid? GroupId { get; init; }
+    public string Label { get; init; } = string.Empty;
+    public int DisplayOrder { get; init; }
+    public Guid OptionId
+    {
+        get
+        {
+            return CostOptionId;
+        }
+
+        init
+        {
+            CostOptionId = value;
+        }
+    }
 }
