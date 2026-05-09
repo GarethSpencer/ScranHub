@@ -3,6 +3,7 @@ using RepositoryLayer.Abstractions.Generic;
 using Utilities.Models.Requests.Generic;
 using Utilities.Models.Requests.Groups;
 using Utilities.Models.Results;
+using Utilities.Models.Results.Generic;
 
 namespace RepositoryLayer.Abstractions;
 
@@ -28,7 +29,7 @@ public interface IGroupRepository : IEFRepository<Group>
 
     Task UpdateAsync(Guid groupId, UpdateGroupRequest groupRequest, CancellationToken ct);
 
-    Task<IEnumerable<GroupVenueCostRatingResult>> GetVenueCostRatingsForGroupAsync(Guid groupId, CancellationToken ct);
+    Task<IEnumerable<GroupVenueRatingResult>> GetVenueCostRatingsForGroupAsync(Guid groupId, CancellationToken ct);
 
-    Task<IEnumerable<GroupVenueQualityRatingResult>> GetVenueQualityRatingsForGroupAsync(Guid groupId, CancellationToken ct);
+    Task<IEnumerable<GroupVenueRatingResult>> GetVenueQualityRatingsForGroupAsync(Guid groupId, CancellationToken ct);
 }

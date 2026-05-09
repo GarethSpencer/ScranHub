@@ -4,15 +4,14 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace DAL.Entities;
 
-public class FoodTypeOption : AuditableEntity, IOption
+public class FoodTypeOption : AuditableEntity, ITypeOption
 {
     public Guid FoodTypeOptionId { get; set; }
     public Guid? GroupId { get; set; }
     public required string Label { get; set; }
-    public required int DisplayOrder { get; set; }
 
     [NotMapped]
-    public Guid OptionId
+    public Guid TypeOptionId
     {
         get
         {

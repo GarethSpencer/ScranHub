@@ -1,6 +1,6 @@
-﻿namespace Utilities.Models.Results;
+﻿namespace Utilities.Models.Results.Generic;
 
-public record OptionResult
+public record RatingOptionResult
 {
     public required Guid OptionId { get; init; }
     public required Guid? GroupId { get; init; }

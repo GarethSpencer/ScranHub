@@ -1,6 +1,6 @@
 ﻿using DAL.Entities;
-using Utilities.Models.Results;
+using RepositoryLayer.Abstractions.Generic;
 
 namespace RepositoryLayer.Abstractions;
 
-public interface ICostOptionRepository : IOptionRepository<CostOption, CostOptionResult> { }
+public interface ICostOptionRepository : IRatingOptionRepository<CostOption> { }

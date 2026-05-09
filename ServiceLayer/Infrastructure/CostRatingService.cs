@@ -3,9 +3,9 @@ using RepositoryLayer.Abstractions;
 using RepositoryLayer.Abstractions.Generic;
 using ServiceLayer.Abstractions;
 using System.Net;
-using Utilities.Models.Requests.CostRatings;
-using Utilities.Models.Responses.CostRatings;
+using Utilities.Models.Requests.Ratings;
 using Utilities.Models.Responses.Generic;
+using Utilities.Models.Responses.Ratings;
 using Utilities.Token;
 
 namespace ServiceLayer.Infrastructure;
@@ -28,12 +28,12 @@ public class CostRatingService(ITokenData tokenData,
     private readonly IGroupVenueRepository _groupVenueRepository = groupVenueRepository;
     private readonly IUnitOfWork _unitOfWork = unitOfWork;
 
-    public async Task<AddCostRatingResponse> CreateCostRatingAsync(CreateCostRatingRequest request, CancellationToken ct)
+    public async Task<AddRatingResponse> CreateCostRatingAsync(CreateRatingRequest request, CancellationToken ct)
     {
         if (!_tokenData.UserId.HasValue)
         {
             _logger.LogWarning("CreateCostRatingAsync called with no authenticated user.");
-            return new AddCostRatingResponse
+            return new AddRatingResponse
             {
                 StatusCode = HttpStatusCode.Unauthorized,
                 Message = "Unauthorized."
@@ -46,7 +46,7 @@ public class CostRatingService(ITokenData tokenData,
         if (groupVenue == null)
         {
             _logger.LogWarning("Group venue {GroupVenueId} not found for user {UserId}.", request.GroupVenueId, userId);
-            return new AddCostRatingResponse
+            return new AddRatingResponse
             {
                 StatusCode = HttpStatusCode.NotFound,
                 Message = "Venue not found."
@@ -57,7 +57,7 @@ public class CostRatingService(ITokenData tokenData,
         if (!isUserInGroup)
         {
             _logger.LogWarning("User {UserId} is not a member of group {GroupId}.", userId, groupVenue.GroupId);
-            return new AddCostRatingResponse
+            return new AddRatingResponse
             {
                 StatusCode = HttpStatusCode.Forbidden,
                 Message = "You do not have permission to rate this venue."
@@ -65,10 +65,10 @@ public class CostRatingService(ITokenData tokenData,
         }
 
         var costOptions = await _costOptionRepository.GetForGroupIdAsync(groupVenue.GroupId, ct);
-        if (!costOptions.Any(fto => fto.CostOptionId == request.CostOptionId))
+        if (!costOptions.Any(fto => fto.OptionId == request.OptionId))
         {
-            _logger.LogWarning("Invalid cost option ID {CostOptionId} provided for group {GroupId}.", request.CostOptionId, groupVenue.GroupId);
-            return new AddCostRatingResponse
+            _logger.LogWarning("Invalid cost option ID {CostOptionId} provided for group {GroupId}.", request.OptionId, groupVenue.GroupId);
+            return new AddRatingResponse
             {
                 StatusCode = HttpStatusCode.BadRequest,
                 Message = "Invalid cost option provided."
@@ -79,7 +79,7 @@ public class CostRatingService(ITokenData tokenData,
         if (isRatedAlready)
         {
             _logger.LogWarning("Cost rating for venue {GroupVenueId} already exists for user {UserId}.", request.GroupVenueId, userId);
-            return new AddCostRatingResponse
+            return new AddRatingResponse
             {
                 StatusCode = HttpStatusCode.BadRequest,
                 Message = "You have already rated the cost of this venue."
@@ -91,15 +91,15 @@ public class CostRatingService(ITokenData tokenData,
         await _unitOfWork.SaveChangesAsync(ct);
         _logger.LogInformation("Cost rating {CostRatingId} created successfully for user {UserId}.", costRatingId, userId);
 
-        return new AddCostRatingResponse
+        return new AddRatingResponse
         {
             StatusCode = HttpStatusCode.Created,
             Message = $"Cost rating created successfully.",
-            CostRatingId = costRatingId
+            RatingId = costRatingId
         };
     }
 
-    public async Task<CommonResponse> UpdateCostRatingAsync(Guid costRatingId, UpdateCostRatingRequest request, CancellationToken ct)
+    public async Task<CommonResponse> UpdateCostRatingAsync(Guid costRatingId, UpdateRatingRequest request, CancellationToken ct)
     {
         if (!_tokenData.UserId.HasValue)
         {
@@ -136,10 +136,10 @@ public class CostRatingService(ITokenData tokenData,
         }
 
         var costOptions = await _costOptionRepository.GetForGroupIdAsync(groupVenue.GroupId, ct);
-        if (!costOptions.Any(fto => fto.CostOptionId == request.CostOptionId))
+        if (!costOptions.Any(fto => fto.OptionId == request.OptionId))
         {
-            _logger.LogWarning("Invalid cost option ID {CostOptionId} provided for group {GroupId}.", request.CostOptionId, groupVenue.GroupId);
-            return new AddCostRatingResponse
+            _logger.LogWarning("Invalid cost option ID {CostOptionId} provided for group {GroupId}.", request.OptionId, groupVenue.GroupId);
+            return new AddRatingResponse
             {
                 StatusCode = HttpStatusCode.BadRequest,
                 Message = "Invalid cost option provided."
@@ -195,12 +195,12 @@ public class CostRatingService(ITokenData tokenData,
         };
     }
 
-    public async Task<GetCostRatingResponse> GetCostRatingAsync(Guid costRatingId, CancellationToken ct)
+    public async Task<GetRatingResponse> GetCostRatingAsync(Guid costRatingId, CancellationToken ct)
     {
         if (!_tokenData.UserId.HasValue)
         {
             _logger.LogWarning("GetCostRatingAsync called with no authenticated user.");
-            return new GetCostRatingResponse
+            return new GetRatingResponse
             {
                 StatusCode = HttpStatusCode.Unauthorized,
                 Message = "Unauthorized."
@@ -213,27 +213,27 @@ public class CostRatingService(ITokenData tokenData,
         if (costRating == null || costRating.UserId != userId)
         {
             _logger.LogWarning("Cost rating {CostRatingId} not found for user {UserId}.", costRatingId, userId);
-            return new GetCostRatingResponse
+            return new GetRatingResponse
             {
                 StatusCode = HttpStatusCode.NotFound,
                 Message = "Rating not found."
             };
         }
 
-        return new GetCostRatingResponse
+        return new GetRatingResponse
         {
             StatusCode = HttpStatusCode.OK,
             Message = "Cost rating retrieved successfully.",
-            CostRating = costRating
+            Rating = costRating
         };
     }
 
-    public async Task<GetCostRatingsResponse> GetCostRatingsForGroupVenueAsync(Guid groupVenueId, CancellationToken ct)
+    public async Task<GetRatingsResponse> GetCostRatingsForGroupVenueAsync(Guid groupVenueId, CancellationToken ct)
     {
         if (!_tokenData.UserId.HasValue)
         {
             _logger.LogWarning("GetCostRatingsForGroupVenueAsync called with no authenticated user.");
-            return new GetCostRatingsResponse
+            return new GetRatingsResponse
             {
                 StatusCode = HttpStatusCode.Unauthorized,
                 Message = "Unauthorized."
@@ -246,7 +246,7 @@ public class CostRatingService(ITokenData tokenData,
         if (groupVenue == null)
         {
             _logger.LogWarning("Group venue {GroupVenueId} not found for user {UserId}.", groupVenueId, userId);
-            return new GetCostRatingsResponse
+            return new GetRatingsResponse
             {
                 StatusCode = HttpStatusCode.NotFound,
                 Message = "Venue not found."
@@ -257,7 +257,7 @@ public class CostRatingService(ITokenData tokenData,
         if (!isUserInGroup)
         {
             _logger.LogWarning("User {UserId} is not a member of group {GroupId}.", userId, groupVenue.GroupId);
-            return new GetCostRatingsResponse
+            return new GetRatingsResponse
             {
                 StatusCode = HttpStatusCode.Forbidden,
                 Message = "You do not have permission to rate this venue."
@@ -266,20 +266,20 @@ public class CostRatingService(ITokenData tokenData,
 
         var costRatings = await _costRatingRepository.GetDetailsByGroupVenueIdAsync(groupVenueId, ct);
 
-        return new GetCostRatingsResponse
+        return new GetRatingsResponse
         {
             StatusCode = HttpStatusCode.OK,
             Message = "Cost ratings retrieved successfully.",
-            CostRatings = costRatings
+            Ratings = costRatings
         };
     }
 
-    public async Task<GetCostRatingsResponse> GetUserCostRatingsForGroupAsync(Guid groupId, CancellationToken ct)
+    public async Task<GetRatingsResponse> GetUserCostRatingsForGroupAsync(Guid groupId, CancellationToken ct)
     {
         if (!_tokenData.UserId.HasValue)
         {
             _logger.LogWarning("GetUserCostRatingsForGroupAsync called with no authenticated user.");
-            return new GetCostRatingsResponse
+            return new GetRatingsResponse
             {
                 StatusCode = HttpStatusCode.Unauthorized,
                 Message = "Unauthorized."
@@ -291,7 +291,7 @@ public class CostRatingService(ITokenData tokenData,
         if (!isUserInGroup)
         {
             _logger.LogWarning("User {UserId} is not a member of group {GroupId}.", userId, groupId);
-            return new GetCostRatingsResponse
+            return new GetRatingsResponse
             {
                 StatusCode = HttpStatusCode.Forbidden,
                 Message = "You do not have permission to see ratings for this group."
@@ -300,20 +300,20 @@ public class CostRatingService(ITokenData tokenData,
 
         var costRatings = await _costRatingRepository.GetUserDetailsForGroupAsync(userId, groupId, ct);
 
-        return new GetCostRatingsResponse
+        return new GetRatingsResponse
         {
             StatusCode = HttpStatusCode.OK,
             Message = "Cost ratings retrieved successfully.",
-            CostRatings = costRatings
+            Ratings = costRatings
         };
     }
 
-    public async Task<GetGroupCostRatingsResponse> GetCostRatingsForGroupAsync(Guid groupId, CancellationToken ct)
+    public async Task<GetGroupRatingsResponse> GetCostRatingsForGroupAsync(Guid groupId, CancellationToken ct)
     {
         if (!_tokenData.UserId.HasValue)
         {
             _logger.LogWarning("GetCostRatingsForGroupAsync called with no authenticated user.");
-            return new GetGroupCostRatingsResponse
+            return new GetGroupRatingsResponse
             {
                 StatusCode = HttpStatusCode.Unauthorized,
                 Message = "Unauthorized."
@@ -325,7 +325,7 @@ public class CostRatingService(ITokenData tokenData,
         if (!isUserInGroup)
         {
             _logger.LogWarning("User {UserId} is not a member of group {GroupId}.", userId, groupId);
-            return new GetGroupCostRatingsResponse
+            return new GetGroupRatingsResponse
             {
                 StatusCode = HttpStatusCode.Forbidden,
                 Message = "You do not have permission to see ratings for this group."
@@ -334,11 +334,11 @@ public class CostRatingService(ITokenData tokenData,
 
         var costRatings = await _groupRepository.GetVenueCostRatingsForGroupAsync(groupId, ct);
 
-        return new GetGroupCostRatingsResponse
+        return new GetGroupRatingsResponse
         {
             StatusCode = HttpStatusCode.OK,
             Message = "Cost ratings retrieved successfully.",
-            GroupVenueCostRatingsResults = costRatings
+            GroupVenueRatingsResults = costRatings
         };
     }
 }

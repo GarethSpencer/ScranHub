@@ -1,12 +1,12 @@
-﻿namespace Utilities.Models.Results;
+﻿namespace Utilities.Models.Results.Generic;
 
-public record CostRatingResult
+public record RatingResult
 {
-    public required Guid CostRatingId { get; init; }
+    public required Guid RatingId { get; init; }
     public required Guid UserId { get; init; }
     public required Guid GroupVenueId { get; init; }
     public required string VenueName { get; init; }
     public required Guid GroupId { get; init; }
-    public required Guid CostOptionId { get; init; }
+    public required Guid OptionId { get; init; }
     public required string Label { get; init; }
 }

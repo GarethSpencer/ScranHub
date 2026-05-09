@@ -1,11 +1,11 @@
 ﻿using DAL.Data;
 using DAL.Entities;
 using RepositoryLayer.Abstractions;
-using Utilities.Models.Results;
+using RepositoryLayer.Infrastructure.Generic;
 
 namespace RepositoryLayer.Infrastructure;
 
 public sealed class VenueTypeOptionRepository(ScranHubDbContext dbContext)
-    : OptionRepository<VenueTypeOption, VenueTypeOptionResult>(dbContext), IVenueTypeOptionRepository
+    : TypeOptionRepository<VenueTypeOption>(dbContext), IVenueTypeOptionRepository
 {
 }

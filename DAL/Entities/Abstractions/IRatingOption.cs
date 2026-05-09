@@ -1,6 +1,6 @@
 ﻿namespace DAL.Entities.Abstractions;
 
-public interface IOption
+public interface IRatingOption
 {
     public Guid OptionId { get; set; }
     public Guid? GroupId { get; set; }

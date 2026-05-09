@@ -1,6 +1,6 @@
 ﻿using DAL.Entities;
-using Utilities.Models.Results;
+using RepositoryLayer.Abstractions.Generic;
 
 namespace RepositoryLayer.Abstractions;
 
-public interface IFoodTypeOptionRepository : IOptionRepository<FoodTypeOption, FoodTypeOptionResult> { }
+public interface IFoodTypeOptionRepository : ITypeOptionRepository<FoodTypeOption> { }

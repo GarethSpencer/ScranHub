@@ -7,6 +7,7 @@ using Utilities.Models.Results;
 using Utilities.Models.Requests.Groups;
 using Utilities.Enums;
 using Utilities.Models.Requests.Generic;
+using Utilities.Models.Results.Generic;
 
 namespace RepositoryLayer.Infrastructure;
 
@@ -156,7 +157,7 @@ public sealed class GroupRepository(ScranHubDbContext dbContext,
         }
     }
 
-    public async Task<IEnumerable<GroupVenueCostRatingResult>> GetVenueCostRatingsForGroupAsync(Guid groupId, CancellationToken ct)
+    public async Task<IEnumerable<GroupVenueRatingResult>> GetVenueCostRatingsForGroupAsync(Guid groupId, CancellationToken ct)
     {
         var group = await _dbSet
             .Include(x => x.GroupVenues)
@@ -169,22 +170,22 @@ public sealed class GroupRepository(ScranHubDbContext dbContext,
             return [];
         }
 
-        return group.GroupVenues.Select(gv => new GroupVenueCostRatingResult
+        return group.GroupVenues.Select(gv => new GroupVenueRatingResult
         {
             GroupId = gv.GroupId,
             GroupVenueId = gv.GroupVenueId,
             VenueName = gv.VenueName,
-            CostRatings = gv.CostRatings.Select(cr => new CostRatingVenueResult
+            Ratings = gv.CostRatings.Select(cr => new RatingVenueResult
             {
-                CostRatingId = cr.CostRatingId,
+                RatingId = cr.CostRatingId,
                 UserId = cr.UserId,
-                CostOptionId = cr.CostOptionId,
+                OptionId = cr.CostOptionId,
                 Label = cr.CostOption!.Label
             })
         });
     }
 
-    public async Task<IEnumerable<GroupVenueQualityRatingResult>> GetVenueQualityRatingsForGroupAsync(Guid groupId, CancellationToken ct)
+    public async Task<IEnumerable<GroupVenueRatingResult>> GetVenueQualityRatingsForGroupAsync(Guid groupId, CancellationToken ct)
     {
         var group = await _dbSet
             .Include(x => x.GroupVenues)
@@ -197,16 +198,16 @@ public sealed class GroupRepository(ScranHubDbContext dbContext,
             return [];
         }
 
-        return group.GroupVenues.Select(gv => new GroupVenueQualityRatingResult
+        return group.GroupVenues.Select(gv => new GroupVenueRatingResult
         {
             GroupId = gv.GroupId,
             GroupVenueId = gv.GroupVenueId,
             VenueName = gv.VenueName,
-            QualityRatings = gv.QualityRatings.Select(qr => new QualityRatingVenueResult
+            Ratings = gv.QualityRatings.Select(qr => new RatingVenueResult
             {
-                QualityRatingId = qr.QualityRatingId,
+                RatingId = qr.QualityRatingId,
                 UserId = qr.UserId,
-                QualityOptionId = qr.QualityOptionId,
+                OptionId = qr.QualityOptionId,
                 Label = qr.QualityOption!.Label
             })
         });

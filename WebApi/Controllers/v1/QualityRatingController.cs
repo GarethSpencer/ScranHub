@@ -1,7 +1,7 @@
 ﻿using Asp.Versioning;
 using Microsoft.AspNetCore.Mvc;
 using ServiceLayer.Abstractions;
-using Utilities.Models.Requests.QualityRatings;
+using Utilities.Models.Requests.Ratings;
 
 namespace WebApi.Controllers.v1;
 
@@ -13,7 +13,7 @@ public class QualityRatingController(IQualityRatingService qualityRatingService)
     private readonly IQualityRatingService _qualityRatingService = qualityRatingService;
 
     [HttpPost]
-    public async Task<IActionResult> CreateQualityRating([FromBody] CreateQualityRatingRequest request, CancellationToken ct)
+    public async Task<IActionResult> CreateQualityRating([FromBody] CreateRatingRequest request, CancellationToken ct)
     {
         if (request == null)
         {
@@ -26,7 +26,7 @@ public class QualityRatingController(IQualityRatingService qualityRatingService)
     }
 
     [HttpPatch("{qualityRatingId}")]
-    public async Task<IActionResult> UpdateQualityRating([FromRoute] Guid qualityRatingId, [FromBody] UpdateQualityRatingRequest request, CancellationToken ct)
+    public async Task<IActionResult> UpdateQualityRating([FromRoute] Guid qualityRatingId, [FromBody] UpdateRatingRequest request, CancellationToken ct)
     {
         if (request == null)
         {

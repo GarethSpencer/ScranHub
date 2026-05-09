@@ -1,16 +1,16 @@
-﻿using Utilities.Models.Requests.QualityRatings;
-using Utilities.Models.Responses.QualityRatings;
+﻿using Utilities.Models.Requests.Ratings;
 using Utilities.Models.Responses.Generic;
+using Utilities.Models.Responses.Ratings;
 
 namespace ServiceLayer.Abstractions;
 
 public interface IQualityRatingService
 {
-    Task<AddQualityRatingResponse> CreateQualityRatingAsync(CreateQualityRatingRequest request, CancellationToken ct);
-    Task<CommonResponse> UpdateQualityRatingAsync(Guid qualityRatingId, UpdateQualityRatingRequest request, CancellationToken ct);
+    Task<AddRatingResponse> CreateQualityRatingAsync(CreateRatingRequest request, CancellationToken ct);
+    Task<CommonResponse> UpdateQualityRatingAsync(Guid qualityRatingId, UpdateRatingRequest request, CancellationToken ct);
     Task<CommonResponse> DeleteQualityRatingAsync(Guid qualityRatingId, CancellationToken ct);
-    Task<GetQualityRatingResponse> GetQualityRatingAsync(Guid qualityRatingId, CancellationToken ct);
-    Task<GetQualityRatingsResponse> GetQualityRatingsForGroupVenueAsync(Guid groupVenueId, CancellationToken ct);
-    Task<GetQualityRatingsResponse> GetUserQualityRatingsForGroupAsync  (Guid groupId, CancellationToken ct);
-    Task<GetGroupQualityRatingsResponse> GetQualityRatingsForGroupAsync(Guid groupId, CancellationToken ct);
+    Task<GetRatingResponse> GetQualityRatingAsync(Guid qualityRatingId, CancellationToken ct);
+    Task<GetRatingsResponse> GetQualityRatingsForGroupVenueAsync(Guid groupVenueId, CancellationToken ct);
+    Task<GetRatingsResponse> GetUserQualityRatingsForGroupAsync(Guid groupId, CancellationToken ct);
+    Task<GetGroupRatingsResponse> GetQualityRatingsForGroupAsync(Guid groupId, CancellationToken ct);
 }

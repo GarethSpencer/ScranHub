@@ -3,9 +3,9 @@ using RepositoryLayer.Abstractions;
 using RepositoryLayer.Abstractions.Generic;
 using ServiceLayer.Abstractions;
 using System.Net;
-using Utilities.Models.Requests.QualityRatings;
+using Utilities.Models.Requests.Ratings;
 using Utilities.Models.Responses.Generic;
-using Utilities.Models.Responses.QualityRatings;
+using Utilities.Models.Responses.Ratings;
 using Utilities.Token;
 
 namespace ServiceLayer.Infrastructure;
@@ -28,12 +28,12 @@ public class QualityRatingService(ITokenData tokenData,
     private readonly IGroupVenueRepository _groupVenueRepository = groupVenueRepository;
     private readonly IUnitOfWork _unitOfWork = unitOfWork;
 
-    public async Task<AddQualityRatingResponse> CreateQualityRatingAsync(CreateQualityRatingRequest request, CancellationToken ct)
+    public async Task<AddRatingResponse> CreateQualityRatingAsync(CreateRatingRequest request, CancellationToken ct)
     {
         if (!_tokenData.UserId.HasValue)
         {
             _logger.LogWarning("CreateQualityRatingAsync called with no authenticated user.");
-            return new AddQualityRatingResponse
+            return new AddRatingResponse
             {
                 StatusCode = HttpStatusCode.Unauthorized,
                 Message = "Unauthorized."
@@ -46,7 +46,7 @@ public class QualityRatingService(ITokenData tokenData,
         if (groupVenue == null)
         {
             _logger.LogWarning("Group venue {GroupVenueId} not found for user {UserId}.", request.GroupVenueId, userId);
-            return new AddQualityRatingResponse
+            return new AddRatingResponse
             {
                 StatusCode = HttpStatusCode.NotFound,
                 Message = "Venue not found."
@@ -57,7 +57,7 @@ public class QualityRatingService(ITokenData tokenData,
         if (!isUserInGroup)
         {
             _logger.LogWarning("User {UserId} is not a member of group {GroupId}.", userId, groupVenue.GroupId);
-            return new AddQualityRatingResponse
+            return new AddRatingResponse
             {
                 StatusCode = HttpStatusCode.Forbidden,
                 Message = "You do not have permission to rate this venue."
@@ -65,10 +65,10 @@ public class QualityRatingService(ITokenData tokenData,
         }
 
         var qualityOptions = await _qualityOptionRepository.GetForGroupIdAsync(groupVenue.GroupId, ct);
-        if (!qualityOptions.Any(qo => qo.QualityOptionId == request.QualityOptionId))
+        if (!qualityOptions.Any(qo => qo.OptionId == request.OptionId))
         {
-            _logger.LogWarning("Invalid quality option ID {QualityOptionId} provided for group {GroupId}.", request.QualityOptionId, groupVenue.GroupId);
-            return new AddQualityRatingResponse
+            _logger.LogWarning("Invalid quality option ID {QualityOptionId} provided for group {GroupId}.", request.OptionId, groupVenue.GroupId);
+            return new AddRatingResponse
             {
                 StatusCode = HttpStatusCode.BadRequest,
                 Message = "Invalid quality option provided."
@@ -79,7 +79,7 @@ public class QualityRatingService(ITokenData tokenData,
         if (isRatedAlready)
         {
             _logger.LogWarning("Quality rating for venue {GroupVenueId} already exists for user {UserId}.", request.GroupVenueId, userId);
-            return new AddQualityRatingResponse
+            return new AddRatingResponse
             {
                 StatusCode = HttpStatusCode.BadRequest,
                 Message = "You have already rated the quality of this venue."
@@ -91,15 +91,15 @@ public class QualityRatingService(ITokenData tokenData,
         await _unitOfWork.SaveChangesAsync(ct);
         _logger.LogInformation("Quality rating {QualityRatingId} created successfully for user {UserId}.", qualityRatingId, userId);
 
-        return new AddQualityRatingResponse
+        return new AddRatingResponse
         {
             StatusCode = HttpStatusCode.Created,
             Message = $"Quality rating created successfully.",
-            QualityRatingId = qualityRatingId
+            RatingId = qualityRatingId
         };
     }
 
-    public async Task<CommonResponse> UpdateQualityRatingAsync(Guid qualityRatingId, UpdateQualityRatingRequest request, CancellationToken ct)
+    public async Task<CommonResponse> UpdateQualityRatingAsync(Guid qualityRatingId, UpdateRatingRequest request, CancellationToken ct)
     {
         if (!_tokenData.UserId.HasValue)
         {
@@ -136,10 +136,10 @@ public class QualityRatingService(ITokenData tokenData,
         }
 
         var qualityOptions = await _qualityOptionRepository.GetForGroupIdAsync(groupVenue.GroupId, ct);
-        if (!qualityOptions.Any(qo => qo.QualityOptionId == request.QualityOptionId))
+        if (!qualityOptions.Any(qo => qo.OptionId == request.OptionId))
         {
-            _logger.LogWarning("Invalid quality option ID {QualityOptionId} provided for group {GroupId}.", request.QualityOptionId, groupVenue.GroupId);
-            return new AddQualityRatingResponse
+            _logger.LogWarning("Invalid quality option ID {QualityOptionId} provided for group {GroupId}.", request.OptionId, groupVenue.GroupId);
+            return new AddRatingResponse
             {
                 StatusCode = HttpStatusCode.BadRequest,
                 Message = "Invalid quality option provided."
@@ -195,12 +195,12 @@ public class QualityRatingService(ITokenData tokenData,
         };
     }
 
-    public async Task<GetQualityRatingResponse> GetQualityRatingAsync(Guid qualityRatingId, CancellationToken ct)
+    public async Task<GetRatingResponse> GetQualityRatingAsync(Guid qualityRatingId, CancellationToken ct)
     {
         if (!_tokenData.UserId.HasValue)
         {
             _logger.LogWarning("GetQualityRatingAsync called with no authenticated user.");
-            return new GetQualityRatingResponse
+            return new GetRatingResponse
             {
                 StatusCode = HttpStatusCode.Unauthorized,
                 Message = "Unauthorized."
@@ -213,27 +213,27 @@ public class QualityRatingService(ITokenData tokenData,
         if (qualityRating == null || qualityRating.UserId != userId)
         {
             _logger.LogWarning("Quality rating {QualityRatingId} not found for user {UserId}.", qualityRatingId, userId);
-            return new GetQualityRatingResponse
+            return new GetRatingResponse
             {
                 StatusCode = HttpStatusCode.NotFound,
                 Message = "Rating not found."
             };
         }
 
-        return new GetQualityRatingResponse
+        return new GetRatingResponse
         {
             StatusCode = HttpStatusCode.OK,
             Message = "Quality rating retrieved successfully.",
-            QualityRating = qualityRating
+            Rating = qualityRating
         };
     }
 
-    public async Task<GetQualityRatingsResponse> GetQualityRatingsForGroupVenueAsync(Guid groupVenueId, CancellationToken ct)
+    public async Task<GetRatingsResponse> GetQualityRatingsForGroupVenueAsync(Guid groupVenueId, CancellationToken ct)
     {
         if (!_tokenData.UserId.HasValue)
         {
             _logger.LogWarning("GetQualityRatingsForGroupVenueAsync called with no authenticated user.");
-            return new GetQualityRatingsResponse
+            return new GetRatingsResponse
             {
                 StatusCode = HttpStatusCode.Unauthorized,
                 Message = "Unauthorized."
@@ -246,7 +246,7 @@ public class QualityRatingService(ITokenData tokenData,
         if (groupVenue == null)
         {
             _logger.LogWarning("Group venue {GroupVenueId} not found for user {UserId}.", groupVenueId, userId);
-            return new GetQualityRatingsResponse
+            return new GetRatingsResponse
             {
                 StatusCode = HttpStatusCode.NotFound,
                 Message = "Venue not found."
@@ -257,7 +257,7 @@ public class QualityRatingService(ITokenData tokenData,
         if (!isUserInGroup)
         {
             _logger.LogWarning("User {UserId} is not a member of group {GroupId}.", userId, groupVenue.GroupId);
-            return new GetQualityRatingsResponse
+            return new GetRatingsResponse
             {
                 StatusCode = HttpStatusCode.Forbidden,
                 Message = "You do not have permission to rate this venue."
@@ -266,20 +266,20 @@ public class QualityRatingService(ITokenData tokenData,
 
         var qualityRatings = await _qualityRatingRepository.GetDetailsByGroupVenueIdAsync(groupVenueId, ct);
 
-        return new GetQualityRatingsResponse
+        return new GetRatingsResponse
         {
             StatusCode = HttpStatusCode.OK,
             Message = "Quality ratings retrieved successfully.",
-            QualityRatings = qualityRatings
+            Ratings = qualityRatings
         };
     }
 
-    public async Task<GetQualityRatingsResponse> GetUserQualityRatingsForGroupAsync(Guid groupId, CancellationToken ct)
+    public async Task<GetRatingsResponse> GetUserQualityRatingsForGroupAsync(Guid groupId, CancellationToken ct)
     {
         if (!_tokenData.UserId.HasValue)
         {
             _logger.LogWarning("GetUserQualityRatingsForGroupAsync called with no authenticated user.");
-            return new GetQualityRatingsResponse
+            return new GetRatingsResponse
             {
                 StatusCode = HttpStatusCode.Unauthorized,
                 Message = "Unauthorized."
@@ -291,7 +291,7 @@ public class QualityRatingService(ITokenData tokenData,
         if (!isUserInGroup)
         {
             _logger.LogWarning("User {UserId} is not a member of group {GroupId}.", userId, groupId);
-            return new GetQualityRatingsResponse
+            return new GetRatingsResponse
             {
                 StatusCode = HttpStatusCode.Forbidden,
                 Message = "You do not have permission to see ratings for this group."
@@ -300,20 +300,20 @@ public class QualityRatingService(ITokenData tokenData,
 
         var qualityRatings = await _qualityRatingRepository.GetUserDetailsForGroupAsync(userId, groupId, ct);
 
-        return new GetQualityRatingsResponse
+        return new GetRatingsResponse
         {
             StatusCode = HttpStatusCode.OK,
             Message = "Quality ratings retrieved successfully.",
-            QualityRatings = qualityRatings
+            Ratings = qualityRatings
         };
     }
 
-    public async Task<GetGroupQualityRatingsResponse> GetQualityRatingsForGroupAsync(Guid groupId, CancellationToken ct)
+    public async Task<GetGroupRatingsResponse> GetQualityRatingsForGroupAsync(Guid groupId, CancellationToken ct)
     {
         if (!_tokenData.UserId.HasValue)
         {
             _logger.LogWarning("GetQualityRatingsForGroupAsync called with no authenticated user.");
-            return new GetGroupQualityRatingsResponse
+            return new GetGroupRatingsResponse
             {
                 StatusCode = HttpStatusCode.Unauthorized,
                 Message = "Unauthorized."
@@ -325,7 +325,7 @@ public class QualityRatingService(ITokenData tokenData,
         if (!isUserInGroup)
         {
             _logger.LogWarning("User {UserId} is not a member of group {GroupId}.", userId, groupId);
-            return new GetGroupQualityRatingsResponse
+            return new GetGroupRatingsResponse
             {
                 StatusCode = HttpStatusCode.Forbidden,
                 Message = "You do not have permission to see ratings for this group."
@@ -334,11 +334,11 @@ public class QualityRatingService(ITokenData tokenData,
 
         var qualityRatings = await _groupRepository.GetVenueQualityRatingsForGroupAsync(groupId, ct);
 
-        return new GetGroupQualityRatingsResponse
+        return new GetGroupRatingsResponse
         {
             StatusCode = HttpStatusCode.OK,
             Message = "Quality ratings retrieved successfully.",
-            GroupVenueQualityRatingsResults = qualityRatings
+            GroupVenueRatingsResults = qualityRatings
         };
     }
 }

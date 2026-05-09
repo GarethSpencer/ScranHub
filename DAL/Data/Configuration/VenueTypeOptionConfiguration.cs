@@ -16,9 +16,9 @@ public class VenueTypeOptionConfiguration : IEntityTypeConfiguration<VenueTypeOp
             .OnDelete(DeleteBehavior.Cascade);
 
         builder.HasData(
-            new VenueTypeOption { VenueTypeOptionId = Guid.Parse("00000000-0000-0000-0004-000000000001"), GroupId = null, Label = "Eat-In",   DisplayOrder = 1, CreatedOn = SeedConstants.CreatedDate, CreatedBy = SeedConstants.AdminId },
-            new VenueTypeOption { VenueTypeOptionId = Guid.Parse("00000000-0000-0000-0004-000000000002"), GroupId = null, Label = "Takeaway", DisplayOrder = 2, CreatedOn = SeedConstants.CreatedDate, CreatedBy = SeedConstants.AdminId },
-            new VenueTypeOption { VenueTypeOptionId = Guid.Parse("00000000-0000-0000-0004-000000000003"), GroupId = null, Label = "Both",     DisplayOrder = 3, CreatedOn = SeedConstants.CreatedDate, CreatedBy = SeedConstants.AdminId }
+            new VenueTypeOption { VenueTypeOptionId = Guid.Parse("00000000-0000-0000-0004-000000000001"), GroupId = null, Label = "Eat-In",   CreatedOn = SeedConstants.CreatedDate, CreatedBy = SeedConstants.AdminId },
+            new VenueTypeOption { VenueTypeOptionId = Guid.Parse("00000000-0000-0000-0004-000000000002"), GroupId = null, Label = "Takeaway", CreatedOn = SeedConstants.CreatedDate, CreatedBy = SeedConstants.AdminId },
+            new VenueTypeOption { VenueTypeOptionId = Guid.Parse("00000000-0000-0000-0004-000000000003"), GroupId = null, Label = "Both",     CreatedOn = SeedConstants.CreatedDate, CreatedBy = SeedConstants.AdminId }
         );
     }
 }

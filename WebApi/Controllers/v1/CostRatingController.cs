@@ -1,7 +1,7 @@
 ﻿using Asp.Versioning;
 using Microsoft.AspNetCore.Mvc;
 using ServiceLayer.Abstractions;
-using Utilities.Models.Requests.CostRatings;
+using Utilities.Models.Requests.Ratings;
 
 namespace WebApi.Controllers.v1;
 
@@ -13,7 +13,7 @@ public class CostRatingController(ICostRatingService costRatingService) : Contro
     private readonly ICostRatingService _costRatingService = costRatingService;
 
     [HttpPost]
-    public async Task<IActionResult> CreateCostRating([FromBody] CreateCostRatingRequest request, CancellationToken ct)
+    public async Task<IActionResult> CreateCostRating([FromBody] CreateRatingRequest request, CancellationToken ct)
     {
         if (request == null)
         {
@@ -26,7 +26,7 @@ public class CostRatingController(ICostRatingService costRatingService) : Contro
     }
 
     [HttpPatch("{costRatingId}")]
-    public async Task<IActionResult> UpdateCostRating([FromRoute] Guid costRatingId, [FromBody] UpdateCostRatingRequest request, CancellationToken ct)
+    public async Task<IActionResult> UpdateCostRating([FromRoute] Guid costRatingId, [FromBody] UpdateRatingRequest request, CancellationToken ct)
     {
         if (request == null)
         {

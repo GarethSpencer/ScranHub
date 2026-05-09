@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace DAL.Entities;
 
-public class QualityOption : AuditableEntity, IOption
+public class QualityOption : AuditableEntity, IRatingOption
 {
     public Guid QualityOptionId { get; set; }
     public Guid? GroupId { get; set; }

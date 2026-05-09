@@ -3,33 +3,13 @@ using DAL.Entities;
 using Microsoft.EntityFrameworkCore;
 using RepositoryLayer.Abstractions;
 using RepositoryLayer.Infrastructure.Generic;
-using Utilities.Models.Requests.QualityRatings;
-using Utilities.Models.Results;
+using Utilities.Models.Results.Generic;
 
 namespace RepositoryLayer.Infrastructure;
 
-public sealed class QualityRatingRepository(ScranHubDbContext dbContext) : EFRepository<QualityRating>(dbContext), IQualityRatingRepository
+public sealed class QualityRatingRepository(ScranHubDbContext dbContext) : RatingRepository<QualityRating>(dbContext), IQualityRatingRepository
 {
-    public async Task<Guid> CreateAsync(Guid userId, CreateQualityRatingRequest request, CancellationToken ct)
-    {
-        var qualityRating = new QualityRating
-        {
-            UserId = userId,
-            GroupVenueId = request.GroupVenueId,
-            QualityOptionId = request.QualityOptionId
-        };
-
-        await _dbSet.AddAsync(qualityRating, ct);
-        return qualityRating.QualityRatingId;
-    }
-
-    public async Task UpdateAsync(Guid qualityRatingId, UpdateQualityRatingRequest request, CancellationToken ct)
-    {
-        var qualityRating = await _dbSet.FindAsync([qualityRatingId], ct);
-        qualityRating?.QualityOptionId = request.QualityOptionId;
-    }
-
-    public async Task<QualityRatingResult?> GetDetailsByIdAsync(Guid qualityRatingId, CancellationToken ct)
+    public override async Task<RatingResult?> GetDetailsByIdAsync(Guid qualityRatingId, CancellationToken ct)
     {
         var qualityRating = await _dbSet
             .Include(q => q.GroupVenue)
@@ -41,19 +21,19 @@ public sealed class QualityRatingRepository(ScranHubDbContext dbContext) : EFRep
             return null;
         }
 
-        return new QualityRatingResult
+        return new RatingResult
         {
-            QualityRatingId = qualityRating.QualityRatingId,
+            RatingId = qualityRating.QualityRatingId,
             UserId = qualityRating.UserId,
             GroupVenueId = qualityRating.GroupVenueId,
             VenueName = qualityRating.GroupVenue!.VenueName,
             GroupId = qualityRating.GroupVenue.GroupId,
-            QualityOptionId = qualityRating.QualityOptionId,
+            OptionId = qualityRating.QualityOptionId,
             Label = qualityRating.QualityOption!.Label
         };
     }
 
-    public async Task<IEnumerable<QualityRatingResult>> GetDetailsByGroupVenueIdAsync(Guid groupVenueId, CancellationToken ct)
+    public override async Task<IEnumerable<RatingResult>> GetDetailsByGroupVenueIdAsync(Guid groupVenueId, CancellationToken ct)
     {
         var qualityRatings = await _dbSet
             .Include(q => q.GroupVenue)
@@ -65,19 +45,19 @@ public sealed class QualityRatingRepository(ScranHubDbContext dbContext) : EFRep
             return [];
         }
 
-        return qualityRatings.Select(qualityRating => new QualityRatingResult
+        return qualityRatings.Select(qualityRating => new RatingResult
         {
-            QualityRatingId = qualityRating.QualityRatingId,
+            RatingId = qualityRating.QualityRatingId,
             UserId = qualityRating.UserId,
             GroupVenueId = qualityRating.GroupVenueId,
             VenueName = qualityRating.GroupVenue!.VenueName,
             GroupId = qualityRating.GroupVenue.GroupId,
-            QualityOptionId = qualityRating.QualityOptionId,
+            OptionId = qualityRating.QualityOptionId,
             Label = qualityRating.QualityOption!.Label
         });
     }
 
-    public async Task<IEnumerable<QualityRatingResult>> GetUserDetailsForGroupAsync(Guid userId, Guid groupId, CancellationToken ct)
+    public override async Task<IEnumerable<RatingResult>> GetUserDetailsForGroupAsync(Guid userId, Guid groupId, CancellationToken ct)
     {
         var qualityRatings = await _dbSet
             .Include(q => q.GroupVenue)
@@ -89,24 +69,15 @@ public sealed class QualityRatingRepository(ScranHubDbContext dbContext) : EFRep
             return [];
         }
 
-        return qualityRatings.Select(qualityRating => new QualityRatingResult
+        return qualityRatings.Select(qualityRating => new RatingResult
         {
-            QualityRatingId = qualityRating.QualityRatingId,
+            RatingId = qualityRating.QualityRatingId,
             UserId = qualityRating.UserId,
             GroupVenueId = qualityRating.GroupVenueId,
             VenueName = qualityRating.GroupVenue!.VenueName,
             GroupId = qualityRating.GroupVenue.GroupId,
-            QualityOptionId = qualityRating.QualityOptionId,
+            OptionId = qualityRating.QualityOptionId,
             Label = qualityRating.QualityOption!.Label
         });
-    }
-
-    public async Task DeleteAsync(Guid qualityRatingId, CancellationToken ct)
-    {
-        var qualityRating = await _dbSet.FindAsync([qualityRatingId], ct);
-        if (qualityRating != null)
-        {
-            _dbSet.Remove(qualityRating);
-        }
     }
 }

@@ -1,16 +1,16 @@
-﻿using Utilities.Models.Requests.CostRatings;
-using Utilities.Models.Responses.CostRatings;
+﻿using Utilities.Models.Requests.Ratings;
 using Utilities.Models.Responses.Generic;
+using Utilities.Models.Responses.Ratings;
 
 namespace ServiceLayer.Abstractions;
 
 public interface ICostRatingService
 {
-    Task<AddCostRatingResponse> CreateCostRatingAsync(CreateCostRatingRequest request, CancellationToken ct);
-    Task<CommonResponse> UpdateCostRatingAsync(Guid costRatingId, UpdateCostRatingRequest request, CancellationToken ct);
+    Task<AddRatingResponse> CreateCostRatingAsync(CreateRatingRequest request, CancellationToken ct);
+    Task<CommonResponse> UpdateCostRatingAsync(Guid costRatingId, UpdateRatingRequest request, CancellationToken ct);
     Task<CommonResponse> DeleteCostRatingAsync(Guid costRatingId, CancellationToken ct);
-    Task<GetCostRatingResponse> GetCostRatingAsync(Guid costRatingId, CancellationToken ct);
-    Task<GetCostRatingsResponse> GetCostRatingsForGroupVenueAsync(Guid groupVenueId, CancellationToken ct);
-    Task<GetCostRatingsResponse> GetUserCostRatingsForGroupAsync(Guid groupId, CancellationToken ct);
-    Task<GetGroupCostRatingsResponse> GetCostRatingsForGroupAsync(Guid groupId, CancellationToken ct);
+    Task<GetRatingResponse> GetCostRatingAsync(Guid costRatingId, CancellationToken ct);
+    Task<GetRatingsResponse> GetCostRatingsForGroupVenueAsync(Guid groupVenueId, CancellationToken ct);
+    Task<GetRatingsResponse> GetUserCostRatingsForGroupAsync(Guid groupId, CancellationToken ct);
+    Task<GetGroupRatingsResponse> GetCostRatingsForGroupAsync(Guid groupId, CancellationToken ct);
 }
