@@ -4,6 +4,6 @@ public record CreateGroupVenueRequest
 {
     public required string VenueName { get; set; }
     public required Guid GroupId { get; set; }
-    public required Guid FoodTypeOptionId { get; set; }
-    public required Guid VenueTypeOptionId { get; set; }
+    public Guid? FoodTypeOptionId { get; set; } = null;
+    public Guid? VenueTypeOptionId { get; set; } = null;
 }

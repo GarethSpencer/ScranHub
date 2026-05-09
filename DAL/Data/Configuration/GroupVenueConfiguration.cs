@@ -18,11 +18,11 @@ public class GroupVenueConfiguration : IEntityTypeConfiguration<GroupVenue>
         builder.HasOne(gv => gv.FoodTypeOption)
             .WithMany(ft => ft.GroupVenues)
             .HasForeignKey(gv => gv.FoodTypeOptionId)
-            .OnDelete(DeleteBehavior.Restrict);
+            .OnDelete(DeleteBehavior.ClientSetNull);
 
         builder.HasOne(gv => gv.VenueTypeOption)
             .WithMany(vt => vt.GroupVenues)
             .HasForeignKey(gv => gv.VenueTypeOptionId)
-            .OnDelete(DeleteBehavior.Restrict);
+            .OnDelete(DeleteBehavior.ClientSetNull);
     }
 }

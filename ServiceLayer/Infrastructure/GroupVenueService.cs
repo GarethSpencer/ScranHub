@@ -162,7 +162,7 @@ public class GroupVenueService(ITokenData tokenData,
         }
 
         var validFoodTypes = await _foodTypeOptionRepository.GetForGroupIdAsync(request.GroupId, ct);
-        if (!validFoodTypes.Any(fto => fto.FoodTypeOptionId == request.FoodTypeOptionId))
+        if (request.FoodTypeOptionId != null && !validFoodTypes.Any(fto => fto.FoodTypeOptionId == request.FoodTypeOptionId))
         {
             _logger.LogWarning("Invalid food type ID {FoodTypeOptionId} provided for group {GroupId}.", request.FoodTypeOptionId, request.GroupId);
             return new AddGroupVenueResponse
@@ -173,7 +173,7 @@ public class GroupVenueService(ITokenData tokenData,
         }
 
         var validVenueTypes = await _venueTypeOptionRepository.GetForGroupIdAsync(request.GroupId, ct);
-        if (!validVenueTypes.Any(vto => vto.VenueTypeOptionId == request.VenueTypeOptionId))
+        if (request.VenueTypeOptionId != null && !validVenueTypes.Any(vto => vto.VenueTypeOptionId == request.VenueTypeOptionId))
         {
             _logger.LogWarning("Invalid venue type ID {VenueTypeOptionId} provided for group {GroupId}.", request.VenueTypeOptionId, request.GroupId);
             return new AddGroupVenueResponse
@@ -243,7 +243,7 @@ public class GroupVenueService(ITokenData tokenData,
         }
 
         var validFoodTypes = await _foodTypeOptionRepository.GetForGroupIdAsync(groupVenue.GroupId, ct);
-        if (!validFoodTypes.Any(fto => fto.FoodTypeOptionId == request.FoodTypeOptionId))
+        if (request.FoodTypeOptionId != null && !validFoodTypes.Any(fto => fto.FoodTypeOptionId == request.FoodTypeOptionId))
         {
             _logger.LogWarning("Invalid food type ID {FoodTypeOptionId} provided for group {GroupId}.", request.FoodTypeOptionId, groupVenue.GroupId);
             return new AddGroupVenueResponse
@@ -254,7 +254,7 @@ public class GroupVenueService(ITokenData tokenData,
         }
 
         var validVenueTypes = await _venueTypeOptionRepository.GetForGroupIdAsync(groupVenue.GroupId, ct);
-        if (!validVenueTypes.Any(vto => vto.VenueTypeOptionId == request.VenueTypeOptionId))
+        if (request.VenueTypeOptionId != null && !validVenueTypes.Any(vto => vto.VenueTypeOptionId == request.VenueTypeOptionId))
         {
             _logger.LogWarning("Invalid venue type ID {VenueTypeOptionId} provided for group {GroupId}.", request.VenueTypeOptionId, groupVenue.GroupId);
             return new AddGroupVenueResponse
