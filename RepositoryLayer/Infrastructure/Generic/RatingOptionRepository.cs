@@ -7,8 +7,8 @@ using Utilities.Models.Results.Generic;
 
 namespace RepositoryLayer.Infrastructure.Generic;
 
-public class RatingOptionRepository<TRatingOption>(ScranHubDbContext dbContext) : EFRepository<TRatingOption>(dbContext), IRatingOptionRepository<TRatingOption>
-    where TRatingOption : class, IRatingOption
+public class RatingOptionRepository<TRatingOption>(ScranHubDbContext dbContext) : EFRepository<TRatingOption>(dbContext), IRatingOptionRepository
+    where TRatingOption : class, IRatingOption, new()
 {
     public async Task<IEnumerable<RatingOptionResult>> GetForGroupIdAsync(Guid groupId, CancellationToken ct)
     {

@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using RepositoryLayer;
+using RepositoryLayer.Abstractions;
 using ServiceLayer.Abstractions;
 using ServiceLayer.Infrastructure;
 
@@ -15,9 +16,8 @@ public static class ServiceLayerServiceExtensions
         services.AddScoped<IGroupService, GroupService>();
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<IGroupVenueService, GroupVenueService>();
-        services.AddScoped<ICostRatingService, CostRatingService>();
         services.AddScoped<IQualityRatingService, QualityRatingService>();
-
+        services.AddScoped<ICostRatingService, CostRatingService>();
         return services;
     }
 }

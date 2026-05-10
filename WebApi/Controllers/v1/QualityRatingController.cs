@@ -20,7 +20,7 @@ public class QualityRatingController(IQualityRatingService qualityRatingService)
             return BadRequest("Request body is required.");
         }
 
-        var response = await _qualityRatingService.CreateQualityRatingAsync(request, ct);
+        var response = await _qualityRatingService.CreateRatingAsync(request, ct);
 
         return StatusCode((int)response.StatusCode, response);
     }
@@ -33,7 +33,7 @@ public class QualityRatingController(IQualityRatingService qualityRatingService)
             return BadRequest("Request body is required.");
         }
 
-        var response = await _qualityRatingService.UpdateQualityRatingAsync(qualityRatingId, request, ct);
+        var response = await _qualityRatingService.UpdateRatingAsync(qualityRatingId, request, ct);
 
         return StatusCode((int)response.StatusCode, response);
     }
@@ -41,7 +41,7 @@ public class QualityRatingController(IQualityRatingService qualityRatingService)
     [HttpDelete("{qualityRatingId}")]
     public async Task<IActionResult> DeleteQualityRating([FromRoute] Guid qualityRatingId, CancellationToken ct)
     {
-        var response = await _qualityRatingService.DeleteQualityRatingAsync(qualityRatingId, ct);
+        var response = await _qualityRatingService.DeleteRatingAsync(qualityRatingId, ct);
 
         return StatusCode((int)response.StatusCode, response);
     }
@@ -49,7 +49,7 @@ public class QualityRatingController(IQualityRatingService qualityRatingService)
     [HttpGet("{qualityRatingId}")]
     public async Task<IActionResult> GetQualityRating([FromRoute] Guid qualityRatingId, CancellationToken ct)
     {
-        var response = await _qualityRatingService.GetQualityRatingAsync(qualityRatingId, ct);
+        var response = await _qualityRatingService.GetRatingAsync(qualityRatingId, ct);
 
         return StatusCode((int)response.StatusCode, response);
     }
@@ -57,7 +57,7 @@ public class QualityRatingController(IQualityRatingService qualityRatingService)
     [HttpGet("groupvenue/{groupVenueId}")]
     public async Task<IActionResult> GetQualityRatingsForGroupVenue([FromRoute] Guid groupVenueId, CancellationToken ct)
     {
-        var response = await _qualityRatingService.GetQualityRatingsForGroupVenueAsync(groupVenueId, ct);
+        var response = await _qualityRatingService.GetRatingsForGroupVenueAsync(groupVenueId, ct);
 
         return StatusCode((int)response.StatusCode, response);
     }
@@ -65,7 +65,7 @@ public class QualityRatingController(IQualityRatingService qualityRatingService)
     [HttpGet("group/{groupId}/me")]
     public async Task<IActionResult> GetUserQualityRatingsForGroup([FromRoute] Guid groupId, CancellationToken ct)
     {
-        var response = await _qualityRatingService.GetUserQualityRatingsForGroupAsync(groupId, ct);
+        var response = await _qualityRatingService.GetUserRatingsForGroupAsync(groupId, ct);
 
         return StatusCode((int)response.StatusCode, response);
     }
@@ -73,7 +73,7 @@ public class QualityRatingController(IQualityRatingService qualityRatingService)
     [HttpGet("group/{groupId}")]
     public async Task<IActionResult> GetQualityRatingsForGroup([FromRoute] Guid groupId, CancellationToken ct)
     {
-        var response = await _qualityRatingService.GetQualityRatingsForGroupAsync(groupId, ct);
+        var response = await _qualityRatingService.GetRatingsForGroupAsync(groupId, ct);
 
         return StatusCode((int)response.StatusCode, response);
     }

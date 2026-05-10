@@ -3,4 +3,4 @@ using RepositoryLayer.Abstractions.Generic;
 
 namespace RepositoryLayer.Abstractions;
 
-public interface IQualityOptionRepository : IRatingOptionRepository<QualityOption> { }
+public interface IQualityOptionRepository : IRatingOptionRepository, IEFRepository<QualityOption> { }

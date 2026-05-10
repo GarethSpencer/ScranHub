@@ -8,8 +8,8 @@ public class CostOption : AuditableEntity, IRatingOption
 {
     public Guid CostOptionId { get; set; }
     public Guid? GroupId { get; set; }
-    public required string Label { get; set; }
-    public required int DisplayOrder { get; set; }
+    public string Label { get; set; } = string.Empty;
+    public int DisplayOrder { get; set; }
 
     [NotMapped]
     public Guid OptionId

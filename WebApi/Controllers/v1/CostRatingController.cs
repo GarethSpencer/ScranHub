@@ -20,7 +20,7 @@ public class CostRatingController(ICostRatingService costRatingService) : Contro
             return BadRequest("Request body is required.");
         }
 
-        var response = await _costRatingService.CreateCostRatingAsync(request, ct);
+        var response = await _costRatingService.CreateRatingAsync(request, ct);
 
         return StatusCode((int)response.StatusCode, response);
     }
@@ -33,7 +33,7 @@ public class CostRatingController(ICostRatingService costRatingService) : Contro
             return BadRequest("Request body is required.");
         }
 
-        var response = await _costRatingService.UpdateCostRatingAsync(costRatingId, request, ct);
+        var response = await _costRatingService.UpdateRatingAsync(costRatingId, request, ct);
 
         return StatusCode((int)response.StatusCode, response);
     }
@@ -41,7 +41,7 @@ public class CostRatingController(ICostRatingService costRatingService) : Contro
     [HttpDelete("{costRatingId}")]
     public async Task<IActionResult> DeleteCostRating([FromRoute] Guid costRatingId, CancellationToken ct)
     {
-        var response = await _costRatingService.DeleteCostRatingAsync(costRatingId, ct);
+        var response = await _costRatingService.DeleteRatingAsync(costRatingId, ct);
 
         return StatusCode((int)response.StatusCode, response);
     }
@@ -49,7 +49,7 @@ public class CostRatingController(ICostRatingService costRatingService) : Contro
     [HttpGet("{costRatingId}")]
     public async Task<IActionResult> GetCostRating([FromRoute] Guid costRatingId, CancellationToken ct)
     {
-        var response = await _costRatingService.GetCostRatingAsync(costRatingId, ct);
+        var response = await _costRatingService.GetRatingAsync(costRatingId, ct);
 
         return StatusCode((int)response.StatusCode, response);
     }
@@ -57,7 +57,7 @@ public class CostRatingController(ICostRatingService costRatingService) : Contro
     [HttpGet("groupvenue/{groupVenueId}")]
     public async Task<IActionResult> GetCostRatingsForGroupVenue([FromRoute] Guid groupVenueId, CancellationToken ct)
     {
-        var response = await _costRatingService.GetCostRatingsForGroupVenueAsync(groupVenueId, ct);
+        var response = await _costRatingService.GetRatingsForGroupVenueAsync(groupVenueId, ct);
 
         return StatusCode((int)response.StatusCode, response);
     }
@@ -65,7 +65,7 @@ public class CostRatingController(ICostRatingService costRatingService) : Contro
     [HttpGet("group/{groupId}/me")]
     public async Task<IActionResult> GetUserCostRatingsForGroup([FromRoute] Guid groupId, CancellationToken ct)
     {
-        var response = await _costRatingService.GetUserCostRatingsForGroupAsync(groupId, ct);
+        var response = await _costRatingService.GetUserRatingsForGroupAsync(groupId, ct);
 
         return StatusCode((int)response.StatusCode, response);
     }
@@ -73,7 +73,7 @@ public class CostRatingController(ICostRatingService costRatingService) : Contro
     [HttpGet("group/{groupId}")]
     public async Task<IActionResult> GetCostRatingsForGroup([FromRoute] Guid groupId, CancellationToken ct)
     {
-        var response = await _costRatingService.GetCostRatingsForGroupAsync(groupId, ct);
+        var response = await _costRatingService.GetRatingsForGroupAsync(groupId, ct);
 
         return StatusCode((int)response.StatusCode, response);
     }

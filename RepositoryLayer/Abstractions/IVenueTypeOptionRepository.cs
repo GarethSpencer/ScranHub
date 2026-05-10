@@ -3,4 +3,4 @@ using RepositoryLayer.Abstractions.Generic;
 
 namespace RepositoryLayer.Abstractions;
 
-public interface IVenueTypeOptionRepository : ITypeOptionRepository<VenueTypeOption> { }
+public interface IVenueTypeOptionRepository : ITypeOptionRepository, IEFRepository<VenueTypeOption> { }

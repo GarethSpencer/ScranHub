@@ -3,4 +3,4 @@ using RepositoryLayer.Abstractions.Generic;
 
 namespace RepositoryLayer.Abstractions;
 
-public interface IFoodTypeOptionRepository : ITypeOptionRepository<FoodTypeOption> { }
+public interface IFoodTypeOptionRepository : ITypeOptionRepository, IEFRepository<FoodTypeOption> { }

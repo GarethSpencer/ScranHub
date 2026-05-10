@@ -7,7 +7,8 @@ using Utilities.Models.Results.Generic;
 
 namespace RepositoryLayer.Infrastructure;
 
-public sealed class QualityRatingRepository(ScranHubDbContext dbContext) : RatingRepository<QualityRating>(dbContext), IQualityRatingRepository
+public sealed class QualityRatingRepository(ScranHubDbContext dbContext)
+    : RatingRepository<QualityRating>(dbContext), IQualityRatingRepository
 {
     public override async Task<RatingResult?> GetDetailsByIdAsync(Guid qualityRatingId, CancellationToken ct)
     {
@@ -21,16 +22,7 @@ public sealed class QualityRatingRepository(ScranHubDbContext dbContext) : Ratin
             return null;
         }
 
-        return new RatingResult
-        {
-            RatingId = qualityRating.QualityRatingId,
-            UserId = qualityRating.UserId,
-            GroupVenueId = qualityRating.GroupVenueId,
-            VenueName = qualityRating.GroupVenue!.VenueName,
-            GroupId = qualityRating.GroupVenue.GroupId,
-            OptionId = qualityRating.QualityOptionId,
-            Label = qualityRating.QualityOption!.Label
-        };
+        return MapToResult(qualityRating);
     }
 
     public override async Task<IEnumerable<RatingResult>> GetDetailsByGroupVenueIdAsync(Guid groupVenueId, CancellationToken ct)
@@ -40,21 +32,12 @@ public sealed class QualityRatingRepository(ScranHubDbContext dbContext) : Ratin
             .Include(q => q.QualityOption)
             .Where(q => q.GroupVenueId == groupVenueId).ToListAsync(ct);
 
-        if (qualityRatings == null || qualityRatings.Count == 0)
+        if (qualityRatings.Count == 0)
         {
             return [];
         }
 
-        return qualityRatings.Select(qualityRating => new RatingResult
-        {
-            RatingId = qualityRating.QualityRatingId,
-            UserId = qualityRating.UserId,
-            GroupVenueId = qualityRating.GroupVenueId,
-            VenueName = qualityRating.GroupVenue!.VenueName,
-            GroupId = qualityRating.GroupVenue.GroupId,
-            OptionId = qualityRating.QualityOptionId,
-            Label = qualityRating.QualityOption!.Label
-        });
+        return qualityRatings.Select(MapToResult);
     }
 
     public override async Task<IEnumerable<RatingResult>> GetUserDetailsForGroupAsync(Guid userId, Guid groupId, CancellationToken ct)
@@ -64,20 +47,22 @@ public sealed class QualityRatingRepository(ScranHubDbContext dbContext) : Ratin
             .Include(q => q.QualityOption)
             .Where(q => q.UserId == userId && q.GroupVenue!.GroupId == groupId).ToListAsync(ct);
 
-        if (qualityRatings == null || qualityRatings.Count == 0)
+        if (qualityRatings.Count == 0)
         {
             return [];
         }
 
-        return qualityRatings.Select(qualityRating => new RatingResult
-        {
-            RatingId = qualityRating.QualityRatingId,
-            UserId = qualityRating.UserId,
-            GroupVenueId = qualityRating.GroupVenueId,
-            VenueName = qualityRating.GroupVenue!.VenueName,
-            GroupId = qualityRating.GroupVenue.GroupId,
-            OptionId = qualityRating.QualityOptionId,
-            Label = qualityRating.QualityOption!.Label
-        });
+        return qualityRatings.Select(MapToResult);
     }
+
+    private static RatingResult MapToResult(QualityRating q) => new()
+    {
+        RatingId = q.QualityRatingId,
+        UserId = q.UserId,
+        GroupVenueId = q.GroupVenueId,
+        VenueName = q.GroupVenue!.VenueName,
+        GroupId = q.GroupVenue.GroupId,
+        OptionId = q.QualityOptionId,
+        Label = q.QualityOption!.Label
+    };
 }

@@ -7,9 +7,9 @@ using Utilities.Models.Results.Generic;
 
 namespace RepositoryLayer.Infrastructure;
 
-public sealed class CostRatingRepository(ScranHubDbContext dbContext) : RatingRepository<CostRating>(dbContext), ICostRatingRepository
+public sealed class CostRatingRepository(ScranHubDbContext dbContext)
+    : RatingRepository<CostRating>(dbContext), ICostRatingRepository
 {
-
     public override async Task<RatingResult?> GetDetailsByIdAsync(Guid costRatingId, CancellationToken ct)
     {
         var costRating = await _dbSet
@@ -22,16 +22,7 @@ public sealed class CostRatingRepository(ScranHubDbContext dbContext) : RatingRe
             return null;
         }
 
-        return new RatingResult
-        {
-            RatingId = costRating.CostRatingId,
-            UserId = costRating.UserId,
-            GroupVenueId = costRating.GroupVenueId,
-            VenueName = costRating.GroupVenue!.VenueName,
-            GroupId = costRating.GroupVenue.GroupId,
-            OptionId = costRating.CostOptionId,
-            Label = costRating.CostOption!.Label
-        };
+        return MapToResult(costRating);
     }
 
     public override async Task<IEnumerable<RatingResult>> GetDetailsByGroupVenueIdAsync(Guid groupVenueId, CancellationToken ct)
@@ -41,21 +32,12 @@ public sealed class CostRatingRepository(ScranHubDbContext dbContext) : RatingRe
             .Include(c => c.CostOption)
             .Where(c => c.GroupVenueId == groupVenueId).ToListAsync(ct);
 
-        if (costRatings == null || costRatings.Count == 0)
+        if (costRatings.Count == 0)
         {
             return [];
         }
 
-        return costRatings.Select(costRating => new RatingResult
-        {
-            RatingId = costRating.CostRatingId,
-            UserId = costRating.UserId,
-            GroupVenueId = costRating.GroupVenueId,
-            VenueName = costRating.GroupVenue!.VenueName,
-            GroupId = costRating.GroupVenue.GroupId,
-            OptionId = costRating.CostOptionId,
-            Label = costRating.CostOption!.Label
-        });
+        return costRatings.Select(MapToResult);
     }
 
     public override async Task<IEnumerable<RatingResult>> GetUserDetailsForGroupAsync(Guid userId, Guid groupId, CancellationToken ct)
@@ -65,20 +47,22 @@ public sealed class CostRatingRepository(ScranHubDbContext dbContext) : RatingRe
             .Include(c => c.CostOption)
             .Where(c => c.UserId == userId && c.GroupVenue!.GroupId == groupId).ToListAsync(ct);
 
-        if (costRatings == null || costRatings.Count == 0)
+        if (costRatings.Count == 0)
         {
             return [];
         }
 
-        return costRatings.Select(costRating => new RatingResult
-        {
-            RatingId = costRating.CostRatingId,
-            UserId = costRating.UserId,
-            GroupVenueId = costRating.GroupVenueId,
-            VenueName = costRating.GroupVenue!.VenueName,
-            GroupId = costRating.GroupVenue.GroupId,
-            OptionId = costRating.CostOptionId,
-            Label = costRating.CostOption!.Label
-        });
+        return costRatings.Select(MapToResult);
     }
+
+    private static RatingResult MapToResult(CostRating c) => new()
+    {
+        RatingId = c.CostRatingId,
+        UserId = c.UserId,
+        GroupVenueId = c.GroupVenueId,
+        VenueName = c.GroupVenue!.VenueName,
+        GroupId = c.GroupVenue.GroupId,
+        OptionId = c.CostOptionId,
+        Label = c.CostOption!.Label
+    };
 }

@@ -3,4 +3,4 @@ using RepositoryLayer.Abstractions.Generic;
 
 namespace RepositoryLayer.Abstractions;
 
-public interface ICostRatingRepository : IRatingRepository<CostRating> { }
+public interface ICostRatingRepository : IRatingRepository, IEFRepository<CostRating> { }
