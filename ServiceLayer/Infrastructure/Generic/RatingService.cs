@@ -8,7 +8,7 @@ using Utilities.Models.Responses.Generic;
 using Utilities.Models.Responses.Ratings;
 using Utilities.Token;
 
-namespace ServiceLayer.Infrastructure;
+namespace ServiceLayer.Infrastructure.Generic;
 
 public abstract class RatingService<TRatingRepository, TRatingOptionRepository>(
     TRatingRepository ratingRepository,

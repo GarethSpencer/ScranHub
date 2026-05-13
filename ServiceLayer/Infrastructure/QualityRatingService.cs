@@ -2,6 +2,7 @@
 using RepositoryLayer.Abstractions;
 using RepositoryLayer.Abstractions.Generic;
 using ServiceLayer.Abstractions;
+using ServiceLayer.Infrastructure.Generic;
 using System.Net;
 using Utilities.Models.Responses.Ratings;
 using Utilities.Token;

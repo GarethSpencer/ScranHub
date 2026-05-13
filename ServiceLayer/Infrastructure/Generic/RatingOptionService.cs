@@ -1,24 +1,31 @@
 ﻿using Microsoft.Extensions.Logging;
 using RepositoryLayer.Abstractions;
 using RepositoryLayer.Abstractions.Generic;
-using ServiceLayer.Abstractions;
+using ServiceLayer.Abstractions.Generic;
 using System.Net;
 using Utilities.Models.Requests.Options;
 using Utilities.Models.Responses.Generic;
 using Utilities.Models.Responses.Options;
 using Utilities.Token;
 
-namespace ServiceLayer.Infrastructure;
+namespace ServiceLayer.Infrastructure.Generic;
 
-public class OptionService(ITokenData tokenData,
-    ILogger<OptionService> logger,
+public abstract class RatingOptionService<TRatingRepository, TRatingOptionRepository>(ITokenData tokenData,
+    TRatingRepository ratingRepository,
+    TRatingOptionRepository ratingOptionRepository,
+    ILogger logger,
     IUserGroupRepository userGroupRepository,
-    IUnitOfWork unitOfWork) : IOptionService
+    IUnitOfWork unitOfWork)
+    : IRatingOptionService
+    where TRatingRepository : IRatingRepository
+    where TRatingOptionRepository : IRatingOptionRepository
 {
-    private readonly ITokenData _tokenData = tokenData;
-    private readonly ILogger<OptionService> _logger = logger;
-    private readonly IUserGroupRepository _userGroupRepository;
-    private readonly IUnitOfWork _unitOfWork = unitOfWork;
+    protected readonly TRatingRepository _ratingRepository = ratingRepository;
+    protected readonly TRatingOptionRepository _ratingOptionRepository = ratingOptionRepository;
+    protected readonly ITokenData _tokenData = tokenData;
+    protected readonly ILogger _logger = logger;
+    protected readonly IUserGroupRepository _userGroupRepository = userGroupRepository;
+    protected readonly IUnitOfWork _unitOfWork = unitOfWork;
 
     public async Task<SetOptionsResponse> SetGroupSpecificOptions(SetOptionsRequest request, CancellationToken ct)
     {

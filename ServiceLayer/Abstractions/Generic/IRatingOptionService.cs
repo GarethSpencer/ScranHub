@@ -2,9 +2,9 @@
 using Utilities.Models.Responses.Generic;
 using Utilities.Models.Responses.Options;
 
-namespace ServiceLayer.Abstractions;
+namespace ServiceLayer.Abstractions.Generic;
 
-public interface IOptionService
+public interface IRatingOptionService
 {
     Task<SetOptionsResponse> SetGroupSpecificOptions(SetOptionsRequest request, CancellationToken ct);
     Task<SetOptionResponse> AddOption(Guid groupId, SetOptionRequest request, CancellationToken ct);
