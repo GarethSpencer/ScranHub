@@ -31,6 +31,18 @@ public class RatingOptionRepository<TRatingOption>(ScranHubDbContext dbContext) 
         return options;
     }
 
+    public async Task RemoveCustomRatingsForGroupAsync(Guid groupId, CancellationToken ct)
+    {
+        var optionsToRemove = await _dbSet
+            .Where(x => x.GroupId == groupId)
+            .ToListAsync(ct);
+
+        if (optionsToRemove.Count > 0)
+        {
+            _dbSet.RemoveRange(optionsToRemove);
+        }
+    }
+
     public async Task<IEnumerable<RatingOptionResult>> GetDefaultsAsync(CancellationToken ct)
     {
         return await _dbSet

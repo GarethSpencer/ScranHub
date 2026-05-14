@@ -8,6 +8,10 @@ public class SetOptionsRequestValidator : AbstractValidator<SetOptionsRequest>
 {
     public SetOptionsRequestValidator()
     {
+        RuleFor(x => x.Labels)
+            .Must(labels => labels.Distinct(StringComparer.OrdinalIgnoreCase).Count() == labels.Length)
+            .WithMessage("Labels must be unique.");
+
         RuleForEach(x => x.Labels)
             .NotEmpty().WithMessage("Label is required.")
             .Must(name => name == name.Trim()).WithMessage("Label cannot have leading or trailing spaces.")

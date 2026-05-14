@@ -35,4 +35,12 @@ public class QualityOptionController(
 
         return StatusCode((int)response.StatusCode, response);
     }
+
+    [HttpDelete("{groupId}")]
+    public async Task<IActionResult> RemoveCustomOptions([FromRoute] Guid groupId, CancellationToken ct)
+    {
+        var response = await _qualityOptionService.RemoveGroupCustomOptionsAsync(groupId, ct);
+
+        return StatusCode((int)response.StatusCode, response);
+    }
 }

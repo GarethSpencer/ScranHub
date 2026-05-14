@@ -12,4 +12,6 @@ public interface IRatingOptionRepository
     Task<bool> IsGroupUsingDefaultValues(Guid groupId, CancellationToken ct);
 
     Task<IEnumerable<Guid>> AddRangeAsync(SetOptionsRequest request, CancellationToken ct);
+
+    Task RemoveCustomRatingsForGroupAsync(Guid groupId, CancellationToken ct);
 }
