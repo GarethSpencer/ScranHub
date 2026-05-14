@@ -42,9 +42,10 @@ public abstract class RatingRepository<TRating>(ScranHubDbContext dbContext) : E
     public async Task<bool> ExistsAsync(Guid groupVenueId, Guid userId, CancellationToken ct)
     {
         var rating = await _dbSet.FirstOrDefaultAsync(r => r.GroupVenueId == groupVenueId && r.UserId == userId, ct);
-
         return rating != null;
     }
+
+    public abstract Task<bool> IsOptionBeingUsedAsync(Guid optionId, CancellationToken ct);
 
     public abstract Task RemapRatingsMaintainDisplayOrderAsync(Guid groupId, IEnumerable<Guid> optionIds, CancellationToken ct);
 

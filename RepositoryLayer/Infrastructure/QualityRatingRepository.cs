@@ -107,6 +107,12 @@ public sealed class QualityRatingRepository(ScranHubDbContext dbContext)
         }
     }
 
+    public override async Task<bool> IsOptionBeingUsedAsync(Guid optionId, CancellationToken ct)
+    {
+        var rating = await _dbSet.FirstOrDefaultAsync(r => r.QualityOptionId == optionId, ct);
+        return rating != null;
+    }
+
     private static RatingResult MapToResult(QualityRating q) => new()
     {
         RatingId = q.QualityRatingId,

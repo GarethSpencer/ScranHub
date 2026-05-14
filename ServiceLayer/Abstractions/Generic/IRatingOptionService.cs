@@ -8,8 +8,8 @@ public interface IRatingOptionService
 {
     Task<SetOptionsResponse> SetGroupCustomOptionsAsync(SetOptionsRequest request, CancellationToken ct);
     Task<SetOptionResponse> AddOptionAsync(SetOptionRequest request, CancellationToken ct);
-    Task<CommonResponse> UpdateOptionAsync(Guid optionId, SetOptionRequest request, CancellationToken ct);
-    Task<SetOptionResponse> DeleteOptionAsync(Guid optionId, CancellationToken ct);
+    Task<CommonResponse> UpdateOptionAsync(Guid optionId, UpdateOptionRequest request, CancellationToken ct);
+    Task<CommonResponse> DeleteOptionAsync(Guid optionId, CancellationToken ct);
     Task<CommonResponse> RemoveGroupCustomOptionsAsync(Guid groupId, CancellationToken ct);
     Task<CommonResponse> ReorderOptionsAsync(OrderOptionsRequest request, CancellationToken ct);
 }

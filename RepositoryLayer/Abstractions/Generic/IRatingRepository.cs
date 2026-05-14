@@ -24,4 +24,6 @@ public interface IRatingRepository
     Task RemapRatingsMaintainDisplayOrderAsync(Guid groupId, IEnumerable<Guid> optionIds, CancellationToken ct);
 
     Task RemapRatingsSquashDisplayOrderAsync(Guid groupId, IEnumerable<Guid> optionIds, CancellationToken ct);
+
+    Task<bool> IsOptionBeingUsedAsync(Guid optionId, CancellationToken ct);
 }

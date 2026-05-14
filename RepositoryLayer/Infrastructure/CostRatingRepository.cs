@@ -107,6 +107,12 @@ public sealed class CostRatingRepository(ScranHubDbContext dbContext)
         }
     }
 
+    public override async Task<bool> IsOptionBeingUsedAsync(Guid optionId, CancellationToken ct)
+    {
+        var rating = await _dbSet.FirstOrDefaultAsync(r => r.CostOptionId == optionId, ct);
+        return rating != null;
+    }
+
     private static RatingResult MapToResult(CostRating c) => new()
     {
         RatingId = c.CostRatingId,

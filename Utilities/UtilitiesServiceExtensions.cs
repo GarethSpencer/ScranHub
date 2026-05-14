@@ -41,5 +41,6 @@ public static class UtilitiesServiceExtensions
         services.AddScoped<IValidator<SearchGroupVenueRequest>, SearchGroupVenueRequestValidator>();
         services.AddScoped<IValidator<SetOptionsRequest>, SetOptionsRequestValidator>();
         services.AddScoped<IValidator<SetOptionRequest>, SetOptionRequestValidator>();
+        services.AddScoped<IValidator<UpdateOptionRequest>, UpdateOptionRequestValidator>();
     }
 }

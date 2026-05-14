@@ -8,7 +8,7 @@ using Utilities.Models.Results.Generic;
 
 namespace RepositoryLayer.Infrastructure.Generic;
 
-public class RatingOptionRepository<TRatingOption>(ScranHubDbContext dbContext) : EFRepository<TRatingOption>(dbContext), IRatingOptionRepository
+public abstract class RatingOptionRepository<TRatingOption>(ScranHubDbContext dbContext) : EFRepository<TRatingOption>(dbContext), IRatingOptionRepository
     where TRatingOption : class, IRatingOption, new()
 {
     public async Task<IEnumerable<RatingOptionResult>> GetForGroupIdAsync(Guid groupId, CancellationToken ct)
@@ -81,11 +81,11 @@ public class RatingOptionRepository<TRatingOption>(ScranHubDbContext dbContext) 
 
     public async Task<Guid> AddAsync(SetOptionRequest request, CancellationToken ct)
     {
-        var maxOptionDisplayOrder = _dbSet.Where(x => x.GroupId == request.GroupId).OrderByDescending(x => x.DisplayOrder).First();
+        var maxOptionDisplayOrder = await _dbSet.Where(x => x.GroupId == request.GroupId).OrderByDescending(x => x.DisplayOrder).FirstOrDefaultAsync(ct);
         var optionToAdd = new TRatingOption
         {
             GroupId = request.GroupId,
-            DisplayOrder = maxOptionDisplayOrder.DisplayOrder + 1,
+            DisplayOrder = maxOptionDisplayOrder!.DisplayOrder + 1,
             Label = request.Label
         };
 
@@ -93,7 +93,15 @@ public class RatingOptionRepository<TRatingOption>(ScranHubDbContext dbContext) 
         return optionToAdd.OptionId;
     }
 
-    private static Expression<Func<TRatingOption, RatingOptionResult>> ProjectToResult() =>
+    public abstract Task CondenseDisplayOrdersAsync(Guid groupId, Guid deletedOptionId, CancellationToken ct);
+
+    public abstract Task<RatingOptionResult?> GetByIdAsync(Guid id, CancellationToken ct);
+
+    public abstract Task UpdateAsync(Guid optionId, string label, CancellationToken ct);
+
+    public abstract Task DeleteAsync(Guid optionId, CancellationToken ct);
+
+    protected static Expression<Func<TRatingOption, RatingOptionResult>> ProjectToResult() =>
     x => new RatingOptionResult
     {
         OptionId = x.OptionId,
