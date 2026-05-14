@@ -82,7 +82,7 @@ public sealed class QualityRatingRepository(ScranHubDbContext dbContext)
 
         foreach (var rating in ratingsToUpdate)
         {
-            rating.QualityRatingId = optionIds.Skip(rating.QualityOption!.DisplayOrder - 1).First();
+            rating.QualityOptionId = optionIds.Skip(rating.QualityOption!.DisplayOrder - 1).First();
         }
     }
 
@@ -103,7 +103,7 @@ public sealed class QualityRatingRepository(ScranHubDbContext dbContext)
                 displayOrderToMap++;
             }
             lastDisplayOrder = rating.QualityOption.DisplayOrder;
-            rating.QualityRatingId = optionIds.Skip(displayOrderToMap - 1).First();
+            rating.QualityOptionId = optionIds.Skip(displayOrderToMap - 1).First();
         }
     }
 

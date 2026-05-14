@@ -82,7 +82,7 @@ public sealed class CostRatingRepository(ScranHubDbContext dbContext)
 
         foreach (var rating in ratingsToUpdate)
         {
-            rating.CostRatingId = optionIds.Skip(rating.CostOption!.DisplayOrder - 1).First();
+            rating.CostOptionId = optionIds.Skip(rating.CostOption!.DisplayOrder - 1).First();
         }
     }
 
@@ -103,7 +103,7 @@ public sealed class CostRatingRepository(ScranHubDbContext dbContext)
                 displayOrderToMap++;
             }
             lastDisplayOrder = rating.CostOption.DisplayOrder;
-            rating.CostRatingId = optionIds.Skip(displayOrderToMap - 1).First();
+            rating.CostOptionId = optionIds.Skip(displayOrderToMap - 1).First();
         }
     }
 
