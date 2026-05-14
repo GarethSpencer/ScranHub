@@ -12,7 +12,8 @@ public class CostOptionService(ITokenData tokenData,
     ICostOptionRepository costOptionRepository,
     ILogger<CostOptionService> logger,
     IUserGroupRepository userGroupRepository,
+    IGroupRepository groupRepository,
     IUnitOfWork unitOfWork) : RatingOptionService<ICostRatingRepository, ICostOptionRepository>
-    (tokenData, costRatingRepository, costOptionRepository, logger, userGroupRepository, unitOfWork),
+    (tokenData, costRatingRepository, costOptionRepository, logger, userGroupRepository, groupRepository, unitOfWork),
     ICostOptionService
 { }

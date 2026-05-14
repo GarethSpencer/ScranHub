@@ -12,7 +12,8 @@ public class QualityOptionService(ITokenData tokenData,
     IQualityOptionRepository qualityOptionRepository,
     ILogger<QualityOptionService> logger,
     IUserGroupRepository userGroupRepository,
+    IGroupRepository groupRepository,
     IUnitOfWork unitOfWork) : RatingOptionService<IQualityRatingRepository, IQualityOptionRepository>
-    (tokenData, qualityRatingRepository, qualityOptionRepository, logger, userGroupRepository, unitOfWork),
+    (tokenData, qualityRatingRepository, qualityOptionRepository, logger, userGroupRepository, groupRepository, unitOfWork),
     IQualityOptionService
 { }

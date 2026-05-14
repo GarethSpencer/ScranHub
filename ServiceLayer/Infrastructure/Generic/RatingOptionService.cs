@@ -15,6 +15,7 @@ public abstract class RatingOptionService<TRatingRepository, TRatingOptionReposi
     TRatingOptionRepository ratingOptionRepository,
     ILogger logger,
     IUserGroupRepository userGroupRepository,
+    IGroupRepository groupRepository,
     IUnitOfWork unitOfWork)
     : IRatingOptionService
     where TRatingRepository : IRatingRepository
@@ -25,13 +26,14 @@ public abstract class RatingOptionService<TRatingRepository, TRatingOptionReposi
     protected readonly ITokenData _tokenData = tokenData;
     protected readonly ILogger _logger = logger;
     protected readonly IUserGroupRepository _userGroupRepository = userGroupRepository;
+    protected readonly IGroupRepository _groupRepository = groupRepository;
     protected readonly IUnitOfWork _unitOfWork = unitOfWork;
 
-    public async Task<SetOptionsResponse> SetGroupSpecificOptions(SetOptionsRequest request, CancellationToken ct)
+    public async Task<SetOptionsResponse> SetGroupCustomOptions(SetOptionsRequest request, CancellationToken ct)
     {
         if (!_tokenData.UserId.HasValue)
         {
-            _logger.LogWarning("SetGroupSpecificOptions called with no authenticated user.");
+            _logger.LogWarning("SetGroupCustomOptions called with no authenticated user.");
             return new SetOptionsResponse
             {
                 StatusCode = HttpStatusCode.Unauthorized,
@@ -44,12 +46,73 @@ public abstract class RatingOptionService<TRatingRepository, TRatingOptionReposi
 
         if (!isUserInGroup)
         {
-            _logger.LogWarning("SetGroupSpecificOptions called by user {UserId} who is not in group {GroupId}.", userId, request.GroupId);
+            _logger.LogWarning("SetGroupCustomOptions called by user {UserId} who is not in group {GroupId}.", userId, request.GroupId);
             return new SetOptionsResponse
             {
                 StatusCode = HttpStatusCode.Forbidden,
                 Message = "You do not have permission to set options for this group."
             };
+        }
+
+        var group = await _groupRepository.GetDetailsByIdAsync(request.GroupId, ct);
+        if (group?.Active != true)
+        {
+            _logger.LogWarning("SetGroupCustomOptions called for inactive or non-existent group {GroupId} by user {UserId}.", request.GroupId, userId);
+            return new SetOptionsResponse
+            {
+                StatusCode = HttpStatusCode.BadRequest,
+                Message = "The group does not exist or is not active."
+            };
+        }
+
+        var usingDefaults = await _ratingOptionRepository.IsGroupUsingDefaultValues(request.GroupId, ct);
+        if (!usingDefaults)
+        {
+            _logger.LogWarning("SetGroupCustomOptions called for group {GroupId} by user {UserId} when group already has custom options.", request.GroupId, userId);
+            return new SetOptionsResponse
+            {
+                StatusCode = HttpStatusCode.BadRequest,
+                Message = "The group is already using custom options."
+            };
+        }
+
+        var ratingOptionsInUse = await _ratingRepository.GetDistinctRatingsGivenForGroupAsync(request.GroupId, ct);
+        if (ratingOptionsInUse.Count() > request.Labels.Length)
+        {
+            _logger.LogWarning("SetGroupCustomOptions called for group {GroupId} by user {UserId} without enough labels.", request.GroupId, userId);
+            return new SetOptionsResponse
+            {
+                StatusCode = HttpStatusCode.BadRequest,
+                Message = $"You need to provide at least {ratingOptionsInUse.Count()} labels to map the current options."
+            };
+        }
+
+        var defaults = await _ratingOptionRepository.GetDefaultsAsync(ct);
+        var squashNeeded = false;
+
+        var optionIds = await _ratingOptionRepository.AddRangeAsync(request, ct);
+
+        if (defaults.Count() == request.Labels.Length)
+        {
+            // We have as many default options as new options, so we can map cleanly
+            await _ratingRepository.RemapRatingsMaintainDisplayOrderAsync(request.GroupId, optionIds, ct);
+        }
+        else if (ratingOptionsInUse.Count() == request.Labels.Length)
+        {
+            // We have as many default ratings being used as new ratings so we can map if we don't leave gaps
+            await _ratingRepository.RemapRatingsSquashDisplayOrderAsync(request.GroupId, optionIds, ct);
+            squashNeeded = true;
+        }
+        else if (ratingOptionsInUse.OrderByDescending(x => x.DisplayOrder).First().DisplayOrder <= request.Labels.Length)
+        {
+            // The current highest display order is less than or equal to the number of new options, so we can leave gaps
+            await _ratingRepository.RemapRatingsMaintainDisplayOrderAsync(request.GroupId, optionIds, ct);
+        }
+        else
+        {
+            // The current highest display order is greater than the number of new options, but we can make them fit if we squash the order
+            await _ratingRepository.RemapRatingsSquashDisplayOrderAsync(request.GroupId, optionIds, ct);
+            squashNeeded = true;
         }
 
         await _unitOfWork.SaveChangesAsync(ct);
@@ -58,8 +121,8 @@ public abstract class RatingOptionService<TRatingRepository, TRatingOptionReposi
         return new SetOptionsResponse
         {
             StatusCode = HttpStatusCode.Created,
-            Message = $"Quality rating created successfully.",
-            OptionsIds = []
+            Message = "Custom ratings were created and mapped successfully" + (squashNeeded ? ", but existing ratings were squashed." : "."),
+            OptionsIds = optionIds
         };
     }
 
@@ -172,11 +235,11 @@ public abstract class RatingOptionService<TRatingRepository, TRatingOptionReposi
         };
     }
 
-    public async Task<CommonResponse> RemoveGroupSpecificOptions(Guid groupId, CancellationToken ct)
+    public async Task<CommonResponse> RemoveGroupCustomOptions(Guid groupId, CancellationToken ct)
     {
         if (!_tokenData.UserId.HasValue)
         {
-            _logger.LogWarning("RemoveGroupSpecificOptions called with no authenticated user.");
+            _logger.LogWarning("RemoveGroupCustomOptions called with no authenticated user.");
             return new CommonResponse
             {
                 StatusCode = HttpStatusCode.Unauthorized,
@@ -189,7 +252,7 @@ public abstract class RatingOptionService<TRatingRepository, TRatingOptionReposi
 
         if (!isUserInGroup)
         {
-            _logger.LogWarning("RemoveGroupSpecificOptions called by user {UserId} who is not in group {GroupId}.", userId, groupId);
+            _logger.LogWarning("RemoveGroupCustomOptions called by user {UserId} who is not in group {GroupId}.", userId, groupId);
             return new CommonResponse
             {
                 StatusCode = HttpStatusCode.Forbidden,

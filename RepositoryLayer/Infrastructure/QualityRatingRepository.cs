@@ -55,6 +55,58 @@ public sealed class QualityRatingRepository(ScranHubDbContext dbContext)
         return qualityRatings.Select(MapToResult);
     }
 
+    public override async Task<IEnumerable<RatingOptionResult>> GetDistinctRatingsGivenForGroupAsync(Guid groupId, CancellationToken ct)
+    {
+        var ratings = await _dbSet
+            .Include(q => q.GroupVenue)
+            .Include(q => q.QualityOption)
+            .Where(q => q.GroupVenue!.GroupId == groupId)
+            .ToListAsync(ct);
+
+        return [.. ratings.GroupBy(q => q.QualityOptionId)
+            .Select(x => new RatingOptionResult
+            {
+                OptionId = x.Key,
+                Label = x.First().QualityOption!.Label,
+                GroupId = groupId,
+                DisplayOrder = x.First().QualityOption!.DisplayOrder
+            })];
+    }
+
+    public override async Task RemapRatingsMaintainDisplayOrderAsync(Guid groupId, IEnumerable<Guid> optionIds, CancellationToken ct)
+    {
+        var ratingsToUpdate = _dbSet
+            .Include(c => c.GroupVenue)
+            .Include(c => c.QualityOption)
+            .Where(c => c.GroupVenue!.GroupId == groupId).ToList();
+
+        foreach (var rating in ratingsToUpdate)
+        {
+            rating.QualityRatingId = optionIds.Skip(rating.QualityOption!.DisplayOrder - 1).First();
+        }
+    }
+
+    public override async Task RemapRatingsSquashDisplayOrderAsync(Guid groupId, IEnumerable<Guid> optionIds, CancellationToken ct)
+    {
+        var ratingsToUpdate = _dbSet
+            .Include(c => c.GroupVenue)
+            .Include(c => c.QualityOption)
+            .Where(c => c.GroupVenue!.GroupId == groupId).OrderBy(x => x.QualityOption!.DisplayOrder).ToList();
+
+        var displayOrderToMap = 0;
+        var lastDisplayOrder = 0;
+
+        foreach (var rating in ratingsToUpdate)
+        {
+            if (rating.QualityOption!.DisplayOrder != lastDisplayOrder)
+            {
+                displayOrderToMap++;
+            }
+            lastDisplayOrder = rating.QualityOption.DisplayOrder;
+            rating.QualityRatingId = optionIds.Skip(displayOrderToMap - 1).First();
+        }
+    }
+
     private static RatingResult MapToResult(QualityRating q) => new()
     {
         RatingId = q.QualityRatingId,

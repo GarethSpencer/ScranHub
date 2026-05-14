@@ -55,6 +55,58 @@ public sealed class CostRatingRepository(ScranHubDbContext dbContext)
         return costRatings.Select(MapToResult);
     }
 
+    public override async Task<IEnumerable<RatingOptionResult>> GetDistinctRatingsGivenForGroupAsync(Guid groupId, CancellationToken ct)
+    {
+        var ratings = await _dbSet
+            .Include(c => c.GroupVenue)
+            .Include(c => c.CostOption)
+            .Where(c => c.GroupVenue!.GroupId == groupId)
+            .ToListAsync(ct);
+
+        return [.. ratings.GroupBy(c => c.CostOptionId)
+            .Select(x => new RatingOptionResult
+            {
+                OptionId = x.Key,
+                Label = x.First().CostOption!.Label,
+                GroupId = groupId,
+                DisplayOrder = x.First().CostOption!.DisplayOrder
+            })];
+    }
+
+    public override async Task RemapRatingsMaintainDisplayOrderAsync(Guid groupId, IEnumerable<Guid> optionIds, CancellationToken ct)
+    {
+        var ratingsToUpdate = _dbSet
+            .Include(c => c.GroupVenue)
+            .Include(c => c.CostOption)
+            .Where(c => c.GroupVenue!.GroupId == groupId).ToList();
+
+        foreach (var rating in ratingsToUpdate)
+        {
+            rating.CostRatingId = optionIds.Skip(rating.CostOption!.DisplayOrder - 1).First();
+        }
+    }
+
+    public override async Task RemapRatingsSquashDisplayOrderAsync(Guid groupId, IEnumerable<Guid> optionIds, CancellationToken ct)
+    {
+        var ratingsToUpdate = _dbSet
+            .Include(c => c.GroupVenue)
+            .Include(c => c.CostOption)
+            .Where(c => c.GroupVenue!.GroupId == groupId).OrderBy(x => x.CostOption!.DisplayOrder).ToList();
+
+        var displayOrderToMap = 0;
+        var lastDisplayOrder = 0;
+
+        foreach (var rating in ratingsToUpdate)
+        {
+            if (rating.CostOption!.DisplayOrder != lastDisplayOrder)
+            {
+                displayOrderToMap++;
+            }
+            lastDisplayOrder = rating.CostOption.DisplayOrder;
+            rating.CostRatingId = optionIds.Skip(displayOrderToMap - 1).First();
+        }
+    }
+
     private static RatingResult MapToResult(CostRating c) => new()
     {
         RatingId = c.CostRatingId,

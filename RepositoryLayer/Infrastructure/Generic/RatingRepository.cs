@@ -46,9 +46,15 @@ public abstract class RatingRepository<TRating>(ScranHubDbContext dbContext) : E
         return rating != null;
     }
 
+    public abstract Task RemapRatingsMaintainDisplayOrderAsync(Guid groupId, IEnumerable<Guid> optionIds, CancellationToken ct);
+
+    public abstract Task RemapRatingsSquashDisplayOrderAsync(Guid groupId, IEnumerable<Guid> optionIds, CancellationToken ct);
+
     public abstract Task<RatingResult?> GetDetailsByIdAsync(Guid ratingId, CancellationToken ct);
 
     public abstract Task<IEnumerable<RatingResult>> GetDetailsByGroupVenueIdAsync(Guid groupVenueId, CancellationToken ct);
 
     public abstract Task<IEnumerable<RatingResult>> GetUserDetailsForGroupAsync(Guid userId, Guid groupId, CancellationToken ct);
+
+    public abstract Task<IEnumerable<RatingOptionResult>> GetDistinctRatingsGivenForGroupAsync(Guid groupId, CancellationToken ct);
 }
