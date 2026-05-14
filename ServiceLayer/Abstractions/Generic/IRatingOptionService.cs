@@ -7,7 +7,7 @@ namespace ServiceLayer.Abstractions.Generic;
 public interface IRatingOptionService
 {
     Task<SetOptionsResponse> SetGroupCustomOptionsAsync(SetOptionsRequest request, CancellationToken ct);
-    Task<SetOptionResponse> AddOptionAsync(Guid groupId, SetOptionRequest request, CancellationToken ct);
+    Task<SetOptionResponse> AddOptionAsync(SetOptionRequest request, CancellationToken ct);
     Task<CommonResponse> UpdateOptionAsync(Guid optionId, SetOptionRequest request, CancellationToken ct);
     Task<SetOptionResponse> DeleteOptionAsync(Guid optionId, CancellationToken ct);
     Task<CommonResponse> RemoveGroupCustomOptionsAsync(Guid groupId, CancellationToken ct);

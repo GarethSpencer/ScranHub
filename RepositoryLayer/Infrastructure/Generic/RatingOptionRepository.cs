@@ -79,6 +79,20 @@ public class RatingOptionRepository<TRatingOption>(ScranHubDbContext dbContext) 
         return optionsToAdd.Select(x => x.OptionId);
     }
 
+    public async Task<Guid> AddAsync(SetOptionRequest request, CancellationToken ct)
+    {
+        var maxOptionDisplayOrder = _dbSet.Where(x => x.GroupId == request.GroupId).OrderByDescending(x => x.DisplayOrder).First();
+        var optionToAdd = new TRatingOption
+        {
+            GroupId = request.GroupId,
+            DisplayOrder = maxOptionDisplayOrder.DisplayOrder + 1,
+            Label = request.Label
+        };
+
+        await _dbSet.AddAsync(optionToAdd, ct);
+        return optionToAdd.OptionId;
+    }
+
     private static Expression<Func<TRatingOption, RatingOptionResult>> ProjectToResult() =>
     x => new RatingOptionResult
     {

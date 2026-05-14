@@ -223,7 +223,7 @@ public abstract class RatingOptionService<TRatingRepository, TRatingOptionReposi
         };
     }
 
-    public async Task<SetOptionResponse> AddOptionAsync(Guid groupId, SetOptionRequest request, CancellationToken ct)
+    public async Task<SetOptionResponse> AddOptionAsync(SetOptionRequest request, CancellationToken ct)
     {
         if (!_tokenData.UserId.HasValue)
         {
@@ -236,11 +236,11 @@ public abstract class RatingOptionService<TRatingRepository, TRatingOptionReposi
         }
 
         var userId = _tokenData.UserId!.Value;
-        var isUserInGroup = await _userGroupRepository.IsUserInGroupAsync(groupId, userId, ct);
+        var isUserInGroup = await _userGroupRepository.IsUserInGroupAsync(request.GroupId, userId, ct);
 
         if (!isUserInGroup)
         {
-            _logger.LogWarning("AddOptionAsync called by user {UserId} who is not in group {GroupId}.", userId, groupId);
+            _logger.LogWarning("AddOptionAsync called by user {UserId} who is not in group {GroupId}.", userId, request.GroupId);
             return new SetOptionResponse
             {
                 StatusCode = HttpStatusCode.Forbidden,
@@ -248,14 +248,49 @@ public abstract class RatingOptionService<TRatingRepository, TRatingOptionReposi
             };
         }
 
+        var group = await _groupRepository.GetDetailsByIdAsync(request.GroupId, ct);
+        if (group?.Active != true)
+        {
+            _logger.LogWarning("AddOptionAsync called for inactive or non-existent group {GroupId} by user {UserId}.", request.GroupId, userId);
+            return new SetOptionResponse
+            {
+                StatusCode = HttpStatusCode.BadRequest,
+                Message = "The group does not exist or is not active."
+            };
+        }
+
+        var usingDefaults = await _ratingOptionRepository.IsGroupUsingDefaultValues(request.GroupId, ct);
+        if (usingDefaults)
+        {
+            _logger.LogWarning("AddOptionAsync called for group {GroupId} by user {UserId} when group is using default options.", request.GroupId, userId);
+            return new SetOptionResponse
+            {
+                StatusCode = HttpStatusCode.BadRequest,
+                Message = "The group is not using custom options so they cannot be amended."
+            };
+        }
+
+        var currentOptions = await _ratingOptionRepository.GetForGroupIdAsync(request.GroupId, ct);
+        if (currentOptions.Any(x => string.Equals(x.Label, request.Label, StringComparison.OrdinalIgnoreCase)))
+        {
+            _logger.LogWarning("AddOptionAsync called for group {GroupId} by user {UserId} with duplicate label.", request.GroupId, userId);
+            return new SetOptionResponse
+            {
+                StatusCode = HttpStatusCode.BadRequest,
+                Message = "An option with that label already exists for this group."
+            };
+        }
+
+        var optionId = await _ratingOptionRepository.AddAsync(request, ct);
+
         await _unitOfWork.SaveChangesAsync(ct);
-        _logger.LogInformation("User {UserId} updated option for group {GroupId}.", userId, groupId);
+        _logger.LogInformation("User {UserId} added rating option for group {GroupId}.", userId, request.GroupId);
 
         return new SetOptionResponse
         {
             StatusCode = HttpStatusCode.Created,
-            Message = $"Quality rating created successfully.",
-            OptionsId = Guid.Empty
+            Message = "New rating added successfully.",
+            OptionsId = optionId
         };
     }
 
