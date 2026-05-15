@@ -487,12 +487,12 @@ public class UserService(ITokenData tokenData,
         };
     }
 
-    public async Task<GetUsersDetailedResponse> GetAllUsersAsync(PaginationBaseRequest request, CancellationToken ct)
+    public async Task<CommonResponse> GetAllUsersAsync(PaginationBaseRequest request, CancellationToken ct)
     {
         if (!_tokenData.UserId.HasValue)
         {
             _logger.LogWarning("GetAllUsersAsync called with no authenticated user.");
-            return new GetUsersDetailedResponse
+            return new CommonResponse
             {
                 StatusCode = HttpStatusCode.Unauthorized,
                 Message = "Unauthorized."
@@ -505,7 +505,7 @@ public class UserService(ITokenData tokenData,
         if (!isAdmin)
         {
             _logger.LogWarning("User {UserId} is not an admin and cannot retrieve all users.", userId);
-            return new GetUsersDetailedResponse
+            return new CommonResponse
             {
                 StatusCode = HttpStatusCode.Forbidden,
                 Message = "You are not an admin."

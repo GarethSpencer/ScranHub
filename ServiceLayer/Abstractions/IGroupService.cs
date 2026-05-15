@@ -23,5 +23,5 @@ public interface IGroupService
 
     Task<CommonResponse> DeleteGroupAsync(Guid groupId, CancellationToken ct);
 
-    Task<GetGroupsDetailedResponse> GetAllGroupsAsync(PaginationBaseRequest request, CancellationToken ct);
+    Task<CommonResponse> GetAllGroupsAsync(PaginationBaseRequest request, CancellationToken ct);
 }

@@ -29,12 +29,12 @@ public abstract class RatingOptionService<TRatingRepository, TRatingOptionReposi
     protected readonly IGroupRepository _groupRepository = groupRepository;
     protected readonly IUnitOfWork _unitOfWork = unitOfWork;
 
-    public async Task<SetOptionsResponse> SetGroupCustomOptionsAsync(SetOptionsRequest request, CancellationToken ct)
+    public async Task<CommonResponse> SetGroupCustomOptionsAsync(SetOptionsRequest request, CancellationToken ct)
     {
         if (!_tokenData.UserId.HasValue)
         {
             _logger.LogWarning("SetGroupCustomOptionsAsync called with no authenticated user.");
-            return new SetOptionsResponse
+            return new CommonResponse
             {
                 StatusCode = HttpStatusCode.Unauthorized,
                 Message = "Unauthorized."
@@ -47,7 +47,7 @@ public abstract class RatingOptionService<TRatingRepository, TRatingOptionReposi
         if (!isUserInGroup)
         {
             _logger.LogWarning("SetGroupCustomOptionsAsync called by user {UserId} who is not in group {GroupId}.", userId, request.GroupId);
-            return new SetOptionsResponse
+            return new CommonResponse
             {
                 StatusCode = HttpStatusCode.Forbidden,
                 Message = "You do not have permission to set options for this group."
@@ -58,7 +58,7 @@ public abstract class RatingOptionService<TRatingRepository, TRatingOptionReposi
         if (group?.Active != true)
         {
             _logger.LogWarning("SetGroupCustomOptionsAsync called for inactive or non-existent group {GroupId} by user {UserId}.", request.GroupId, userId);
-            return new SetOptionsResponse
+            return new CommonResponse
             {
                 StatusCode = HttpStatusCode.BadRequest,
                 Message = "The group does not exist or is not active."
@@ -69,7 +69,7 @@ public abstract class RatingOptionService<TRatingRepository, TRatingOptionReposi
         if (!usingDefaults)
         {
             _logger.LogWarning("SetGroupCustomOptionsAsync called for group {GroupId} by user {UserId} when group already has custom options.", request.GroupId, userId);
-            return new SetOptionsResponse
+            return new CommonResponse
             {
                 StatusCode = HttpStatusCode.BadRequest,
                 Message = "The group is already using custom options."
@@ -80,7 +80,7 @@ public abstract class RatingOptionService<TRatingRepository, TRatingOptionReposi
         if (ratingOptionsInUse.Count() > request.Labels.Length)
         {
             _logger.LogWarning("SetGroupCustomOptionsAsync called for group {GroupId} by user {UserId} without enough labels.", request.GroupId, userId);
-            return new SetOptionsResponse
+            return new CommonResponse
             {
                 StatusCode = HttpStatusCode.BadRequest,
                 Message = $"You need to provide at least {ratingOptionsInUse.Count()} labels to map the current options."
@@ -223,12 +223,12 @@ public abstract class RatingOptionService<TRatingRepository, TRatingOptionReposi
         };
     }
 
-    public async Task<SetOptionResponse> AddOptionAsync(SetOptionRequest request, CancellationToken ct)
+    public async Task<CommonResponse> AddOptionAsync(SetOptionRequest request, CancellationToken ct)
     {
         if (!_tokenData.UserId.HasValue)
         {
             _logger.LogWarning("AddOptionAsync called with no authenticated user.");
-            return new SetOptionResponse
+            return new CommonResponse
             {
                 StatusCode = HttpStatusCode.Unauthorized,
                 Message = "Unauthorized."
@@ -241,7 +241,7 @@ public abstract class RatingOptionService<TRatingRepository, TRatingOptionReposi
         if (!isUserInGroup)
         {
             _logger.LogWarning("AddOptionAsync called by user {UserId} who is not in group {GroupId}.", userId, request.GroupId);
-            return new SetOptionResponse
+            return new CommonResponse
             {
                 StatusCode = HttpStatusCode.Forbidden,
                 Message = "You do not have permission to set options for this group."
@@ -252,7 +252,7 @@ public abstract class RatingOptionService<TRatingRepository, TRatingOptionReposi
         if (group?.Active != true)
         {
             _logger.LogWarning("AddOptionAsync called for inactive or non-existent group {GroupId} by user {UserId}.", request.GroupId, userId);
-            return new SetOptionResponse
+            return new CommonResponse
             {
                 StatusCode = HttpStatusCode.BadRequest,
                 Message = "The group does not exist or is not active."
@@ -263,7 +263,7 @@ public abstract class RatingOptionService<TRatingRepository, TRatingOptionReposi
         if (usingDefaults)
         {
             _logger.LogWarning("AddOptionAsync called for group {GroupId} by user {UserId} when group is using default options.", request.GroupId, userId);
-            return new SetOptionResponse
+            return new CommonResponse
             {
                 StatusCode = HttpStatusCode.BadRequest,
                 Message = "The group is not using custom options so they cannot be amended."
@@ -274,7 +274,7 @@ public abstract class RatingOptionService<TRatingRepository, TRatingOptionReposi
         if (currentOptions.Any(x => string.Equals(x.Label, request.Label, StringComparison.OrdinalIgnoreCase)))
         {
             _logger.LogWarning("AddOptionAsync called for group {GroupId} by user {UserId} with duplicate label.", request.GroupId, userId);
-            return new SetOptionResponse
+            return new CommonResponse
             {
                 StatusCode = HttpStatusCode.BadRequest,
                 Message = "An option with that label already exists for this group."
@@ -358,8 +358,8 @@ public abstract class RatingOptionService<TRatingRepository, TRatingOptionReposi
 
         return new CommonResponse
         {
-            StatusCode = HttpStatusCode.Created,
-            Message = $"Quality rating updated successfully.",
+            StatusCode = HttpStatusCode.OK,
+            Message = "Quality rating updated successfully.",
         };
     }
 
@@ -428,7 +428,7 @@ public abstract class RatingOptionService<TRatingRepository, TRatingOptionReposi
 
         return new CommonResponse
         {
-            StatusCode = HttpStatusCode.Created,
+            StatusCode = HttpStatusCode.OK,
             Message = "Quality rating deleted successfully.",
         };
     }
@@ -505,12 +505,12 @@ public abstract class RatingOptionService<TRatingRepository, TRatingOptionReposi
         };
     }
 
-    public async Task<GetRatingOptionsResponse> GetGroupRatingOptionsAsync(Guid? groupId, CancellationToken ct)
+    public async Task<CommonResponse> GetGroupRatingOptionsAsync(Guid? groupId, CancellationToken ct)
     {
         if (!_tokenData.UserId.HasValue)
         {
             _logger.LogWarning("GetGroupRatingOptionsAsync called with no authenticated user.");
-            return new GetRatingOptionsResponse
+            return new CommonResponse
             {
                 StatusCode = HttpStatusCode.Unauthorized,
                 Message = "Unauthorized."
@@ -526,7 +526,7 @@ public abstract class RatingOptionService<TRatingRepository, TRatingOptionReposi
             if (!isUserInGroup)
             {
                 _logger.LogWarning("GetGroupRatingOptionsAsync called by user {UserId} who is not in group {GroupId}.", userId, groupId);
-                return new GetRatingOptionsResponse
+                return new CommonResponse
                 {
                     StatusCode = HttpStatusCode.Forbidden,
                     Message = "You do not have permission to view options for this group."
@@ -537,7 +537,7 @@ public abstract class RatingOptionService<TRatingRepository, TRatingOptionReposi
             if (group?.Active != true)
             {
                 _logger.LogWarning("GetGroupRatingOptionsAsync called for inactive or non-existent group {GroupId} by user {UserId}.", groupId, userId);
-                return new GetRatingOptionsResponse
+                return new CommonResponse
                 {
                     StatusCode = HttpStatusCode.BadRequest,
                     Message = "The group does not exist or is not active."
@@ -556,12 +556,12 @@ public abstract class RatingOptionService<TRatingRepository, TRatingOptionReposi
         };
     }
 
-    public async Task<GetRatingOptionResponse> GetRatingOptionAsync(Guid optionId, CancellationToken ct)
+    public async Task<CommonResponse> GetRatingOptionAsync(Guid optionId, CancellationToken ct)
     {
         if (!_tokenData.UserId.HasValue)
         {
             _logger.LogWarning("GetRatingOptionAsync called with no authenticated user.");
-            return new GetRatingOptionResponse
+            return new CommonResponse
             {
                 StatusCode = HttpStatusCode.Unauthorized,
                 Message = "Unauthorized."
@@ -574,7 +574,7 @@ public abstract class RatingOptionService<TRatingRepository, TRatingOptionReposi
         if (option == null)
         {
             _logger.LogWarning("GetRatingOptionAsync called by user {UserId} for option {OptionId} which does not exist.", userId, optionId);
-            return new GetRatingOptionResponse
+            return new CommonResponse
             {
                 StatusCode = HttpStatusCode.BadRequest,
                 Message = "The option does not exist."
@@ -597,7 +597,7 @@ public abstract class RatingOptionService<TRatingRepository, TRatingOptionReposi
         if (!isUserInGroup)
         {
             _logger.LogWarning("SetGroupCustomOptionsAsync called by user {UserId} who is not in group {GroupId}.", userId, option.GroupId);
-            return new GetRatingOptionResponse
+            return new CommonResponse
             {
                 StatusCode = HttpStatusCode.Forbidden,
                 Message = "You do not have permission to view options for this group."
@@ -608,7 +608,7 @@ public abstract class RatingOptionService<TRatingRepository, TRatingOptionReposi
         if (group?.Active != true)
         {
             _logger.LogWarning("SetGroupCustomOptionsAsync called for inactive or non-existent group {GroupId} by user {UserId}.", option.GroupId, userId);
-            return new GetRatingOptionResponse
+            return new CommonResponse
             {
                 StatusCode = HttpStatusCode.BadRequest,
                 Message = "The group does not exist or is not active."

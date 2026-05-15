@@ -25,5 +25,5 @@ public interface IUserService
 
     Task<CommonResponse> AddUserFriendByEmailAsync(AddFriendRequest request, CancellationToken ct);
 
-    Task<GetUsersDetailedResponse> GetAllUsersAsync(PaginationBaseRequest request, CancellationToken ct);
+    Task<CommonResponse> GetAllUsersAsync(PaginationBaseRequest request, CancellationToken ct);
 }

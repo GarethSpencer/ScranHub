@@ -393,12 +393,12 @@ public class GroupService(ITokenData tokenData,
         };
     }
 
-    public async Task<GetGroupsDetailedResponse> GetAllGroupsAsync(PaginationBaseRequest request, CancellationToken ct)
+    public async Task<CommonResponse> GetAllGroupsAsync(PaginationBaseRequest request, CancellationToken ct)
     {
         if (!_tokenData.UserId.HasValue)
         {
             _logger.LogWarning("GetAllGroupsAsync called with no authenticated user.");
-            return new GetGroupsDetailedResponse
+            return new CommonResponse
             {
                 StatusCode = HttpStatusCode.Unauthorized,
                 Message = "Unauthorized."
@@ -411,7 +411,7 @@ public class GroupService(ITokenData tokenData,
         if (!isAdmin)
         {
             _logger.LogWarning("User {UserId} is not an admin and cannot retrieve all groups.", userId);
-            return new GetGroupsDetailedResponse
+            return new CommonResponse
             {
                 StatusCode = HttpStatusCode.Forbidden,
                 Message = "You are not an admin."
