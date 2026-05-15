@@ -32,4 +32,10 @@ public interface IGroupRepository : IEFRepository<Group>
     Task<IEnumerable<GroupVenueRatingResult>> GetVenueCostRatingsForGroupAsync(Guid groupId, CancellationToken ct);
 
     Task<IEnumerable<GroupVenueRatingResult>> GetVenueQualityRatingsForGroupAsync(Guid groupId, CancellationToken ct);
+
+    Task UnsetVenueTypesForGroupAsync(Guid groupId, CancellationToken ct);
+
+    Task UnsetFoodTypesForGroupAsync(Guid groupId, CancellationToken ct);
+
+    Task<bool> AreAnyVenuesUsingOptionIdAsync(Guid groupId, Guid optionId, CancellationToken ct);
 }

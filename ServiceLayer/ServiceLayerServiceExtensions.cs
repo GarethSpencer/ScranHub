@@ -20,6 +20,9 @@ public static class ServiceLayerServiceExtensions
         services.AddScoped<IQualityRatingService, QualityRatingService>();
         services.AddScoped<ICostOptionService, CostOptionService>();
         services.AddScoped<IQualityOptionService, QualityOptionService>();
+        services.AddScoped<IVenueTypeOptionService, VenueTypeOptionService>();
+        services.AddScoped<IFoodTypeOptionService, FoodTypeOptionService>();
+
         return services;
     }
 }

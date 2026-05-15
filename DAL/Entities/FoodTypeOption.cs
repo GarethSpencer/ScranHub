@@ -11,7 +11,7 @@ public class FoodTypeOption : AuditableEntity, ITypeOption
     public string Label { get; set; } = string.Empty;
 
     [NotMapped]
-    public Guid TypeOptionId
+    public Guid OptionId
     {
         get
         {

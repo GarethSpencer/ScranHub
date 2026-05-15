@@ -1,5 +1,4 @@
-﻿using Azure.Core;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using RepositoryLayer.Abstractions;
 using RepositoryLayer.Abstractions.Generic;
 using ServiceLayer.Abstractions.Generic;
@@ -7,7 +6,6 @@ using System.Net;
 using Utilities.Models.Requests.Options;
 using Utilities.Models.Responses.Generic;
 using Utilities.Models.Responses.Options;
-using Utilities.Models.Results.Generic;
 using Utilities.Token;
 
 namespace ServiceLayer.Infrastructure.Generic;
@@ -602,7 +600,7 @@ public abstract class RatingOptionService<TRatingRepository, TRatingOptionReposi
             return new GetRatingOptionResponse
             {
                 StatusCode = HttpStatusCode.Forbidden,
-                Message = "You do not have permission to set options for this group."
+                Message = "You do not have permission to view options for this group."
             };
         }
 

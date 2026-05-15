@@ -212,4 +212,45 @@ public sealed class GroupRepository(ScranHubDbContext dbContext,
             })
         });
     }
+
+    public async Task UnsetVenueTypesForGroupAsync(Guid groupId, CancellationToken ct)
+    {
+        var group = await _dbSet
+            .Include(x => x.GroupVenues)
+            .Where(x => x.GroupId == groupId).FirstOrDefaultAsync(ct);
+
+        if (group == null)
+        {
+            return;
+        }
+
+        foreach (var groupVenue in group.GroupVenues)
+        {
+            groupVenue.VenueTypeOptionId = null;
+        }
+    }
+
+    public async Task UnsetFoodTypesForGroupAsync(Guid groupId, CancellationToken ct)
+    {
+        var group = await _dbSet
+            .Include(x => x.GroupVenues)
+            .Where(x => x.GroupId == groupId).FirstOrDefaultAsync(ct);
+
+        if (group == null)
+        {
+            return;
+        }
+
+        foreach (var groupVenue in group.GroupVenues)
+        {
+            groupVenue.FoodTypeOptionId = null;
+        }
+    }
+
+    public async Task<bool> AreAnyVenuesUsingOptionIdAsync(Guid groupId, Guid optionId, CancellationToken ct)
+    {
+        return await _dbSet
+            .Where(x => x.GroupId == groupId)
+            .AnyAsync(g => g.GroupVenues.Any(gv => gv.VenueTypeOptionId == optionId || gv.FoodTypeOptionId == optionId), ct);
+    }
 }
