@@ -94,4 +94,17 @@ public class QualityOptionController(
 
         return StatusCode((int)response.StatusCode, response);
     }
+
+    [HttpPatch]
+    public async Task<IActionResult> ReorderCustomOptions([FromBody] OrderOptionsRequest request, CancellationToken ct)
+    {
+        if (request == null)
+        {
+            return BadRequest("Request body is required.");
+        }
+
+        var response = await _qualityOptionService.ReorderOptionsAsync(request, ct);
+
+        return StatusCode((int)response.StatusCode, response);
+    }
 }

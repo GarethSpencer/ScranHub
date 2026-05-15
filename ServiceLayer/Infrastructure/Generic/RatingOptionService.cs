@@ -454,11 +454,46 @@ public abstract class RatingOptionService<TRatingRepository, TRatingOptionReposi
             return new CommonResponse
             {
                 StatusCode = HttpStatusCode.Forbidden,
-                Message = "You do not have permission to reorder options for this group."
+                Message = "You do not have permission to set options for this group."
             };
         }
 
-        //TODO: Check the highest currently used option number for this group, return fail if the default number of groups is lower than this
+        var group = await _groupRepository.GetDetailsByIdAsync(request.GroupId, ct);
+        if (group?.Active != true)
+        {
+            _logger.LogWarning("ReorderOptionsAsync called for inactive or non-existent group {GroupId} by user {UserId}.", request.GroupId, userId);
+            return new CommonResponse
+            {
+                StatusCode = HttpStatusCode.BadRequest,
+                Message = "The group does not exist or is not active."
+            };
+        }
+
+        var usingDefaults = await _ratingOptionRepository.IsGroupUsingDefaultValues(request.GroupId, ct);
+        if (usingDefaults)
+        {
+            _logger.LogWarning("ReorderOptionsAsync called for group {GroupId} by user {UserId} when group is using default options.", request.GroupId, userId);
+            return new CommonResponse
+            {
+                StatusCode = HttpStatusCode.BadRequest,
+                Message = "The group is not using custom options so they cannot be amended."
+            };
+        }
+
+        var currentOptions = await _ratingOptionRepository.GetForGroupIdAsync(request.GroupId, ct);
+
+        if (currentOptions.Count() != request.OptionsIds.Length
+            || currentOptions.Any(x => !request.OptionsIds.Contains(x.OptionId)))
+        {
+            _logger.LogWarning("ReorderOptionsAsync called for group {GroupId} by user {UserId} with invalid option IDs.", request.GroupId, userId);
+            return new CommonResponse
+            {
+                StatusCode = HttpStatusCode.BadRequest,
+                Message = "The provided option IDs do not match the current options for this group."
+            };
+        }
+
+        await _ratingOptionRepository.ReorderAsync(request.GroupId, request.OptionsIds, ct);
 
         await _unitOfWork.SaveChangesAsync(ct);
         _logger.LogInformation("User {UserId} reordered options for group {GroupId}.", userId, request.GroupId);

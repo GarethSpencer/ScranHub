@@ -93,6 +93,19 @@ public abstract class RatingOptionRepository<TRatingOption>(ScranHubDbContext db
         return optionToAdd.OptionId;
     }
 
+    public async Task ReorderAsync(Guid groupId, Guid[] orderedOptionIds, CancellationToken ct)
+    {
+        var options = await _dbSet
+            .Where(x => x.GroupId == groupId)
+            .ToListAsync(ct);
+
+        for (var i = 0; i < orderedOptionIds.Length; i++)
+        {
+            var option = options.Single(x => x.OptionId == orderedOptionIds[i]);
+            option.DisplayOrder = i + 1;
+        }
+    }
+
     public abstract Task CondenseDisplayOrdersAsync(Guid groupId, Guid deletedOptionId, CancellationToken ct);
 
     public abstract Task<RatingOptionResult?> GetByIdAsync(Guid id, CancellationToken ct);

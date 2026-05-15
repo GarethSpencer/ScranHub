@@ -24,4 +24,6 @@ public interface IRatingOptionRepository
     Task DeleteAsync(Guid optionId, CancellationToken ct);
 
     Task CondenseDisplayOrdersAsync(Guid groupId, Guid deletedOptionId, CancellationToken ct);
+
+    Task ReorderAsync(Guid groupId, Guid[] orderedOptionIds, CancellationToken ct);
 }
