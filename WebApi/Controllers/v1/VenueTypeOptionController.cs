@@ -13,10 +13,10 @@ namespace WebApi.Controllers.v1;
 /// Provides endpoints for managing venue type options, including setting, adding, updating and deleting custom options,
 /// as well as retrieving options for specific groups.
 /// </summary>
-/// <param name="venueTypeOptionService"></param>
-/// <param name="setOptionsRequestValidator"></param>
-/// <param name="setOptionRequestValidator"></param>
-/// <param name="updateOptionRequestValidator"></param>
+/// <param name="venueTypeOptionService">Service for managing venue type options.</param>
+/// <param name="setOptionsRequestValidator">Validator for set options requests.</param>
+/// <param name="setOptionRequestValidator">Validator for set option requests.</param>
+/// <param name="updateOptionRequestValidator">Validator for update option requests.</param>
 [ApiController]
 [Route("v{version:apiVersion}/[controller]")]
 [ApiVersion("1.0")]

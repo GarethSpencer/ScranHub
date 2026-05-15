@@ -11,7 +11,7 @@ namespace WebApi.Controllers.v1;
 /// Provides endpoints for managing cost ratings, including creating, updating, deleting, and retrieving ratings,
 /// as well as retrieving ratings for specific groups and venues.
 /// </summary>
-/// <param name="costRatingService"></param>
+/// <param name="costRatingService">Service for managing cost ratings.</param>
 [ApiController]
 [Route("v{version:apiVersion}/[controller]")]
 [ApiVersion("1.0")]

@@ -26,7 +26,7 @@ public class LookupController : ControllerBase
             })]);
 
     /// <summary>
-    /// Get all possible friendship statuses.
+    /// Get all friendship status values and corresponding names.
     /// </summary>
     [HttpGet("friendship-statuses")]
     [ProducesResponseType(typeof(List<FriendshipStatusResult>), StatusCodes.Status200OK)]

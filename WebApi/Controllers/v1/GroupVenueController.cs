@@ -13,10 +13,10 @@ namespace WebApi.Controllers.v1;
 /// Provides endpoints for managing group venues, including creating, updating and deleting,
 /// and retrieving by ID and name search.
 /// </summary>
-/// <param name="groupVenueService"></param>
-/// <param name="createGroupVenueRequestValidator"></param>
-/// <param name="updateGroupVenueRequestValidator"></param>
-/// <param name="searchGroupVenueRequestValidator"></param>
+/// <param name="groupVenueService">Service for managing group venues.</param>
+/// <param name="createGroupVenueRequestValidator">Validator for create group venue requests.</param>
+/// <param name="updateGroupVenueRequestValidator">Validator for update group venue requests.</param>
+/// <param name="searchGroupVenueRequestValidator">Validator for search group venue requests.</param>
 [ApiController]
 [Route("v{version:apiVersion}/[controller]")]
 [ApiVersion("1.0")]

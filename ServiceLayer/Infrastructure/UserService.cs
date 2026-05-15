@@ -1,5 +1,4 @@
-﻿using DAL.Entities;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using RepositoryLayer.Abstractions;
 using RepositoryLayer.Abstractions.Generic;
 using ServiceLayer.Abstractions;
@@ -8,7 +7,6 @@ using Utilities.Enums;
 using Utilities.Models.Requests.Generic;
 using Utilities.Models.Requests.Users;
 using Utilities.Models.Responses.Generic;
-using Utilities.Models.Responses.Groups;
 using Utilities.Models.Responses.Users;
 using Utilities.Token;
 
@@ -27,12 +25,12 @@ public class UserService(ITokenData tokenData,
     private readonly IUnitOfWork _unitOfWork = unitOfWork;
 
 
-    public async Task<UserFriendsResponse> GetFriendsForUserAsync(CancellationToken ct)
+    public async Task<CommonResponse> GetFriendsForUserAsync(CancellationToken ct)
     {
         if (!_tokenData.UserId.HasValue)
         {
             _logger.LogWarning("GetFriendsForUserAsync called with no authenticated user.");
-            return new UserFriendsResponse
+            return new CommonResponse
             {
                 StatusCode = HttpStatusCode.Unauthorized,
                 Message = "Unauthorized."
@@ -40,13 +38,11 @@ public class UserService(ITokenData tokenData,
         }
 
         var userId = _tokenData.UserId!.Value;
-
         var userFriends = await _userRepository.GetFriendsForUserAsync(userId, ct);
-
         if (userFriends == null)
         {
             _logger.LogWarning("No user found with id {UserId}", userId);
-            return new UserFriendsResponse
+            return new CommonResponse
             {
                 StatusCode = HttpStatusCode.NotFound,
                 Message = "No user found."
@@ -65,12 +61,12 @@ public class UserService(ITokenData tokenData,
         };
     }
 
-    public async Task<AddUserResponse> CreateUserAsync(CreateUserRequest request, CancellationToken ct)
+    public async Task<CommonResponse> CreateUserAsync(CreateUserRequest request, CancellationToken ct)
     {
         if (!_tokenData.UserId.HasValue)
         {
-            _logger.LogWarning("GetFriendsForUserAsync called with no authenticated user.");
-            return new AddUserResponse
+            _logger.LogWarning("CreateUserAsync called with no authenticated user.");
+            return new CommonResponse
             {
                 StatusCode = HttpStatusCode.Unauthorized,
                 Message = "Unauthorized."
@@ -81,7 +77,7 @@ public class UserService(ITokenData tokenData,
         if (userExists)
         {
             _logger.LogWarning("User with email {Email} already exists.", request.Email);
-            return new AddUserResponse
+            return new CommonResponse
             {
                 StatusCode = HttpStatusCode.Conflict,
                 Message = $"User with email {request.Email} already exists."
@@ -92,7 +88,7 @@ public class UserService(ITokenData tokenData,
         if (userNameExists)
         {
             _logger.LogWarning("Display name {DisplayName} already taken.", request.DisplayName);
-            return new AddUserResponse
+            return new CommonResponse
             {
                 StatusCode = HttpStatusCode.Conflict,
                 Message = $"Display name {request.DisplayName} already taken."
@@ -104,7 +100,7 @@ public class UserService(ITokenData tokenData,
         if (!isAdmin && request.Admin)
         {
             _logger.LogWarning("Non-Admin user {CallingUserId} cannot create an admin user.", callingUserId);
-            return new AddUserResponse
+            return new CommonResponse
             {
                 StatusCode = HttpStatusCode.Unauthorized,
                 Message = "You cannot create an admin user."
@@ -112,7 +108,6 @@ public class UserService(ITokenData tokenData,
         }
 
         var userId = await _userRepository.CreateAsync(request, ct);
-
         await _unitOfWork.SaveChangesAsync(ct);
         _logger.LogInformation("Successfully created user with id {UserId}", userId);
 
@@ -124,12 +119,12 @@ public class UserService(ITokenData tokenData,
         };
     }
 
-    public async Task<GetUsersResponse> SearchUsersAsync(SearchUserRequest request, CancellationToken ct)
+    public async Task<CommonResponse> SearchUsersAsync(SearchUserRequest request, CancellationToken ct)
     {
         if (!_tokenData.UserId.HasValue)
         {
             _logger.LogWarning("SearchUsersAsync called with no authenticated user.");
-            return new GetUsersResponse
+            return new CommonResponse
             {
                 StatusCode = HttpStatusCode.Unauthorized,
                 Message = "Unauthorized."
@@ -195,7 +190,6 @@ public class UserService(ITokenData tokenData,
         }
 
         var userToUpdateIsAdmin = await _userRepository.IsUserAdminAsync(userId, ct);
-
         if (userToUpdateIsAdmin && userId != callingUserId)
         {
             _logger.LogWarning("Admin {UserId} can only update their own information, so cannot be updated by {CallingUserId}.", userId, callingUserId);
@@ -207,7 +201,6 @@ public class UserService(ITokenData tokenData,
         }
 
         await _userRepository.UpdateAsync(userId, request, ct);
-
         await _unitOfWork.SaveChangesAsync(ct);
         _logger.LogInformation("Successfully updated user with id {UserId}", userId);
 
@@ -218,12 +211,12 @@ public class UserService(ITokenData tokenData,
         };
     }
 
-    public async Task<GetUserResponse> GetUserAsync(Guid userId, CancellationToken ct)
+    public async Task<CommonResponse> GetUserAsync(Guid userId, CancellationToken ct)
     {
         if (!_tokenData.UserId.HasValue)
         {
             _logger.LogWarning("GetUserAsync called with no authenticated user.");
-            return new GetUserResponse
+            return new CommonResponse
             {
                 StatusCode = HttpStatusCode.Unauthorized,
                 Message = "Unauthorized."
@@ -237,7 +230,7 @@ public class UserService(ITokenData tokenData,
         if (!isAdmin && !areUsersFriends && callingUserId != userId)
         {
             _logger.LogWarning("User {CallingUserId} is not an admin or friend so cannot search {UserId} by Id.", callingUserId, userId);
-            return new GetUserResponse
+            return new CommonResponse
             {
                 StatusCode = HttpStatusCode.Unauthorized,
                 Message = "Only admins or friends can search for another user by Id."
@@ -245,11 +238,10 @@ public class UserService(ITokenData tokenData,
         }
 
         var user = await _userRepository.GetDetailsByIdAsync(userId, ct);
-
         if (user == null)
         {
             _logger.LogWarning("User with ID {UserId} not found.", userId);
-            return new GetUserResponse
+            return new CommonResponse
             {
                 StatusCode = HttpStatusCode.NotFound,
                 Message = $"User with ID {userId} not found."
@@ -264,12 +256,12 @@ public class UserService(ITokenData tokenData,
         };
     }
 
-    public async Task<AddUserFriendResponse> AddUserFriendAsync(Guid friendId, CancellationToken ct)
+    public async Task<CommonResponse> AddUserFriendAsync(Guid friendId, CancellationToken ct)
     {
         if (!_tokenData.UserId.HasValue)
         {
             _logger.LogWarning("AddUserFriendAsync called with no authenticated user.");
-            return new AddUserFriendResponse
+            return new CommonResponse
             {
                 StatusCode = HttpStatusCode.Unauthorized,
                 Message = "Unauthorized."
@@ -277,11 +269,10 @@ public class UserService(ITokenData tokenData,
         }
 
         var userId = _tokenData.UserId!.Value;
-
         if (friendId == userId)
         {
             _logger.LogWarning("User {UserId} cannot add themselves as a friend.", friendId);
-            return new AddUserFriendResponse
+            return new CommonResponse
             {
                 StatusCode = HttpStatusCode.BadRequest,
                 Message = "You cannot add yourself as a friend."
@@ -292,7 +283,7 @@ public class UserService(ITokenData tokenData,
         if (!friendExists)
         {
             _logger.LogWarning("Cannot add friend {FriendId} because they do not exist.", friendId);
-            return new AddUserFriendResponse
+            return new CommonResponse
             {
                 StatusCode = HttpStatusCode.NotFound,
                 Message = "Cannot add friend because they do not exist."
@@ -300,11 +291,10 @@ public class UserService(ITokenData tokenData,
         }
 
         var existingUserFriend = await _userFriendRepository.GetUserFriendAsync(userId, friendId, ct);
-
         if (existingUserFriend != null)
         {
             _logger.LogWarning("UserFriend between {UserId} and {FriendId} already created, cannot add again.", userId, friendId);
-            return new AddUserFriendResponse
+            return new CommonResponse
             {
                 StatusCode = HttpStatusCode.BadRequest,
                 Message = "Friend already requested."
@@ -312,7 +302,6 @@ public class UserService(ITokenData tokenData,
         }
 
         var userFriendId = await _userFriendRepository.CreateUserFriendAsync(userId, friendId, ct);
-
         await _unitOfWork.SaveChangesAsync(ct);
         _logger.LogInformation("Successfully sent friend request from {UserId} to {FriendId}.", userId, friendId);
 
@@ -337,7 +326,6 @@ public class UserService(ITokenData tokenData,
         }
 
         var userId = _tokenData.UserId!.Value;
-
         if (friendId == userId)
         {
             _logger.LogWarning("User {UserId} cannot have themselves as a friend.", friendId);
@@ -370,7 +358,6 @@ public class UserService(ITokenData tokenData,
         }
 
         await _userFriendRepository.UpdateUserFriendStatusAsync(userFriend.UserFriendId, request.Status, ct);
-
         await _unitOfWork.SaveChangesAsync(ct);
         _logger.LogInformation("Successfully updated friend status for {UserId} and {FriendId}.", userId, friendId);
 
@@ -406,7 +393,6 @@ public class UserService(ITokenData tokenData,
 
         var callingUserId = _tokenData.UserId!.Value;
         var isAdmin = await _userRepository.IsUserAdminAsync(callingUserId, ct);
-
         if (!isAdmin && callingUserId != userId)
         {
             _logger.LogWarning("User {UserId} is not an admin and can only delete their own account.", userId);
@@ -417,8 +403,18 @@ public class UserService(ITokenData tokenData,
             };
         }
 
-        await _userRepository.DeleteAsync(userId, ct);
+        var isUserToDeleteAdmin = await _userRepository.IsUserAdminAsync(userId, ct);
+        if (isUserToDeleteAdmin && callingUserId != userId)
+        {
+            _logger.LogWarning("User {UserId} is an admin and cannot be deleted by another user {CallingUserId}.", userId, callingUserId);
+            return new CommonResponse
+            {
+                StatusCode = HttpStatusCode.Forbidden,
+                Message = "You cannot delete other admins."
+            };
+        }
 
+        await _userRepository.DeleteAsync(userId, ct);
         await _unitOfWork.SaveChangesAsync(ct);
         _logger.LogInformation("User {UserId} deleted successfully by user {CallingUserId}.", userId, callingUserId);
 
@@ -443,7 +439,6 @@ public class UserService(ITokenData tokenData,
 
         var callingUserId = _tokenData.UserId!.Value;
         var userToFriend = await _userRepository.GetByEmailAsync(request.Email, ct);
-
         if (userToFriend == null)
         {
             _logger.LogWarning("User {CallingUserId} tried to add a friend with email {Email}, but no user was found.", callingUserId, request.Email);
@@ -476,10 +471,9 @@ public class UserService(ITokenData tokenData,
         }
 
         _ = await _userFriendRepository.CreateUserFriendAsync(callingUserId, userToFriend.UserId, ct);
-
         await _unitOfWork.SaveChangesAsync(ct);
         _logger.LogInformation("Successfully sent friend request from {UserId} to {FriendId} using email address.", callingUserId, userToFriend.UserId);
-        
+
         return new CommonResponse
         {
             StatusCode = HttpStatusCode.OK,
@@ -501,7 +495,6 @@ public class UserService(ITokenData tokenData,
 
         var userId = _tokenData.UserId!.Value;
         var isAdmin = await _userRepository.IsUserAdminAsync(userId, ct);
-
         if (!isAdmin)
         {
             _logger.LogWarning("User {UserId} is not an admin and cannot retrieve all users.", userId);

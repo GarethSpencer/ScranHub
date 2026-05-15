@@ -25,12 +25,12 @@ public class GroupService(ITokenData tokenData,
     private readonly IUserGroupRepository _userGroupRepository = userGroupRepository;
     private readonly IUnitOfWork _unitOfWork = unitOfWork;
 
-    public async Task<AddGroupResponse> CreateGroupAsync(CreateGroupRequest groupRequest, CancellationToken ct)
+    public async Task<CommonResponse> CreateGroupAsync(CreateGroupRequest groupRequest, CancellationToken ct)
     {
         if (!_tokenData.UserId.HasValue)
         {
             _logger.LogWarning("CreateGroupAsync called with no authenticated user.");
-            return new AddGroupResponse
+            return new CommonResponse
             {
                 StatusCode = HttpStatusCode.Unauthorized,
                 Message = "Unauthorized."
@@ -38,12 +38,11 @@ public class GroupService(ITokenData tokenData,
         }
 
         var userId = _tokenData.UserId!.Value;
-
         var groupNameExists = await _groupRepository.ExistsAsync(x => x.GroupName.ToLower() == groupRequest.GroupName.ToLower(), ct);
         if (groupNameExists)
         {
             _logger.LogWarning("Group with name {GroupName} already exists.", groupRequest.GroupName);
-            return new AddGroupResponse
+            return new CommonResponse
             {
                 StatusCode = HttpStatusCode.Conflict,
                 Message = $"Group with name {groupRequest.GroupName} already exists."
@@ -52,7 +51,6 @@ public class GroupService(ITokenData tokenData,
 
         var groupId = await _groupRepository.CreateAsync(groupRequest.GroupName, ct);
         _ = await _userGroupRepository.AddUserToGroupAsync(groupId, userId, ct);
-
         await _unitOfWork.SaveChangesAsync(ct);
         _logger.LogInformation("Group [{GroupId}] created successfully.", groupId);
 
@@ -64,12 +62,12 @@ public class GroupService(ITokenData tokenData,
         };
     }
 
-    public async Task<GetGroupResponse> GetGroupAsync(Guid groupId, CancellationToken ct)
+    public async Task<CommonResponse> GetGroupAsync(Guid groupId, CancellationToken ct)
     {
         if (!_tokenData.UserId.HasValue)
         {
             _logger.LogWarning("GetGroupAsync called with no authenticated user.");
-            return new GetGroupResponse
+            return new CommonResponse
             {
                 StatusCode = HttpStatusCode.Unauthorized,
                 Message = "Unauthorized."
@@ -77,14 +75,13 @@ public class GroupService(ITokenData tokenData,
         }
 
         var userId = _tokenData.UserId!.Value;
-
         var isAdmin = await _userRepository.IsUserAdminAsync(userId, ct);
         var isMember = await _userGroupRepository.IsUserInGroupAsync(groupId, userId, ct);
 
         if (!isAdmin && !isMember)
         {
             _logger.LogWarning("User {UserId} is not an admin or group member so cannot search {GroupId} by Id.", userId, groupId);
-            return new GetGroupResponse
+            return new CommonResponse
             {
                 StatusCode = HttpStatusCode.Unauthorized,
                 Message = "Only admins or group members can search for a group by Id."
@@ -92,11 +89,10 @@ public class GroupService(ITokenData tokenData,
         }
 
         var group = await _groupRepository.GetDetailsByIdAsync(groupId, ct);
-
         if (group == null)
         {
             _logger.LogWarning("Group with ID {GroupId} not found.", groupId);
-            return new GetGroupResponse
+            return new CommonResponse
             {
                 StatusCode = HttpStatusCode.NotFound,
                 Message = $"Group with ID {groupId} not found."
@@ -111,12 +107,12 @@ public class GroupService(ITokenData tokenData,
         };
     }
 
-    public async Task<GetGroupsResponse> SearchGroupsAsync(SearchGroupRequest request, CancellationToken ct)
+    public async Task<CommonResponse> SearchGroupsAsync(SearchGroupRequest request, CancellationToken ct)
     {
         if (!_tokenData.UserId.HasValue)
         {
             _logger.LogWarning("SearchGroupsAsync called with no authenticated user.");
-            return new GetGroupsResponse
+            return new CommonResponse
             {
                 StatusCode = HttpStatusCode.Unauthorized,
                 Message = "Unauthorized."
@@ -124,7 +120,6 @@ public class GroupService(ITokenData tokenData,
         }
 
         var userId = _tokenData.UserId!.Value;
-
         var (groups, totalCount) = await _groupRepository.SearchByNameAsync(request, userId, ct);
 
         return new GetGroupsResponse
@@ -160,7 +155,6 @@ public class GroupService(ITokenData tokenData,
         }
 
         var userId = _tokenData.UserId!.Value;
-
         var didUserCreateGroup = await _groupRepository.DidUserCreateGroupAsync(groupId, userId, ct);
         if (!didUserCreateGroup)
         {
@@ -187,7 +181,6 @@ public class GroupService(ITokenData tokenData,
         }
 
         await _groupRepository.UpdateAsync(groupId, groupRequest, ct);
-
         await _unitOfWork.SaveChangesAsync(ct);
         _logger.LogInformation("Group [{GroupId}] updated successfully.", groupId);
 
@@ -198,12 +191,12 @@ public class GroupService(ITokenData tokenData,
         };
     }
 
-    public async Task<UserGroupsResponse> GetGroupsForUserAsync(CancellationToken ct)
+    public async Task<CommonResponse> GetGroupsForUserAsync(CancellationToken ct)
     {
         if (!_tokenData.UserId.HasValue)
         {
             _logger.LogWarning("GetGroupsForUserAsync called with no authenticated user.");
-            return new UserGroupsResponse
+            return new CommonResponse
             {
                 StatusCode = HttpStatusCode.Unauthorized,
                 Message = "Unauthorized."
@@ -211,9 +204,7 @@ public class GroupService(ITokenData tokenData,
         }
 
         var userId = _tokenData.UserId!.Value;
-
         var userGroups = await _userGroupRepository.GetGroupsForUserAsync(userId, ct);
-
         _logger.LogInformation("Successfully retrieved groups for user {UserId}", userId);
 
         return new UserGroupsResponse
@@ -249,7 +240,6 @@ public class GroupService(ITokenData tokenData,
         }
 
         var userId = _tokenData.UserId!.Value;
-
         var isMember = await _userGroupRepository.IsUserInGroupAsync(groupId, userId, ct);
         if (!isMember)
         {
@@ -273,7 +263,6 @@ public class GroupService(ITokenData tokenData,
         }
 
         await _userGroupRepository.RemoveUserFromGroupAsync(groupId, userId, ct);
-
         await _unitOfWork.SaveChangesAsync(ct);
         _logger.LogInformation("User {UserId} left group {GroupId} successfully.", userId, groupId);
 
@@ -308,7 +297,6 @@ public class GroupService(ITokenData tokenData,
         }
 
         var userId = _tokenData.UserId!.Value;
-
         var isMember = await _userGroupRepository.IsUserInGroupAsync(groupId, userId, ct);
         if (isMember)
         {
@@ -321,7 +309,6 @@ public class GroupService(ITokenData tokenData,
         }
 
         var hasFriendInGroup = await _groupRepository.DoesUserHaveFriendInGroupAsync(groupId, userId, ct);
-
         if (!hasFriendInGroup)
         {
             _logger.LogWarning("User {UserId} is not friends with anyone in group {GroupId}.", userId, groupId);
@@ -333,7 +320,6 @@ public class GroupService(ITokenData tokenData,
         }
 
         await _userGroupRepository.AddUserToGroupAsync(groupId, userId, ct);
-
         await _unitOfWork.SaveChangesAsync(ct);
         _logger.LogInformation("User {UserId} joined group {GroupId} successfully.", userId, groupId);
 
@@ -368,9 +354,7 @@ public class GroupService(ITokenData tokenData,
         }
 
         var userId = _tokenData.UserId!.Value;
-
         var isAdmin = await _userRepository.IsUserAdminAsync(userId, ct);
-
         if (!isAdmin)
         {
             _logger.LogWarning("User {UserId} is not an admin and cannot delete group {GroupId}.", userId, groupId);
@@ -382,7 +366,6 @@ public class GroupService(ITokenData tokenData,
         }
 
         await _groupRepository.DeleteAsync(groupId, ct);
-
         await _unitOfWork.SaveChangesAsync(ct);
         _logger.LogInformation("User {UserId} deleted group {GroupId} successfully.", userId, groupId);
 
@@ -407,7 +390,6 @@ public class GroupService(ITokenData tokenData,
 
         var userId = _tokenData.UserId!.Value;
         var isAdmin = await _userRepository.IsUserAdminAsync(userId, ct);
-
         if (!isAdmin)
         {
             _logger.LogWarning("User {UserId} is not an admin and cannot retrieve all groups.", userId);
