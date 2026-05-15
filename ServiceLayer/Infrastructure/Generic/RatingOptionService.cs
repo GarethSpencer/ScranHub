@@ -359,7 +359,7 @@ public abstract class RatingOptionService<TRatingRepository, TRatingOptionReposi
         return new CommonResponse
         {
             StatusCode = HttpStatusCode.OK,
-            Message = "Quality rating updated successfully.",
+            Message = "Rating option updated successfully.",
         };
     }
 
@@ -429,7 +429,7 @@ public abstract class RatingOptionService<TRatingRepository, TRatingOptionReposi
         return new CommonResponse
         {
             StatusCode = HttpStatusCode.OK,
-            Message = "Quality rating deleted successfully.",
+            Message = "Rating option deleted successfully.",
         };
     }
 

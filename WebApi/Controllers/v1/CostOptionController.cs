@@ -55,7 +55,6 @@ public class CostOptionController(
         }
 
         var response = await _costOptionService.SetGroupCustomOptionsAsync(request, ct);
-
         return StatusCode((int)response.StatusCode, response);
     }
 
@@ -70,7 +69,6 @@ public class CostOptionController(
     public async Task<IActionResult> RemoveCustomOptions([FromRoute] Guid groupId, CancellationToken ct)
     {
         var response = await _costOptionService.RemoveGroupCustomOptionsAsync(groupId, ct);
-
         return StatusCode((int)response.StatusCode, response);
     }
 
@@ -96,7 +94,6 @@ public class CostOptionController(
         }
 
         var response = await _costOptionService.AddOptionAsync(request, ct);
-
         return StatusCode((int)response.StatusCode, response);
     }
 
@@ -123,7 +120,6 @@ public class CostOptionController(
         }
 
         var response = await _costOptionService.UpdateOptionAsync(optionId, request, ct);
-
         return StatusCode((int)response.StatusCode, response);
     }
 
@@ -139,7 +135,6 @@ public class CostOptionController(
     public async Task<IActionResult> RemoveCustomOption([FromRoute] Guid optionId, CancellationToken ct)
     {
         var response = await _costOptionService.DeleteOptionAsync(optionId, ct);
-
         return StatusCode((int)response.StatusCode, response);
     }
 
@@ -159,7 +154,6 @@ public class CostOptionController(
         }
 
         var response = await _costOptionService.ReorderOptionsAsync(request, ct);
-
         return StatusCode((int)response.StatusCode, response);
     }
 
