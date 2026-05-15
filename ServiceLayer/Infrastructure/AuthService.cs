@@ -7,7 +7,6 @@ using System.Security.Claims;
 using System.Text;
 using Utilities.Models.Options;
 using Utilities.Models.Requests.Authentication;
-using Utilities.Token;
 
 namespace ServiceLayer.Infrastructure;
 

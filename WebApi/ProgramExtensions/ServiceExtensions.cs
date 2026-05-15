@@ -10,8 +10,17 @@ using WebApi.Middleware;
 
 namespace WebApi.ProgramExtensions;
 
+/// <summary>
+/// Extension methods for the WebApi project to configure services such as API behavior, versioning, Swagger, Scalar, CORS, authentication, authorization and health checks.
+/// </summary>
 public static class ServiceExtensions
 {
+    /// <summary>
+    /// Configure API behavior, such as model validation and exception handling.
+    /// This method adds controllers with custom API behavior options, including a custom response for invalid model states.
+    /// It also adds a scoped middleware for exception handling.
+    /// </summary>
+    /// <param name="services"></param>
     public static void ConfigureApiBehavior(this IServiceCollection services)
     {
         services.AddControllers().ConfigureApiBehaviorOptions(opts =>
@@ -33,6 +42,10 @@ public static class ServiceExtensions
         services.AddScoped<ExceptionHandlingMiddleware>();
     }
 
+    /// <summary>
+    /// Configure API versioning, including default API version, versioning scheme and API explorer options for Swagger integration.
+    /// </summary>
+    /// <param name="services"></param>
     public static void ConfigureApiVersioning(this IServiceCollection services)
     {
         services.AddApiVersioning(opts =>
@@ -48,6 +61,10 @@ public static class ServiceExtensions
         });
     }
 
+    /// <summary>
+    /// Configure Swagger for API documentation and UI, including support for API versioning and authorization persistence in the UI.
+    /// </summary>
+    /// <param name="services"></param>
     public static void ConfigureSwagger(this IServiceCollection services)
     {
         services.AddSwaggerGen(opts =>
@@ -72,6 +89,10 @@ public static class ServiceExtensions
         });
     }
 
+    /// <summary>
+    /// Configure Scalar for API reference documentation and UI, including support for authentication with Bearer tokens in the UI.
+    /// </summary>
+    /// <param name="services"></param>
     public static void ConfigureScalar(this IServiceCollection services)
     {
         services.AddOpenApi(opts =>
@@ -93,6 +114,11 @@ public static class ServiceExtensions
         });
     }
 
+    /// <summary>
+    /// Configure Cors policies for development and production environments.
+    /// Allowing any origin, method and header in development, and restricting origins and headers in production.
+    /// </summary>
+    /// <param name="services"></param>
     public static void ConfigureCors(this IServiceCollection services)
     {
         services.AddCors(opts =>
@@ -109,6 +135,11 @@ public static class ServiceExtensions
         });
     }
 
+    /// <summary>
+    /// Configure authentication using JWT Bearer tokens, including token validation parameters such as issuer, audience and signing key.
+    /// </summary>
+    /// <param name="services"></param>
+    /// <param name="configuration"></param>
     public static void ConfigureAuthentication(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddAuthentication("Bearer")
@@ -129,6 +160,11 @@ public static class ServiceExtensions
         services.Configure<Authentication>(configuration.GetSection("Authentication"));
     }
 
+    /// <summary>
+    /// Configure authorization with a fallback policy that requires authenticated users by default for all endpoints,
+    /// unless overridden with [AllowAnonymous] or specific policies on controllers or actions.
+    /// </summary>
+    /// <param name="services"></param>
     public static void ConfigureAuthorization(this IServiceCollection services)
     {
         services.AddAuthorizationBuilder()
@@ -137,6 +173,11 @@ public static class ServiceExtensions
                 .Build());
     }
 
+    /// <summary>
+    /// Configure basic health checks for the application, including a check for SQL Server connectivity.
+    /// </summary>
+    /// <param name="services"></param>
+    /// <param name="configuration"></param>
     public static void ConfigureHealthChecks(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddHealthChecks()

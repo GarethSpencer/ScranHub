@@ -3,8 +3,15 @@ using Scalar.AspNetCore;
 
 namespace WebApi.ProgramExtensions;
 
+/// <summary>
+/// Extension methods for the WebApi project to configure WebApplication with Swagger and Scalar API documentation and UI.
+/// </summary>
 public static class ApplicationExtensions
 {
+    /// <summary>
+    /// Configure the WebApplication to use Swagger for API documentation and UI, including support for API versioning and authorization persistence in the UI.
+    /// </summary>
+    /// <param name="application"></param>
     public static void ConfigureSwagger(this WebApplication application)
     {
         var apiVersionDescriptionProvider = application.Services.GetRequiredService<IApiVersionDescriptionProvider>();
@@ -20,6 +27,10 @@ public static class ApplicationExtensions
         });
     }
 
+    /// <summary>
+    /// Configure the WebApplication to use Scalar for API reference documentation and UI, including support for authentication with Bearer tokens in the UI.
+    /// </summary>
+    /// <param name="application"></param>
     public static void ConfigureScalar(this WebApplication application)
     {
         application.MapOpenApi().AllowAnonymous();
