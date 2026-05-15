@@ -32,12 +32,12 @@ public abstract class RatingService<TRatingRepository, TRatingOptionRepository>(
     protected readonly IGroupVenueRepository _groupVenueRepository = groupVenueRepository;
     protected readonly IUnitOfWork _unitOfWork = unitOfWork;
 
-    public async Task<AddRatingResponse> CreateRatingAsync(CreateRatingRequest request, CancellationToken ct)
+    public async Task<CommonResponse> CreateRatingAsync(CreateRatingRequest request, CancellationToken ct)
     {
         if (!_tokenData.UserId.HasValue)
         {
             _logger.LogWarning("CreateRatingAsync called with no authenticated user.");
-            return new AddRatingResponse
+            return new CommonResponse
             {
                 StatusCode = HttpStatusCode.Unauthorized,
                 Message = "Unauthorized."
@@ -50,7 +50,7 @@ public abstract class RatingService<TRatingRepository, TRatingOptionRepository>(
         if (groupVenue == null)
         {
             _logger.LogWarning("Group venue {GroupVenueId} not found for user {UserId}.", request.GroupVenueId, userId);
-            return new AddRatingResponse
+            return new CommonResponse
             {
                 StatusCode = HttpStatusCode.NotFound,
                 Message = "Venue not found."
@@ -61,7 +61,7 @@ public abstract class RatingService<TRatingRepository, TRatingOptionRepository>(
         if (!isUserInGroup)
         {
             _logger.LogWarning("User {UserId} is not a member of group {GroupId}.", userId, groupVenue.GroupId);
-            return new AddRatingResponse
+            return new CommonResponse
             {
                 StatusCode = HttpStatusCode.Forbidden,
                 Message = "You do not have permission to rate this venue."
@@ -72,7 +72,7 @@ public abstract class RatingService<TRatingRepository, TRatingOptionRepository>(
         if (!options.Any(qo => qo.OptionId == request.OptionId))
         {
             _logger.LogWarning("Invalid quality option ID {QualityOptionId} provided for group {GroupId}.", request.OptionId, groupVenue.GroupId);
-            return new AddRatingResponse
+            return new CommonResponse
             {
                 StatusCode = HttpStatusCode.BadRequest,
                 Message = "Invalid quality option provided."
@@ -83,7 +83,7 @@ public abstract class RatingService<TRatingRepository, TRatingOptionRepository>(
         if (isRatedAlready)
         {
             _logger.LogWarning("Quality rating for venue {GroupVenueId} already exists for user {UserId}.", request.GroupVenueId, userId);
-            return new AddRatingResponse
+            return new CommonResponse
             {
                 StatusCode = HttpStatusCode.BadRequest,
                 Message = "You have already rated the quality of this venue."
@@ -200,12 +200,12 @@ public abstract class RatingService<TRatingRepository, TRatingOptionRepository>(
         };
     }
 
-    public async Task<GetRatingResponse> GetRatingAsync(Guid ratingId, CancellationToken ct)
+    public async Task<CommonResponse> GetRatingAsync(Guid ratingId, CancellationToken ct)
     {
         if (!_tokenData.UserId.HasValue)
         {
             _logger.LogWarning("GetRatingAsync called with no authenticated user.");
-            return new GetRatingResponse
+            return new CommonResponse
             {
                 StatusCode = HttpStatusCode.Unauthorized,
                 Message = "Unauthorized."
@@ -218,7 +218,7 @@ public abstract class RatingService<TRatingRepository, TRatingOptionRepository>(
         if (rating == null || rating.UserId != userId)
         {
             _logger.LogWarning("Quality rating {QualityRatingId} not found for user {UserId}.", ratingId, userId);
-            return new GetRatingResponse
+            return new CommonResponse
             {
                 StatusCode = HttpStatusCode.NotFound,
                 Message = "Rating not found."
@@ -233,12 +233,12 @@ public abstract class RatingService<TRatingRepository, TRatingOptionRepository>(
         };
     }
 
-    public async Task<GetRatingsResponse> GetRatingsForGroupVenueAsync(Guid groupVenueId, CancellationToken ct)
+    public async Task<CommonResponse> GetRatingsForGroupVenueAsync(Guid groupVenueId, CancellationToken ct)
     {
         if (!_tokenData.UserId.HasValue)
         {
             _logger.LogWarning("GetRatingsForGroupVenueAsync called with no authenticated user.");
-            return new GetRatingsResponse
+            return new CommonResponse
             {
                 StatusCode = HttpStatusCode.Unauthorized,
                 Message = "Unauthorized."
@@ -251,7 +251,7 @@ public abstract class RatingService<TRatingRepository, TRatingOptionRepository>(
         if (groupVenue == null)
         {
             _logger.LogWarning("Group venue {GroupVenueId} not found for user {UserId}.", groupVenueId, userId);
-            return new GetRatingsResponse
+            return new CommonResponse
             {
                 StatusCode = HttpStatusCode.NotFound,
                 Message = "Venue not found."
@@ -262,7 +262,7 @@ public abstract class RatingService<TRatingRepository, TRatingOptionRepository>(
         if (!isUserInGroup)
         {
             _logger.LogWarning("User {UserId} is not a member of group {GroupId}.", userId, groupVenue.GroupId);
-            return new GetRatingsResponse
+            return new CommonResponse
             {
                 StatusCode = HttpStatusCode.Forbidden,
                 Message = "You do not have permission to rate this venue."
@@ -279,12 +279,12 @@ public abstract class RatingService<TRatingRepository, TRatingOptionRepository>(
         };
     }
 
-    public async Task<GetRatingsResponse> GetUserRatingsForGroupAsync(Guid groupId, CancellationToken ct)
+    public async Task<CommonResponse> GetUserRatingsForGroupAsync(Guid groupId, CancellationToken ct)
     {
         if (!_tokenData.UserId.HasValue)
         {
             _logger.LogWarning("GetUserRatingsForGroupAsync called with no authenticated user.");
-            return new GetRatingsResponse
+            return new CommonResponse
             {
                 StatusCode = HttpStatusCode.Unauthorized,
                 Message = "Unauthorized."
@@ -296,7 +296,7 @@ public abstract class RatingService<TRatingRepository, TRatingOptionRepository>(
         if (!isUserInGroup)
         {
             _logger.LogWarning("User {UserId} is not a member of group {GroupId}.", userId, groupId);
-            return new GetRatingsResponse
+            return new CommonResponse
             {
                 StatusCode = HttpStatusCode.Forbidden,
                 Message = "You do not have permission to see ratings for this group."
@@ -313,5 +313,5 @@ public abstract class RatingService<TRatingRepository, TRatingOptionRepository>(
         };
     }
 
-    public abstract Task<GetGroupRatingsResponse> GetRatingsForGroupAsync(Guid groupId, CancellationToken ct);
+    public abstract Task<CommonResponse> GetRatingsForGroupAsync(Guid groupId, CancellationToken ct);
 }

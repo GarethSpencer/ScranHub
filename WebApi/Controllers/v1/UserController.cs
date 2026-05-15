@@ -10,6 +10,7 @@ namespace WebApi.Controllers.v1;
 [ApiController]
 [Route("v{version:apiVersion}/[controller]")]
 [ApiVersion("1.0")]
+[Produces("application/json")]
 public class UserController(
     IUserService userService,
     IValidator<CreateUserRequest> createUserRequestValidator,

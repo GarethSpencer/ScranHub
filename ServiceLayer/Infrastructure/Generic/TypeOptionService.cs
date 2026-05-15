@@ -26,16 +26,16 @@ public abstract class TypeOptionService<TTypeOptionRepository>(ITokenData tokenD
     protected readonly IGroupRepository _groupRepository = groupRepository;
     protected readonly IUnitOfWork _unitOfWork = unitOfWork;
 
-    public abstract Task<SetOptionsResponse> SetGroupCustomOptionsAsync(SetOptionsRequest request, CancellationToken ct);
+    public abstract Task<CommonResponse> SetGroupCustomOptionsAsync(SetOptionsRequest request, CancellationToken ct);
 
     public abstract Task<CommonResponse> RemoveGroupCustomOptionsAsync(Guid groupId, CancellationToken ct);
     
-    public async Task<SetOptionResponse> AddOptionAsync(SetOptionRequest request, CancellationToken ct)
+    public async Task<CommonResponse> AddOptionAsync(SetOptionRequest request, CancellationToken ct)
     {
         if (!_tokenData.UserId.HasValue)
         {
             _logger.LogWarning("AddOptionAsync called with no authenticated user.");
-            return new SetOptionResponse
+            return new CommonResponse
             {
                 StatusCode = HttpStatusCode.Unauthorized,
                 Message = "Unauthorized."
@@ -48,7 +48,7 @@ public abstract class TypeOptionService<TTypeOptionRepository>(ITokenData tokenD
         if (!isUserInGroup)
         {
             _logger.LogWarning("AddOptionAsync called by user {UserId} who is not in group {GroupId}.", userId, request.GroupId);
-            return new SetOptionResponse
+            return new CommonResponse
             {
                 StatusCode = HttpStatusCode.Forbidden,
                 Message = "You do not have permission to set options for this group."
@@ -59,7 +59,7 @@ public abstract class TypeOptionService<TTypeOptionRepository>(ITokenData tokenD
         if (group?.Active != true)
         {
             _logger.LogWarning("AddOptionAsync called for inactive or non-existent group {GroupId} by user {UserId}.", request.GroupId, userId);
-            return new SetOptionResponse
+            return new CommonResponse
             {
                 StatusCode = HttpStatusCode.BadRequest,
                 Message = "The group does not exist or is not active."
@@ -70,7 +70,7 @@ public abstract class TypeOptionService<TTypeOptionRepository>(ITokenData tokenD
         if (usingDefaults)
         {
             _logger.LogWarning("AddOptionAsync called for group {GroupId} by user {UserId} when group is using default options.", request.GroupId, userId);
-            return new SetOptionResponse
+            return new CommonResponse
             {
                 StatusCode = HttpStatusCode.BadRequest,
                 Message = "The group is not using custom options so they cannot be amended."
@@ -81,7 +81,7 @@ public abstract class TypeOptionService<TTypeOptionRepository>(ITokenData tokenD
         if (currentOptions.Any(x => string.Equals(x.Label, request.Label, StringComparison.OrdinalIgnoreCase)))
         {
             _logger.LogWarning("AddOptionAsync called for group {GroupId} by user {UserId} with duplicate label.", request.GroupId, userId);
-            return new SetOptionResponse
+            return new CommonResponse
             {
                 StatusCode = HttpStatusCode.BadRequest,
                 Message = "An option with that label already exists for this group."
@@ -239,12 +239,12 @@ public abstract class TypeOptionService<TTypeOptionRepository>(ITokenData tokenD
         };
     }
 
-    public async Task<GetTypeOptionsResponse> GetGroupTypeOptionsAsync(Guid? groupId, CancellationToken ct)
+    public async Task<CommonResponse> GetGroupTypeOptionsAsync(Guid? groupId, CancellationToken ct)
     {
         if (!_tokenData.UserId.HasValue)
         {
             _logger.LogWarning("GetGroupTypeOptionsAsync called with no authenticated user.");
-            return new GetTypeOptionsResponse
+            return new CommonResponse
             {
                 StatusCode = HttpStatusCode.Unauthorized,
                 Message = "Unauthorized."
@@ -260,7 +260,7 @@ public abstract class TypeOptionService<TTypeOptionRepository>(ITokenData tokenD
             if (!isUserInGroup)
             {
                 _logger.LogWarning("GetGroupTypeOptionsAsync called by user {UserId} who is not in group {GroupId}.", userId, groupId);
-                return new GetTypeOptionsResponse
+                return new CommonResponse
                 {
                     StatusCode = HttpStatusCode.Forbidden,
                     Message = "You do not have permission to view options for this group."
@@ -271,7 +271,7 @@ public abstract class TypeOptionService<TTypeOptionRepository>(ITokenData tokenD
             if (group?.Active != true)
             {
                 _logger.LogWarning("GetGroupTypeOptionsAsync called for inactive or non-existent group {GroupId} by user {UserId}.", groupId, userId);
-                return new GetTypeOptionsResponse
+                return new CommonResponse
                 {
                     StatusCode = HttpStatusCode.BadRequest,
                     Message = "The group does not exist or is not active."
@@ -290,12 +290,12 @@ public abstract class TypeOptionService<TTypeOptionRepository>(ITokenData tokenD
         };
     }
 
-    public async Task<GetTypeOptionResponse> GetTypeOptionAsync(Guid optionId, CancellationToken ct)
+    public async Task<CommonResponse> GetTypeOptionAsync(Guid optionId, CancellationToken ct)
     {
         if (!_tokenData.UserId.HasValue)
         {
             _logger.LogWarning("GetTypeOptionAsync called with no authenticated user.");
-            return new GetTypeOptionResponse
+            return new CommonResponse
             {
                 StatusCode = HttpStatusCode.Unauthorized,
                 Message = "Unauthorized."
@@ -308,7 +308,7 @@ public abstract class TypeOptionService<TTypeOptionRepository>(ITokenData tokenD
         if (option == null)
         {
             _logger.LogWarning("GetTypeOptionAsync called by user {UserId} for option {OptionId} which does not exist.", userId, optionId);
-            return new GetTypeOptionResponse
+            return new CommonResponse
             {
                 StatusCode = HttpStatusCode.BadRequest,
                 Message = "The option does not exist."
@@ -331,7 +331,7 @@ public abstract class TypeOptionService<TTypeOptionRepository>(ITokenData tokenD
         if (!isUserInGroup)
         {
             _logger.LogWarning("GetTypeOptionAsync called by user {UserId} who is not in group {GroupId}.", userId, option.GroupId);
-            return new GetTypeOptionResponse
+            return new CommonResponse
             {
                 StatusCode = HttpStatusCode.Forbidden,
                 Message = "You do not have permission to view options for this group."
@@ -342,7 +342,7 @@ public abstract class TypeOptionService<TTypeOptionRepository>(ITokenData tokenD
         if (group?.Active != true)
         {
             _logger.LogWarning("GetTypeOptionAsync called for inactive or non-existent group {GroupId} by user {UserId}.", option.GroupId, userId);
-            return new GetTypeOptionResponse
+            return new CommonResponse
             {
                 StatusCode = HttpStatusCode.BadRequest,
                 Message = "The group does not exist or is not active."

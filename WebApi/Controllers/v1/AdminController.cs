@@ -50,7 +50,6 @@ public class AdminController(
         }
 
         var response = await _userService.GetAllUsersAsync(request, ct);
-
         return StatusCode((int)response.StatusCode, response);
     }
 
@@ -75,7 +74,6 @@ public class AdminController(
         }
 
         var response = await _groupService.GetAllGroupsAsync(request, ct);
-
         return StatusCode((int)response.StatusCode, response);
     }
 }

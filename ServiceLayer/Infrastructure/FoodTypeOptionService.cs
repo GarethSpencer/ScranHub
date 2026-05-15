@@ -20,12 +20,12 @@ public class FoodTypeOptionService(ITokenData tokenData,
     (tokenData, foodTypeOptionRepository, logger, userGroupRepository, groupRepository, unitOfWork),
     IFoodTypeOptionService
 {
-    public override async Task<SetOptionsResponse> SetGroupCustomOptionsAsync(SetOptionsRequest request, CancellationToken ct)
+    public override async Task<CommonResponse> SetGroupCustomOptionsAsync(SetOptionsRequest request, CancellationToken ct)
     {
         if (!_tokenData.UserId.HasValue)
         {
             _logger.LogWarning("SetGroupCustomOptionsAsync called with no authenticated user.");
-            return new SetOptionsResponse
+            return new CommonResponse
             {
                 StatusCode = HttpStatusCode.Unauthorized,
                 Message = "Unauthorized."
@@ -38,7 +38,7 @@ public class FoodTypeOptionService(ITokenData tokenData,
         if (!isUserInGroup)
         {
             _logger.LogWarning("SetGroupCustomOptionsAsync called by user {UserId} who is not in group {GroupId}.", userId, request.GroupId);
-            return new SetOptionsResponse
+            return new CommonResponse
             {
                 StatusCode = HttpStatusCode.Forbidden,
                 Message = "You do not have permission to set options for this group."
@@ -49,7 +49,7 @@ public class FoodTypeOptionService(ITokenData tokenData,
         if (group?.Active != true)
         {
             _logger.LogWarning("SetGroupCustomOptionsAsync called for inactive or non-existent group {GroupId} by user {UserId}.", request.GroupId, userId);
-            return new SetOptionsResponse
+            return new CommonResponse
             {
                 StatusCode = HttpStatusCode.BadRequest,
                 Message = "The group does not exist or is not active."
@@ -60,7 +60,7 @@ public class FoodTypeOptionService(ITokenData tokenData,
         if (!usingDefaults)
         {
             _logger.LogWarning("SetGroupCustomOptionsAsync called for group {GroupId} by user {UserId} when group already has custom options.", request.GroupId, userId);
-            return new SetOptionsResponse
+            return new CommonResponse
             {
                 StatusCode = HttpStatusCode.BadRequest,
                 Message = "The group is already using custom options."

@@ -4,6 +4,7 @@ using RepositoryLayer.Abstractions.Generic;
 using ServiceLayer.Abstractions;
 using ServiceLayer.Infrastructure.Generic;
 using System.Net;
+using Utilities.Models.Responses.Generic;
 using Utilities.Models.Responses.Ratings;
 using Utilities.Token;
 
@@ -21,12 +22,12 @@ public class QualityRatingService(ITokenData tokenData,
     IQualityRatingService
 {
 
-    public override async Task<GetGroupRatingsResponse> GetRatingsForGroupAsync(Guid groupId, CancellationToken ct)
+    public override async Task<CommonResponse> GetRatingsForGroupAsync(Guid groupId, CancellationToken ct)
     {
         if (!_tokenData.UserId.HasValue)
         {
             _logger.LogWarning("GetRatingsForGroupAsync called with no authenticated user.");
-            return new GetGroupRatingsResponse
+            return new CommonResponse
             {
                 StatusCode = HttpStatusCode.Unauthorized,
                 Message = "Unauthorized."
@@ -38,7 +39,7 @@ public class QualityRatingService(ITokenData tokenData,
         if (!isUserInGroup)
         {
             _logger.LogWarning("User {UserId} is not a member of group {GroupId}.", userId, groupId);
-            return new GetGroupRatingsResponse
+            return new CommonResponse
             {
                 StatusCode = HttpStatusCode.Forbidden,
                 Message = "You do not have permission to see ratings for this group."

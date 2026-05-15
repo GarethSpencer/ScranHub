@@ -10,6 +10,7 @@ namespace WebApi.Controllers.v1;
 [Route("v{version:apiVersion}/[controller]")]
 [ApiVersion("1.0")]
 [AllowAnonymous]
+[Produces("application/json")]
 public class LookupController : ControllerBase
 {
     private static readonly Lazy<List<FriendshipStatusResult>> Statuses = new(() =>
