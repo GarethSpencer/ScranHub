@@ -11,7 +11,7 @@ namespace RepositoryLayer.Infrastructure.Generic;
 public abstract class RatingOptionRepository<TRatingOption>(ScranHubDbContext dbContext) : EFRepository<TRatingOption>(dbContext), IRatingOptionRepository
     where TRatingOption : class, IRatingOption, new()
 {
-    public async Task<IEnumerable<RatingOptionResult>> GetForGroupIdAsync(Guid groupId, CancellationToken ct)
+    public async Task<IEnumerable<RatingOptionResult>> GetForGroupIdAsync(Guid? groupId, CancellationToken ct)
     {
         var options = await _dbSet
             .Where(x => x.GroupId == groupId)

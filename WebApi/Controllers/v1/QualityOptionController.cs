@@ -107,4 +107,18 @@ public class QualityOptionController(
 
         return StatusCode((int)response.StatusCode, response);
     }
+
+    [HttpGet]
+    public async Task<IActionResult> GetRatingOptionsForGroup([FromQuery] Guid? groupId, CancellationToken ct)
+    {
+        var response = await _qualityOptionService.GetGroupRatingOptionsAsync(groupId, ct);
+        return StatusCode((int)response.StatusCode, response);
+    }
+
+    [HttpGet("custom/{optionId}")]
+    public async Task<IActionResult> GetRatingOption([FromRoute] Guid optionId, CancellationToken ct)
+    {
+        var response = await _qualityOptionService.GetRatingOptionAsync(optionId, ct);
+        return StatusCode((int)response.StatusCode, response);
+    }
 }

@@ -7,7 +7,7 @@ public interface IRatingOptionRepository
 {
     Task<RatingOptionResult?> GetByIdAsync(Guid id, CancellationToken ct);
 
-    Task<IEnumerable<RatingOptionResult>> GetForGroupIdAsync(Guid groupId, CancellationToken ct);
+    Task<IEnumerable<RatingOptionResult>> GetForGroupIdAsync(Guid? groupId, CancellationToken ct);
 
     Task<IEnumerable<RatingOptionResult>> GetDefaultsAsync(CancellationToken ct);
 

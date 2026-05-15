@@ -12,4 +12,6 @@ public interface IRatingOptionService
     Task<CommonResponse> DeleteOptionAsync(Guid optionId, CancellationToken ct);
     Task<CommonResponse> RemoveGroupCustomOptionsAsync(Guid groupId, CancellationToken ct);
     Task<CommonResponse> ReorderOptionsAsync(OrderOptionsRequest request, CancellationToken ct);
+    Task<GetRatingOptionsResponse> GetGroupRatingOptionsAsync(Guid? groupId, CancellationToken ct);
+    Task<GetRatingOptionResponse> GetRatingOptionAsync(Guid optionId, CancellationToken ct);
 }

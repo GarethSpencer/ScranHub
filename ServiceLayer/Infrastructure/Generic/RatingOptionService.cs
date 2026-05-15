@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Azure.Core;
+using Microsoft.Extensions.Logging;
 using RepositoryLayer.Abstractions;
 using RepositoryLayer.Abstractions.Generic;
 using ServiceLayer.Abstractions.Generic;
@@ -6,6 +7,7 @@ using System.Net;
 using Utilities.Models.Requests.Options;
 using Utilities.Models.Responses.Generic;
 using Utilities.Models.Responses.Options;
+using Utilities.Models.Results.Generic;
 using Utilities.Token;
 
 namespace ServiceLayer.Infrastructure.Generic;
@@ -502,6 +504,124 @@ public abstract class RatingOptionService<TRatingRepository, TRatingOptionReposi
         {
             StatusCode = HttpStatusCode.OK,
             Message = $"Group-specific options reordered successfully."
+        };
+    }
+
+    public async Task<GetRatingOptionsResponse> GetGroupRatingOptionsAsync(Guid? groupId, CancellationToken ct)
+    {
+        if (!_tokenData.UserId.HasValue)
+        {
+            _logger.LogWarning("GetGroupRatingOptionsAsync called with no authenticated user.");
+            return new GetRatingOptionsResponse
+            {
+                StatusCode = HttpStatusCode.Unauthorized,
+                Message = "Unauthorized."
+            };
+        }
+
+        var userId = _tokenData.UserId!.Value;
+
+        if (groupId != null)
+        {
+            var isUserInGroup = await _userGroupRepository.IsUserInGroupAsync(groupId.Value, userId, ct);
+
+            if (!isUserInGroup)
+            {
+                _logger.LogWarning("GetGroupRatingOptionsAsync called by user {UserId} who is not in group {GroupId}.", userId, groupId);
+                return new GetRatingOptionsResponse
+                {
+                    StatusCode = HttpStatusCode.Forbidden,
+                    Message = "You do not have permission to view options for this group."
+                };
+            }
+
+            var group = await _groupRepository.GetDetailsByIdAsync(groupId.Value, ct);
+            if (group?.Active != true)
+            {
+                _logger.LogWarning("GetGroupRatingOptionsAsync called for inactive or non-existent group {GroupId} by user {UserId}.", groupId, userId);
+                return new GetRatingOptionsResponse
+                {
+                    StatusCode = HttpStatusCode.BadRequest,
+                    Message = "The group does not exist or is not active."
+                };
+            }
+        }
+
+        var options = await _ratingOptionRepository.GetForGroupIdAsync(groupId, ct);
+        _logger.LogInformation("User {UserId} retrieved options for group {GroupId}.", userId, groupId);
+
+        return new GetRatingOptionsResponse
+        {
+            StatusCode = HttpStatusCode.OK,
+            Message = "Options retrieved successfully.",
+            Options = options
+        };
+    }
+
+    public async Task<GetRatingOptionResponse> GetRatingOptionAsync(Guid optionId, CancellationToken ct)
+    {
+        if (!_tokenData.UserId.HasValue)
+        {
+            _logger.LogWarning("GetRatingOptionAsync called with no authenticated user.");
+            return new GetRatingOptionResponse
+            {
+                StatusCode = HttpStatusCode.Unauthorized,
+                Message = "Unauthorized."
+            };
+        }
+
+        var userId = _tokenData.UserId!.Value;
+        var option = await _ratingOptionRepository.GetByIdAsync(optionId, ct);
+
+        if (option == null)
+        {
+            _logger.LogWarning("GetRatingOptionAsync called by user {UserId} for option {OptionId} which does not exist.", userId, optionId);
+            return new GetRatingOptionResponse
+            {
+                StatusCode = HttpStatusCode.BadRequest,
+                Message = "The option does not exist."
+            };
+        }
+
+        if (option.GroupId == null)
+        {
+            _logger.LogInformation("User {UserId} retrieved default option {OptionId}.", userId, optionId);
+            return new GetRatingOptionResponse
+            {
+                StatusCode = HttpStatusCode.OK,
+                Message = "Option retrieved successfully.",
+                Option = option
+            };
+        }
+
+        var isUserInGroup = await _userGroupRepository.IsUserInGroupAsync(option.GroupId.Value, userId, ct);
+
+        if (!isUserInGroup)
+        {
+            _logger.LogWarning("SetGroupCustomOptionsAsync called by user {UserId} who is not in group {GroupId}.", userId, option.GroupId);
+            return new GetRatingOptionResponse
+            {
+                StatusCode = HttpStatusCode.Forbidden,
+                Message = "You do not have permission to set options for this group."
+            };
+        }
+
+        var group = await _groupRepository.GetDetailsByIdAsync(option.GroupId.Value, ct);
+        if (group?.Active != true)
+        {
+            _logger.LogWarning("SetGroupCustomOptionsAsync called for inactive or non-existent group {GroupId} by user {UserId}.", option.GroupId, userId);
+            return new GetRatingOptionResponse
+            {
+                StatusCode = HttpStatusCode.BadRequest,
+                Message = "The group does not exist or is not active."
+            };
+        }
+
+        return new GetRatingOptionResponse
+        {
+            StatusCode = HttpStatusCode.OK,
+            Message = "Option retrieved successfully.",
+            Option = option
         };
     }
 }
