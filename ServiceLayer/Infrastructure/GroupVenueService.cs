@@ -30,12 +30,12 @@ public class GroupVenueService(ITokenData tokenData,
     private readonly IVenueTypeOptionRepository _venueTypeOptionRepository = venueTypeOptionRepository;
     private readonly IUnitOfWork _unitOfWork = unitOfWork;
 
-    public async Task<GetGroupVenueResponse> GetGroupVenueAsync(Guid groupVenueId, CancellationToken ct)
+    public async Task<CommonResponse> GetGroupVenueAsync(Guid groupVenueId, CancellationToken ct)
     {
         if (!_tokenData.UserId.HasValue)
         {
             _logger.LogWarning("GetGroupVenueAsync called with no authenticated user.");
-            return new GetGroupVenueResponse
+            return new CommonResponse
             {
                 StatusCode = HttpStatusCode.Unauthorized,
                 Message = "Unauthorized."
@@ -47,7 +47,7 @@ public class GroupVenueService(ITokenData tokenData,
         if (groupVenue == null)
         {
             _logger.LogWarning("GroupVenue with ID {GroupVenueId} not found.", groupVenueId);
-            return new GetGroupVenueResponse
+            return new CommonResponse
             {
                 StatusCode = HttpStatusCode.NotFound,
                 Message = "Venue not found."
@@ -61,7 +61,7 @@ public class GroupVenueService(ITokenData tokenData,
         if (!isUserInGroup && !isAdmin)
         {
             _logger.LogWarning("User {UserId} is not in group {GroupId}.", userId, groupVenue.GroupId);
-            return new GetGroupVenueResponse
+            return new CommonResponse
             {
                 StatusCode = HttpStatusCode.Forbidden,
                 Message = "User is not in group."
@@ -78,12 +78,12 @@ public class GroupVenueService(ITokenData tokenData,
         };
     }
 
-    public async Task<GetGroupVenuesResponse> SearchGroupVenuesAsync(Guid groupId, SearchGroupVenueRequest request, CancellationToken ct)
+    public async Task<CommonResponse> SearchGroupVenuesAsync(Guid groupId, SearchGroupVenueRequest request, CancellationToken ct)
     {
         if (!_tokenData.UserId.HasValue)
         {
             _logger.LogWarning("SearchGroupVenuesAsync called with no authenticated user.");
-            return new GetGroupVenuesResponse
+            return new CommonResponse
             {
                 StatusCode = HttpStatusCode.Unauthorized,
                 Message = "Unauthorized."
@@ -95,7 +95,7 @@ public class GroupVenueService(ITokenData tokenData,
         if (!isGroupActive)
         {
             _logger.LogWarning("Group with ID {GroupId} not found or inactive so user {UserId} cannot search venues.", groupId, userId);
-            return new GetGroupVenuesResponse
+            return new CommonResponse
             {
                 StatusCode = HttpStatusCode.NotFound,
                 Message = "Group not found or inactive."
@@ -107,7 +107,7 @@ public class GroupVenueService(ITokenData tokenData,
         if (!isAdmin && !isUserInGroup)
         {
             _logger.LogWarning("User {UserId} is not an admin or group member and cannot search venues in this group {GroupId}.", userId, groupId);
-            return new GetGroupVenuesResponse
+            return new CommonResponse
             {
                 StatusCode = HttpStatusCode.Forbidden,
                 Message = "You cannot search venues in this group."
@@ -125,12 +125,12 @@ public class GroupVenueService(ITokenData tokenData,
         };
     }
 
-    public async Task<AddGroupVenueResponse> CreateGroupVenueAsync(CreateGroupVenueRequest request, CancellationToken ct)
+    public async Task<CommonResponse> CreateGroupVenueAsync(CreateGroupVenueRequest request, CancellationToken ct)
     {
         if (!_tokenData.UserId.HasValue)
         {
             _logger.LogWarning("CreateGroupVenueAsync called with no authenticated user.");
-            return new AddGroupVenueResponse
+            return new CommonResponse
             {
                 StatusCode = HttpStatusCode.Unauthorized,
                 Message = "Unauthorized."
@@ -143,7 +143,7 @@ public class GroupVenueService(ITokenData tokenData,
         if (!isGroupActive)
         {
             _logger.LogWarning("Group with ID {GroupId} not found or inactive.", request.GroupId);
-            return new AddGroupVenueResponse
+            return new CommonResponse
             {
                 StatusCode = HttpStatusCode.NotFound,
                 Message = "Group not found or inactive."
@@ -154,7 +154,7 @@ public class GroupVenueService(ITokenData tokenData,
         if (!isUserInGroup)
         {
             _logger.LogWarning("User {UserId} is not in group {GroupId}.", callingUserId, request.GroupId);
-            return new AddGroupVenueResponse
+            return new CommonResponse
             {
                 StatusCode = HttpStatusCode.Forbidden,
                 Message = "User is not in group."
@@ -165,7 +165,7 @@ public class GroupVenueService(ITokenData tokenData,
         if (request.FoodTypeOptionId != null && !validFoodTypes.Any(fto => fto.OptionId == request.FoodTypeOptionId))
         {
             _logger.LogWarning("Invalid food type ID {FoodTypeOptionId} provided for group {GroupId}.", request.FoodTypeOptionId, request.GroupId);
-            return new AddGroupVenueResponse
+            return new CommonResponse
             {
                 StatusCode = HttpStatusCode.BadRequest,
                 Message = "Invalid food type provided."
@@ -176,7 +176,7 @@ public class GroupVenueService(ITokenData tokenData,
         if (request.VenueTypeOptionId != null && !validVenueTypes.Any(vto => vto.OptionId == request.VenueTypeOptionId))
         {
             _logger.LogWarning("Invalid venue type ID {VenueTypeOptionId} provided for group {GroupId}.", request.VenueTypeOptionId, request.GroupId);
-            return new AddGroupVenueResponse
+            return new CommonResponse
             {
                 StatusCode = HttpStatusCode.BadRequest,
                 Message = "Invalid venue type provided."
@@ -187,7 +187,7 @@ public class GroupVenueService(ITokenData tokenData,
         if (doesGroupVenueNameExist)
         {
             _logger.LogWarning("Venue with name {VenueName} already exists in group {GroupId}.", request.VenueName, request.GroupId);
-            return new AddGroupVenueResponse
+            return new CommonResponse
             {
                 StatusCode = HttpStatusCode.Conflict,
                 Message = "Venue with this name already exists in the group."
@@ -201,7 +201,7 @@ public class GroupVenueService(ITokenData tokenData,
 
         return new AddGroupVenueResponse
         {
-            StatusCode = HttpStatusCode.OK,
+            StatusCode = HttpStatusCode.Created,
             Message = "Venue created successfully.",
             GroupVenueId = groupVenueId,
         };

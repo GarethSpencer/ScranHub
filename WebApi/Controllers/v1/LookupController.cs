@@ -6,6 +6,9 @@ using Utilities.Models.Results;
 
 namespace WebApi.Controllers.v1;
 
+/// <summary>
+/// Provides endpoints for retrieving lookup data, to be used by the client for display and selection purposes.
+/// </summary>
 [ApiController]
 [Route("v{version:apiVersion}/[controller]")]
 [ApiVersion("1.0")]
@@ -22,6 +25,10 @@ public class LookupController : ControllerBase
                 Name = s.ToString()
             })]);
 
+    /// <summary>
+    /// Get all possible friendship statuses.
+    /// </summary>
     [HttpGet("friendship-statuses")]
+    [ProducesResponseType(typeof(List<FriendshipStatusResult>), StatusCodes.Status200OK)]
     public IActionResult GetFriendshipStatuses() => Ok(Statuses.Value);
 }

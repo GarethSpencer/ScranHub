@@ -3,10 +3,20 @@ using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 using ServiceLayer.Abstractions;
 using Utilities.Models.Requests.GroupVenues;
+using Utilities.Models.Responses.Generic;
+using Utilities.Models.Responses.GroupVenues;
 using Utilities.Validators;
 
 namespace WebApi.Controllers.v1;
 
+/// <summary>
+/// Provides endpoints for managing group venues, including creating, updating and deleting,
+/// and retrieving by ID and name search.
+/// </summary>
+/// <param name="groupVenueService"></param>
+/// <param name="createGroupVenueRequestValidator"></param>
+/// <param name="updateGroupVenueRequestValidator"></param>
+/// <param name="searchGroupVenueRequestValidator"></param>
 [ApiController]
 [Route("v{version:apiVersion}/[controller]")]
 [ApiVersion("1.0")]
@@ -22,15 +32,27 @@ public class GroupVenueController(
     private readonly IValidator<UpdateGroupVenueRequest> _updateGroupVenueRequestValidator = updateGroupVenueRequestValidator;
     private readonly IValidator<SearchGroupVenueRequest> _searchGroupVenueRequestValidator = searchGroupVenueRequestValidator;
 
+    /// <summary>
+    /// Retrieve a group's venue by its ID.
+    /// </summary>
+    /// <param name="groupVenueId"></param>
+    /// <param name="ct"></param>
     [HttpGet("{groupVenueId}")]
+    [ProducesResponseType(typeof(GetGroupVenueResponse), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetGroupVenue([FromRoute] Guid groupVenueId, CancellationToken ct)
     {
         var response = await _groupVenueService.GetGroupVenueAsync(groupVenueId, ct);
-
         return StatusCode((int)response.StatusCode, response);
     }
 
+    /// <summary>
+    /// Search and retrieve a list of a group's venues using optional search text, with pagination support.
+    /// </summary>
+    /// <param name="groupId"></param>
+    /// <param name="request"></param>
+    /// <param name="ct"></param>
     [HttpGet("group/{groupId}")]
+    [ProducesResponseType(typeof(GetGroupVenuesResponse), StatusCodes.Status200OK)]
     public async Task<IActionResult> SearchGroupVenues([FromRoute] Guid groupId, [FromQuery] SearchGroupVenueRequest request, CancellationToken ct)
     {
         if (request == null)
@@ -45,11 +67,16 @@ public class GroupVenueController(
         }
 
         var response = await _groupVenueService.SearchGroupVenuesAsync(groupId, request, ct);
-
         return StatusCode((int)response.StatusCode, response);
     }
 
+    /// <summary>
+    /// Create a new venue for a group with a name and optional food and venue type.
+    /// </summary>
+    /// <param name="request"></param>
+    /// <param name="ct"></param>
     [HttpPost]
+    [ProducesResponseType(typeof(AddGroupVenueResponse), StatusCodes.Status201Created)]
     public async Task<IActionResult> CreateGroupVenue([FromBody] CreateGroupVenueRequest request, CancellationToken ct)
     {
         if (request == null)
@@ -64,11 +91,18 @@ public class GroupVenueController(
         }
 
         var response = await _groupVenueService.CreateGroupVenueAsync(request, ct);
-
         return StatusCode((int)response.StatusCode, response);
     }
 
+    /// <summary>
+    /// Update an existing venue for a group by its ID,
+    /// allowing changes to the name, visited status, and food and venue type options.
+    /// </summary>
+    /// <param name="groupVenueId"></param>
+    /// <param name="request"></param>
+    /// <param name="ct"></param>
     [HttpPatch("{groupVenueId}")]
+    [ProducesResponseType(typeof(CommonResponse), StatusCodes.Status200OK)]
     public async Task<IActionResult> UpdateGroupVenue([FromRoute] Guid groupVenueId, [FromBody] UpdateGroupVenueRequest request, CancellationToken ct)
     {
         if (request == null)
@@ -83,15 +117,19 @@ public class GroupVenueController(
         }
 
         var response = await _groupVenueService.UpdateGroupVenueAsync(groupVenueId, request, ct);
-
         return StatusCode((int)response.StatusCode, response);
     }
 
+    /// <summary>
+    /// Delete a group's venue by its ID. This will cascade delete any associated ratings.
+    /// </summary>
+    /// <param name="groupVenueId"></param>
+    /// <param name="ct"></param>
     [HttpDelete("{groupVenueId}")]
+    [ProducesResponseType(typeof(CommonResponse), StatusCodes.Status200OK)]
     public async Task<IActionResult> DeleteGroupVenue([FromRoute] Guid groupVenueId, CancellationToken ct)
     {
         var response = await _groupVenueService.DeleteGroupVenueAsync(groupVenueId, ct);
-
         return StatusCode((int)response.StatusCode, response);
     }
 }
