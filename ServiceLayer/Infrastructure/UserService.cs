@@ -41,7 +41,7 @@ public class UserService(ITokenData tokenData,
         var userFriends = await _userRepository.GetFriendsForUserAsync(userId, ct);
         if (userFriends == null)
         {
-            _logger.LogWarning("No user found with id {UserId}", userId);
+            _logger.LogWarning("GetFriendsForUserAsync called by {UserId} with no user found.", userId);
             return new CommonResponse
             {
                 StatusCode = HttpStatusCode.NotFound,
@@ -49,7 +49,7 @@ public class UserService(ITokenData tokenData,
             };
         }
 
-        _logger.LogInformation("Successfully retrieved friends for user {UserId}", userId);
+        _logger.LogInformation("GetFriendsForUserAsync successfully retrieved friends for user {UserId}", userId);
 
         return new UserFriendsResponse
         {

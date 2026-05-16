@@ -113,7 +113,8 @@ public sealed class UserRepository(ScranHubDbContext dbContext) : EFRepository<U
                 Active = f.User.Active,
                 Status = f.Status,
                 Initiator = false
-            }));
+            }))
+            .Where(x => x.Active);
 
         return [.. result];
     }
