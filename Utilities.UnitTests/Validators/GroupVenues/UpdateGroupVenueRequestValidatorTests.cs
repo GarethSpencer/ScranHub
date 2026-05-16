@@ -23,11 +23,11 @@ public class UpdateGroupVenueRequestValidatorTests
     [InlineData("G-1")]
     [InlineData("User1_and_User2 Venue?!")]
     [InlineData("User1 & User2's Venue.")]
-    public async Task ValidateAsync_ReturnsValidGroupName(string groupName)
+    public async Task ValidateAsync_ReturnsValidVenueName(string venueName)
     {
         var validator = new UpdateGroupVenueRequestValidator();
         var request = CreateValidRequest();
-        request.VenueName = groupName;
+        request.VenueName = venueName;
 
         var result = await validator.ValidateAsync(request);
 
@@ -45,11 +45,11 @@ public class UpdateGroupVenueRequestValidatorTests
     [InlineData("{Test Venue}", "invalid characters")]
     [InlineData("Test~Venue", "invalid characters")]
     [InlineData("Test|Venue", "invalid characters")]
-    public async Task ValidateAsync_ReturnsInvalidGroupName(string groupName, string error)
+    public async Task ValidateAsync_ReturnsInvalidVenueName(string venueName, string error)
     {
         var validator = new UpdateGroupVenueRequestValidator();
         var request = CreateValidRequest();
-        request.VenueName = groupName;
+        request.VenueName = venueName;
 
         var result = await validator.ValidateAsync(request);
 
