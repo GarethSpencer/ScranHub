@@ -7,7 +7,7 @@ namespace Utilities.UnitTests.Validators.Groups;
 public class UpdateGroupRequestValidatorTests
 {
     [Fact]
-    public async Task ValidateAsync_ReturnsValidWithDefaultGroupName()
+    public async Task ValidateAsync_ReturnsValidWithDefaultRequest()
     {
         var validator = new UpdateGroupRequestValidator();
         var request = CreateValidRequest();

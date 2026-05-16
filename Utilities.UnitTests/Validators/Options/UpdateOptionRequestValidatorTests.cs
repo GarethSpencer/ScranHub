@@ -7,7 +7,7 @@ namespace Utilities.UnitTests.Validators.Options;
 public class UpdateOptionRequestValidatorTests
 {
     [Fact]
-    public async Task ValidateAsync_ReturnsValidWithDefaultGrouopName()
+    public async Task ValidateAsync_ReturnsValidWithDefaultRequest()
     {
         var validator = new UpdateOptionRequestValidator();
         var request = CreateValidRequest();

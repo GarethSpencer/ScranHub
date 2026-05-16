@@ -1,4 +1,5 @@
 ﻿using FluentValidation;
+using Utilities.Helpers;
 using Utilities.Models.Requests.Users;
 using static Utilities.Helpers.ValidationHelpers;
 
@@ -13,6 +14,7 @@ public class UpdateUserRequestValidator : AbstractValidator<UpdateUserRequest>
             .Must(name => name == name.Trim()).WithMessage("Display name cannot have leading or trailing spaces.")
             .MinimumLength(3).WithMessage("Display name must be at least 3 characters long.")
             .MaximumLength(30).WithMessage("Display name must not exceed 30 characters.")
+            .Matches(RegexConstants.AlphanumericPlus).WithMessage("Name contains invalid characters.")
             .Must(name => CheckProfanity(name)).WithMessage("Display name must not contain profanity.");
 
         RuleFor(x => x.Admin)

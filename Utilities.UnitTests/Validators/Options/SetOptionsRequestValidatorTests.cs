@@ -1,15 +1,13 @@
 ﻿using FluentAssertions;
-using System.Reflection.Emit;
 using Utilities.Models.Requests.Options;
 using Utilities.Validators.Options;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Utilities.UnitTests.Validators.Options;
 
 public class SetOptionsRequestValidatorTests
 {
     [Fact]
-    public async Task ValidateAsync_ReturnsValidWithDefaultGrouopName()
+    public async Task ValidateAsync_ReturnsValidWithDefaultRequest()
     {
         var validator = new SetOptionsRequestValidator();
         var request = CreateValidRequest();

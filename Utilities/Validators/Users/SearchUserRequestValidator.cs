@@ -1,4 +1,5 @@
 ﻿using FluentValidation;
+using Utilities.Helpers;
 using Utilities.Models.Requests.Users;
 using Utilities.Validators.Generic;
 
@@ -11,9 +12,9 @@ public class SearchUserRequestValidator : AbstractValidator<SearchUserRequest>
         Include(new PaginationBaseRequestValidator());
 
         RuleFor(x => x.SearchText)
-            .NotEmpty().WithMessage("Display name search text is required.")
-            .Must(name => name == name.Trim()).WithMessage("Display name search text cannot have leading or trailing spaces.")
+            .NotEmpty().WithMessage("Search text is required.")
             .MinimumLength(3).WithMessage("Search text must be at least 3 characters long.")
-            .MaximumLength(30).WithMessage("Search text must not exceed 30 characters.");
+            .MaximumLength(30).WithMessage("Search text must not exceed 30 characters.")
+            .Matches(RegexConstants.AlphanumericPlus).WithMessage("Search text contains invalid characters.");
     }
 }

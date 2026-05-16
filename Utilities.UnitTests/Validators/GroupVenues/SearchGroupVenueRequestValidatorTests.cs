@@ -7,7 +7,7 @@ namespace Utilities.UnitTests.Validators.GroupVenues;
 public class SearchGroupVenueRequestValidatorTests
 {
     [Fact]
-    public async Task ValidateAsync_ReturnsValidWithDefaultGrouopName()
+    public async Task ValidateAsync_ReturnsValidWithDefaultRequest()
     {
         var validator = new SearchGroupVenueRequestValidator();
         var request = CreateValidRequest();
