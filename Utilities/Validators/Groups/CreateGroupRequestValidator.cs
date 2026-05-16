@@ -1,4 +1,5 @@
 ﻿using FluentValidation;
+using Utilities.Helpers;
 using Utilities.Models.Requests.Groups;
 using static Utilities.Helpers.ValidationHelpers;
 
@@ -13,6 +14,7 @@ public class CreateGroupRequestValidator : AbstractValidator<CreateGroupRequest>
             .Must(name => name == name.Trim()).WithMessage("Name cannot have leading or trailing spaces.")
             .MinimumLength(3).WithMessage("Name must be at least 3 characters long.")
             .MaximumLength(30).WithMessage("Name must not exceed 30 characters.")
+            .Matches(RegexConstants.AlphanumericPlus).WithMessage("Name contains invalid characters.")
             .Must(name => CheckProfanity(name)).WithMessage("Name must not contain profanity.");
     }
 }
