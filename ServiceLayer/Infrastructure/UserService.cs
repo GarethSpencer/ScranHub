@@ -43,7 +43,7 @@ public class UserService(ITokenData tokenData,
             return new CommonResponse
             {
                 StatusCode = HttpStatusCode.NotFound,
-                Message = "No user found."
+                Message = "User not found."
             }.WithResponseLog(_logger, userId);
         }
 

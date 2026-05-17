@@ -2,6 +2,8 @@
 using DAL.Entities;
 using Microsoft.EntityFrameworkCore;
 using Testcontainers.MsSql;
+using static ServiceLayer.IntegrationTests.Helpers.TestConstants;
+using Utilities.Enums;
 
 namespace ServiceLayer.IntegrationTests.Fixtures;
 
@@ -30,14 +32,57 @@ public class DatabaseFixture : IAsyncLifetime
 
     private static async Task SetupDatabase(ScranHubDbContext context)
     {
-        context!.Users.Add(new User
+        context!.Users.AddRange(new User
         {
-            Email = "test@example.com",
+            UserId = TestUser3AdminId,
+            DisplayName = TestUser3AdminName,
+            Email = TestUser3AdminEmail,
             Active = true,
-            Admin = true,
-            DisplayName = "Test Admin 1",
+            Admin = true
+        },
+        new User
+        {
+            UserId = TestUser4NonAdminId,
+            DisplayName = TestUser4NonAdminName,
+            Email = TestUser4NonAdminEmail,
+            Active = true,
+            Admin = false
+        },
+        new User
+        {
+            UserId = TestUser5NonAdminId,
+            DisplayName = TestUser5NonAdminName,
+            Email = TestUser5NonAdminEmail,
+            Active = false,
+            Admin = false
+        }
+        );
 
-        });
+        context.UserFriends.AddRange(new UserFriend
+        {
+            UserId = SeedUser1AdminId,
+            FriendId = SeedUser2NonAdminId,
+            Status = FriendshipStatus.Accepted
+        },
+        new UserFriend
+        {
+            UserId = TestUser3AdminId,
+            FriendId = SeedUser1AdminId,
+            Status = FriendshipStatus.Pending
+        },
+        new UserFriend
+        {
+            UserId = SeedUser1AdminId,
+            FriendId = TestUser4NonAdminId,
+            Status = FriendshipStatus.Declined
+        },
+        new UserFriend
+        {
+            UserId = SeedUser1AdminId,
+            FriendId = TestUser5NonAdminId,
+            Status = FriendshipStatus.Accepted
+        }
+        );
         await context.SaveChangesAsync();
     }
 }
