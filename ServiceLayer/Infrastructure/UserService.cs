@@ -9,6 +9,7 @@ using Utilities.Models.Requests.Users;
 using Utilities.Models.Responses.Generic;
 using Utilities.Models.Responses.Users;
 using Utilities.Token;
+using Utilities.Helpers;
 
 namespace ServiceLayer.Infrastructure;
 
@@ -24,228 +25,208 @@ public class UserService(ITokenData tokenData,
     private readonly IUserFriendRepository _userFriendRepository = userFriendRepository;
     private readonly IUnitOfWork _unitOfWork = unitOfWork;
 
-
     public async Task<CommonResponse> GetFriendsForUserAsync(CancellationToken ct)
     {
         if (!_tokenData.UserId.HasValue)
         {
-            _logger.LogWarning("GetFriendsForUserAsync called with no authenticated user.");
             return new CommonResponse
             {
                 StatusCode = HttpStatusCode.Unauthorized,
                 Message = "Unauthorized."
-            };
+            }.WithResponseLog(_logger);
         }
 
         var userId = _tokenData.UserId!.Value;
         var userFriends = await _userRepository.GetFriendsForUserAsync(userId, ct);
         if (userFriends == null)
         {
-            _logger.LogWarning("GetFriendsForUserAsync called by {UserId} with no user found.", userId);
             return new CommonResponse
             {
                 StatusCode = HttpStatusCode.NotFound,
                 Message = "No user found."
-            };
+            }.WithResponseLog(_logger, userId);
         }
 
-        _logger.LogInformation("GetFriendsForUserAsync successfully retrieved friends for user {UserId}", userId);
+        var friendCount = userFriends.Count(x => x.Status == FriendshipStatus.Accepted);
 
         return new UserFriendsResponse
         {
             UserId = userId,
             Friends = userFriends,
-            FriendCount = userFriends.Count(x => x.Status == FriendshipStatus.Accepted),
-            StatusCode = HttpStatusCode.OK,
+            FriendCount = friendCount,
+            StatusCode = friendCount > 0 ? HttpStatusCode.OK : HttpStatusCode.NoContent,
             Message = "Friends retrieved successfully."
-        };
+        }.WithResponseLog(_logger, userId);
     }
 
     public async Task<CommonResponse> CreateUserAsync(CreateUserRequest request, CancellationToken ct)
     {
         if (!_tokenData.UserId.HasValue)
         {
-            _logger.LogWarning("CreateUserAsync called with no authenticated user.");
             return new CommonResponse
             {
                 StatusCode = HttpStatusCode.Unauthorized,
                 Message = "Unauthorized."
-            };
+            }.WithResponseLog(_logger);
         }
 
+        var callingUserId = _tokenData.UserId!.Value;
         var userExists = await _userRepository.ExistsAsync(x => x.Email.ToLower() == request.Email.ToLower(), ct);
         if (userExists)
         {
-            _logger.LogWarning("User with email {Email} already exists.", request.Email);
             return new CommonResponse
             {
                 StatusCode = HttpStatusCode.Conflict,
                 Message = $"User with email {request.Email} already exists."
-            };
+            }.WithResponseLog(_logger, callingUserId);
         }
 
         var userNameExists = await _userRepository.ExistsAsync(x => x.DisplayName.ToLower() == request.DisplayName.ToLower(), ct);
         if (userNameExists)
         {
-            _logger.LogWarning("Display name {DisplayName} already taken.", request.DisplayName);
             return new CommonResponse
             {
                 StatusCode = HttpStatusCode.Conflict,
                 Message = $"Display name {request.DisplayName} already taken."
-            };
+            }.WithResponseLog(_logger, callingUserId);
         }
 
-        var callingUserId = _tokenData.UserId!.Value;
         var isAdmin = await _userRepository.IsUserAdminAsync(callingUserId, ct);
         if (!isAdmin && request.Admin)
         {
-            _logger.LogWarning("Non-Admin user {CallingUserId} cannot create an admin user.", callingUserId);
             return new CommonResponse
             {
                 StatusCode = HttpStatusCode.Unauthorized,
                 Message = "You cannot create an admin user."
-            };
+            }.WithResponseLog(_logger, callingUserId);
         }
 
         var userId = await _userRepository.CreateAsync(request, ct);
         await _unitOfWork.SaveChangesAsync(ct);
-        _logger.LogInformation("Successfully created user with id {UserId}", userId);
 
         return new AddUserResponse
         {
             StatusCode = HttpStatusCode.Created,
             Message = "User created successfully.",
             UserId = userId
-        };
+        }.WithResponseLog(_logger, callingUserId, $"User [{userId}] created successfully.");
     }
 
     public async Task<CommonResponse> SearchUsersAsync(SearchUserRequest request, CancellationToken ct)
     {
         if (!_tokenData.UserId.HasValue)
         {
-            _logger.LogWarning("SearchUsersAsync called with no authenticated user.");
             return new CommonResponse
             {
                 StatusCode = HttpStatusCode.Unauthorized,
                 Message = "Unauthorized."
-            };
+            }.WithResponseLog(_logger);
         }
 
-        var userId = _tokenData.UserId!.Value;
+        var callingUserId = _tokenData.UserId!.Value;
         var (users, totalCount) = await _userRepository.SearchByDisplayNameAsync(request, ct);
 
-        _logger.LogInformation("User search carried out by {UserId}.", userId);
         return new GetUsersResponse
         {
             StatusCode = HttpStatusCode.OK,
             Message = "Users returned successfully.",
             Users = users,
             TotalCount = totalCount
-        };
+        }.WithResponseLog(_logger, callingUserId);
     }
 
     public async Task<CommonResponse> UpdateUserAsync(Guid userId, UpdateUserRequest request, CancellationToken ct)
     {
         if (!_tokenData.UserId.HasValue)
         {
-            _logger.LogWarning("UpdateUserAsync called with no authenticated user.");
             return new CommonResponse
             {
                 StatusCode = HttpStatusCode.Unauthorized,
                 Message = "Unauthorized."
-            };
+            }.WithResponseLog(_logger);
         }
 
         var callingUserId = _tokenData.UserId!.Value;
         var isAdmin = await _userRepository.IsUserAdminAsync(callingUserId, ct);
         if (!isAdmin && callingUserId != userId)
         {
-            _logger.LogWarning("User {CallingUserId} is not an admin or the user {UserId} being updated.", callingUserId, userId);
             return new CommonResponse
             {
                 StatusCode = HttpStatusCode.Unauthorized,
                 Message = "You do not have permission to update this user."
-            };
+            }.WithResponseLog(_logger, callingUserId);
         }
 
         if (!isAdmin && request.Admin)
         {
-            _logger.LogWarning("Non-Admin user {CallingUserId} cannot make themselves an admin", callingUserId);
             return new CommonResponse
             {
                 StatusCode = HttpStatusCode.Unauthorized,
                 Message = "You cannot make yourself an admin."
-            };
+            }.WithResponseLog(_logger, callingUserId);
         }
 
         var userToUpdate = await _userRepository.GetDetailsByIdAsync(userId, ct);
         if (userToUpdate == null)
         {
-            _logger.LogWarning("User with ID {UserId} not found.", userId);
             return new CommonResponse
             {
                 StatusCode = HttpStatusCode.NotFound,
                 Message = "User not found."
-            };
+            }.WithResponseLog(_logger, callingUserId);
         }
 
         var userToUpdateIsAdmin = await _userRepository.IsUserAdminAsync(userId, ct);
         if (userToUpdateIsAdmin && userId != callingUserId)
         {
-            _logger.LogWarning("Admin {UserId} can only update their own information, so cannot be updated by {CallingUserId}.", userId, callingUserId);
             return new CommonResponse
             {
                 StatusCode = HttpStatusCode.Unauthorized,
                 Message = "You do not have permission to update this user."
-            };
+            }.WithResponseLog(_logger, callingUserId);
         }
 
         await _userRepository.UpdateAsync(userId, request, ct);
         await _unitOfWork.SaveChangesAsync(ct);
-        _logger.LogInformation("Successfully updated user with id {UserId}", userId);
 
         return new CommonResponse
         {
             StatusCode = HttpStatusCode.OK,
             Message = "User updated successfully."
-        };
+        }.WithResponseLog(_logger, callingUserId);
     }
 
     public async Task<CommonResponse> GetUserAsync(Guid userId, CancellationToken ct)
     {
         if (!_tokenData.UserId.HasValue)
         {
-            _logger.LogWarning("GetUserAsync called with no authenticated user.");
             return new CommonResponse
             {
                 StatusCode = HttpStatusCode.Unauthorized,
                 Message = "Unauthorized."
-            };
+            }.WithResponseLog(_logger);
         }
 
         var callingUserId = _tokenData.UserId!.Value;
         var areUsersFriends = await _userFriendRepository.IsFriendshipAcceptedAsync(callingUserId, userId, ct);
-
         var isAdmin = await _userRepository.IsUserAdminAsync(callingUserId, ct);
         if (!isAdmin && !areUsersFriends && callingUserId != userId)
         {
-            _logger.LogWarning("User {CallingUserId} is not an admin or friend so cannot search {UserId} by Id.", callingUserId, userId);
             return new CommonResponse
             {
                 StatusCode = HttpStatusCode.Unauthorized,
                 Message = "Only admins or friends can search for another user by Id."
-            };
+            }.WithResponseLog(_logger, callingUserId);
         }
 
         var user = await _userRepository.GetDetailsByIdAsync(userId, ct);
         if (user == null)
         {
-            _logger.LogWarning("User with ID {UserId} not found.", userId);
             return new CommonResponse
             {
                 StatusCode = HttpStatusCode.NotFound,
-                Message = $"User with ID {userId} not found."
-            };
+                Message = "User with that Id was not found."
+            }.WithResponseLog(_logger, callingUserId);
         }
 
         return new GetUserResponse
@@ -253,260 +234,237 @@ public class UserService(ITokenData tokenData,
             StatusCode = HttpStatusCode.OK,
             Message = "User returned successfully.",
             User = user
-        };
+        }.WithResponseLog(_logger, callingUserId);
     }
 
     public async Task<CommonResponse> AddUserFriendAsync(Guid friendId, CancellationToken ct)
     {
         if (!_tokenData.UserId.HasValue)
         {
-            _logger.LogWarning("AddUserFriendAsync called with no authenticated user.");
             return new CommonResponse
             {
                 StatusCode = HttpStatusCode.Unauthorized,
                 Message = "Unauthorized."
-            };
+            }.WithResponseLog(_logger);
         }
 
-        var userId = _tokenData.UserId!.Value;
-        if (friendId == userId)
+        var callingUserId = _tokenData.UserId!.Value;
+        if (friendId == callingUserId)
         {
-            _logger.LogWarning("User {UserId} cannot add themselves as a friend.", friendId);
             return new CommonResponse
             {
                 StatusCode = HttpStatusCode.BadRequest,
                 Message = "You cannot add yourself as a friend."
-            };
+            }.WithResponseLog(_logger, callingUserId);
         }
 
         var friendExists = await _userRepository.ExistsAsync(x => x.UserId == friendId, ct);
         if (!friendExists)
         {
-            _logger.LogWarning("Cannot add friend {FriendId} because they do not exist.", friendId);
             return new CommonResponse
             {
                 StatusCode = HttpStatusCode.NotFound,
                 Message = "Cannot add friend because they do not exist."
-            };
+            }.WithResponseLog(_logger, callingUserId);
         }
 
-        var existingUserFriend = await _userFriendRepository.GetUserFriendAsync(userId, friendId, ct);
+        var existingUserFriend = await _userFriendRepository.GetUserFriendAsync(callingUserId, friendId, ct);
         if (existingUserFriend != null)
         {
-            _logger.LogWarning("UserFriend between {UserId} and {FriendId} already created, cannot add again.", userId, friendId);
             return new CommonResponse
             {
                 StatusCode = HttpStatusCode.BadRequest,
                 Message = "Friend already requested."
-            };
+            }.WithResponseLog(_logger, callingUserId);
         }
 
-        var userFriendId = await _userFriendRepository.CreateUserFriendAsync(userId, friendId, ct);
+        var userFriendId = await _userFriendRepository.CreateUserFriendAsync(callingUserId, friendId, ct);
         await _unitOfWork.SaveChangesAsync(ct);
-        _logger.LogInformation("Successfully sent friend request from {UserId} to {FriendId}.", userId, friendId);
 
         return new AddUserFriendResponse
         {
             UserFriendId = userFriendId,
             StatusCode = HttpStatusCode.OK,
-            Message = "Successfully sent friend request to user."
-        };
+            Message = "Successfully sent friend request."
+        }.WithResponseLog(_logger, callingUserId);
     }
 
     public async Task<CommonResponse> UpdateUserFriendAsync(Guid friendId, UpdateUserFriendRequest request, CancellationToken ct)
     {
         if (!_tokenData.UserId.HasValue)
         {
-            _logger.LogWarning("UpdateUserFriendAsync called with no authenticated user.");
             return new CommonResponse
             {
                 StatusCode = HttpStatusCode.Unauthorized,
                 Message = "Unauthorized."
-            };
+            }.WithResponseLog(_logger);
         }
 
-        var userId = _tokenData.UserId!.Value;
-        if (friendId == userId)
+        var callingUserId = _tokenData.UserId!.Value;
+        if (friendId == callingUserId)
         {
-            _logger.LogWarning("User {UserId} cannot have themselves as a friend.", friendId);
             return new CommonResponse
             {
                 StatusCode = HttpStatusCode.BadRequest,
                 Message = "You cannot have yourself as a friend."
-            };
+            }.WithResponseLog(_logger, callingUserId);
         }
 
-        var userFriend = await _userFriendRepository.GetUserFriendAsync(userId, friendId, ct);
+        var userFriend = await _userFriendRepository.GetUserFriendAsync(callingUserId, friendId, ct);
         if (userFriend == null)
         {
-            _logger.LogWarning("UserFriend between {UserId} and {FriendId} does not exist, cannot update.", userId, friendId);
             return new CommonResponse
             {
                 StatusCode = HttpStatusCode.BadRequest,
                 Message = "Friend not found."
-            };
+            }.WithResponseLog(_logger, callingUserId);
         }
 
-        if (userFriend.FriendId != userId)
+        if (userFriend.FriendId != callingUserId)
         {
-            _logger.LogWarning("User {UserId} is not the recipient of the friend request for {FriendId}.", userId, friendId);
             return new CommonResponse
             {
                 StatusCode = HttpStatusCode.BadRequest,
                 Message = "Only the requested user can update this friend request."
-            };
+            }.WithResponseLog(_logger, callingUserId);
         }
 
         await _userFriendRepository.UpdateUserFriendStatusAsync(userFriend.UserFriendId, request.Status, ct);
         await _unitOfWork.SaveChangesAsync(ct);
-        _logger.LogInformation("Successfully updated friend status for {UserId} and {FriendId}.", userId, friendId);
 
         return new CommonResponse
         {
             StatusCode = HttpStatusCode.OK,
             Message = $"Successfully updated friend status to {request.Status}."
-        };
+        }.WithResponseLog(_logger, callingUserId);
     }
 
     public async Task<CommonResponse> DeleteUserAsync(Guid userId, CancellationToken ct)
     {
         if (!_tokenData.UserId.HasValue)
         {
-            _logger.LogWarning("DeleteUserAsync called with no authenticated user.");
             return new CommonResponse
             {
                 StatusCode = HttpStatusCode.Unauthorized,
                 Message = "Unauthorized."
-            };
+            }.WithResponseLog(_logger);
         }
 
+        var callingUserId = _tokenData.UserId!.Value;
         var userExists = await _userRepository.ExistsAsync(x => x.UserId == userId, ct);
         if (!userExists)
         {
-            _logger.LogWarning("No user found with id {UserId}", userId);
             return new CommonResponse
             {
                 StatusCode = HttpStatusCode.NotFound,
                 Message = "User not found."
-            };
+            }.WithResponseLog(_logger, callingUserId);
         }
 
-        var callingUserId = _tokenData.UserId!.Value;
         var isAdmin = await _userRepository.IsUserAdminAsync(callingUserId, ct);
         if (!isAdmin && callingUserId != userId)
         {
-            _logger.LogWarning("User {UserId} is not an admin and can only delete their own account.", userId);
             return new CommonResponse
             {
                 StatusCode = HttpStatusCode.Forbidden,
                 Message = "You cannot delete other users."
-            };
+            }.WithResponseLog(_logger, callingUserId);
         }
 
         var isUserToDeleteAdmin = await _userRepository.IsUserAdminAsync(userId, ct);
         if (isUserToDeleteAdmin && callingUserId != userId)
         {
-            _logger.LogWarning("User {UserId} is an admin and cannot be deleted by another user {CallingUserId}.", userId, callingUserId);
             return new CommonResponse
             {
                 StatusCode = HttpStatusCode.Forbidden,
                 Message = "You cannot delete other admins."
-            };
+            }.WithResponseLog(_logger, callingUserId);
         }
 
         await _userRepository.DeleteAsync(userId, ct);
         await _unitOfWork.SaveChangesAsync(ct);
-        _logger.LogInformation("User {UserId} deleted successfully by user {CallingUserId}.", userId, callingUserId);
 
         return new CommonResponse
         {
             StatusCode = HttpStatusCode.OK,
             Message = "Successfully deleted the user."
-        };
+        }.WithResponseLog(_logger, callingUserId);
     }
 
     public async Task<CommonResponse> AddUserFriendByEmailAsync(AddFriendRequest request, CancellationToken ct)
     {
         if (!_tokenData.UserId.HasValue)
         {
-            _logger.LogWarning("AddUserFriendByEmailAsync called with no authenticated user.");
             return new CommonResponse
             {
                 StatusCode = HttpStatusCode.Unauthorized,
                 Message = "Unauthorized."
-            };
+            }.WithResponseLog(_logger);
         }
 
         var callingUserId = _tokenData.UserId!.Value;
         var userToFriend = await _userRepository.GetByEmailAsync(request.Email, ct);
         if (userToFriend == null)
         {
-            _logger.LogWarning("User {CallingUserId} tried to add a friend with email {Email}, but no user was found.", callingUserId, request.Email);
             return new CommonResponse
             {
                 StatusCode = HttpStatusCode.OK,
                 Message = "If a user with this email exists, a friend request will be sent to them."
-            };
+            }.WithResponseLog(_logger, callingUserId);
         }
 
         if (userToFriend.UserId == callingUserId)
         {
-            _logger.LogWarning("User {UserId} cannot add themselves as a friend.", callingUserId);
             return new CommonResponse
             {
                 StatusCode = HttpStatusCode.OK,
                 Message = "If a user with this email exists, a friend request will be sent to them."
-            };
+            }.WithResponseLog(_logger, callingUserId);
         }
 
         var existingUserFriend = await _userFriendRepository.GetUserFriendAsync(callingUserId, userToFriend.UserId, ct);
         if (existingUserFriend != null)
         {
-            _logger.LogWarning("UserFriend between {UserId} and {FriendId} already created, cannot add again.", callingUserId, userToFriend.UserId);
             return new CommonResponse
             {
                 StatusCode = HttpStatusCode.OK,
                 Message = "If a user with this email exists, a friend request will be sent to them."
-            };
+            }.WithResponseLog(_logger, callingUserId);
         }
 
         _ = await _userFriendRepository.CreateUserFriendAsync(callingUserId, userToFriend.UserId, ct);
         await _unitOfWork.SaveChangesAsync(ct);
-        _logger.LogInformation("Successfully sent friend request from {UserId} to {FriendId} using email address.", callingUserId, userToFriend.UserId);
 
         return new CommonResponse
         {
             StatusCode = HttpStatusCode.OK,
             Message = "If a user with this email exists, a friend request will be sent to them."
-        };
+        }.WithResponseLog(_logger, callingUserId);
     }
 
     public async Task<CommonResponse> GetAllUsersAsync(PaginationBaseRequest request, CancellationToken ct)
     {
         if (!_tokenData.UserId.HasValue)
         {
-            _logger.LogWarning("GetAllUsersAsync called with no authenticated user.");
             return new CommonResponse
             {
                 StatusCode = HttpStatusCode.Unauthorized,
                 Message = "Unauthorized."
-            };
+            }.WithResponseLog(_logger);
         }
 
-        var userId = _tokenData.UserId!.Value;
-        var isAdmin = await _userRepository.IsUserAdminAsync(userId, ct);
+        var callingUserId = _tokenData.UserId!.Value;
+        var isAdmin = await _userRepository.IsUserAdminAsync(callingUserId, ct);
         if (!isAdmin)
         {
-            _logger.LogWarning("User {UserId} is not an admin and cannot retrieve all users.", userId);
             return new CommonResponse
             {
                 StatusCode = HttpStatusCode.Forbidden,
                 Message = "You are not an admin."
-            };
+            }.WithResponseLog(_logger, callingUserId);
         }
 
         var (users, totalCount) = await _userRepository.GetAllAsync(request, ct);
-        _logger.LogInformation("Successfully retrieved all users for admin {UserId}.", userId);
 
         return new GetUsersDetailedResponse
         {
@@ -514,6 +472,6 @@ public class UserService(ITokenData tokenData,
             Message = "Users returned successfully.",
             Users = users,
             TotalCount = totalCount,
-        };
+        }.WithResponseLog(_logger, callingUserId);
     }
 }

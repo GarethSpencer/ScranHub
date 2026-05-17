@@ -14,27 +14,24 @@ public sealed class UserRepository(ScranHubDbContext dbContext) : EFRepository<U
     public async Task<(IEnumerable<UserDetailedResult>, int)> GetAllAsync(PaginationBaseRequest request, CancellationToken ct)
     {
         var users = await _dbSet
-            .Include(u => u.InitiatedFriendships)
-            .Include(u => u.ReceivedFriendships)
             .OrderBy(u => u.DisplayName)
             .Skip((request.PageNumber - 1) * request.PageSize)
             .Take(request.PageSize)
+            .Select(u => new UserDetailedResult
+            {
+                UserId = u.UserId,
+                DisplayName = u.DisplayName,
+                Active = u.Active,
+                Admin = u.Admin,
+                FriendCount = u.InitiatedFriendships.Count() + u.ReceivedFriendships.Count(),
+                CreatedOn = u.CreatedOn,
+                CreatedBy = u.CreatedBy,
+                UpdatedOn = u.UpdatedOn,
+                UpdatedBy = u.UpdatedBy
+            })
             .ToListAsync(ct);
 
-        var userResults = users.Select(u => new UserDetailedResult
-        {
-            UserId = u.UserId,
-            DisplayName = u.DisplayName,
-            Active = u.Active,
-            Admin = u.Admin,
-            FriendCount = u.InitiatedFriendships.Count + u.ReceivedFriendships.Count,
-            CreatedOn = u.CreatedOn,
-            CreatedBy = u.CreatedBy,
-            UpdatedOn = u.UpdatedOn,
-            UpdatedBy = u.UpdatedBy
-        });
-
-        return (userResults, userResults.Count());
+        return (users, users.Count);
     }
 
     public async Task<UserResult?> GetDetailsByIdAsync(Guid id, CancellationToken ct)
@@ -89,6 +86,7 @@ public sealed class UserRepository(ScranHubDbContext dbContext) : EFRepository<U
             .Where(x => x.UserId == userId)
             .Include(x => x.InitiatedFriendships).ThenInclude(x => x.Friend)
             .Include(x => x.ReceivedFriendships).ThenInclude(x => x.User)
+            .AsSplitQuery()
             .FirstOrDefaultAsync(ct);
 
         if (friendInfo == null)
