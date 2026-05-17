@@ -5,6 +5,7 @@ using Utilities.Validators.Users;
 
 namespace Utilities.UnitTests.Validators.Users;
 
+[Trait("Category", "Unit")]
 public class UpdateUserFriendRequestValidatorTests
 {
     [Theory]

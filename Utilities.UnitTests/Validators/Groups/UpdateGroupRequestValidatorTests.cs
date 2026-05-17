@@ -4,6 +4,7 @@ using Utilities.Validators.Groups;
 
 namespace Utilities.UnitTests.Validators.Groups;
 
+[Trait("Category", "Unit")]
 public class UpdateGroupRequestValidatorTests
 {
     [Fact]

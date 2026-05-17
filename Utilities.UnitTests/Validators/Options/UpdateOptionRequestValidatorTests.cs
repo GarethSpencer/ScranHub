@@ -4,6 +4,7 @@ using Utilities.Validators.Options;
 
 namespace Utilities.UnitTests.Validators.Options;
 
+[Trait("Category", "Unit")]
 public class UpdateOptionRequestValidatorTests
 {
     [Fact]

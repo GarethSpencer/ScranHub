@@ -3,6 +3,7 @@ using Utilities.Validators;
 
 namespace Utilities.UnitTests.Validators;
 
+[Trait("Category", "Unit")]
 public class ValidationErrorFormatterTests
 {
     [Fact]

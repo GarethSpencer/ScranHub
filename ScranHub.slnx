@@ -1,7 +1,7 @@
 <Solution>
   <Project Path="DAL/DAL.csproj" />
   <Project Path="RepositoryLayer/RepositoryLayer.csproj" Id="8b6bbb56-9495-46d9-a61b-98e0634c7549" />
-  <Project Path="ServiceLayer.UnitTests/ServiceLayer.UnitTests.csproj" Id="73e83c37-0b0e-4c87-9f7a-05d30e45e4d8" />
+  <Project Path="ServiceLayer.IntegrationTests/ServiceLayer.IntegrationTests.csproj" Id="99932a92-697f-4284-a55d-674b6928d551" />
   <Project Path="ServiceLayer/ServiceLayer.csproj" Id="e3a8bb9b-329b-4aec-9389-8e86803397bb" />
   <Project Path="Utilities.UnitTests/Utilities.UnitTests.csproj" Id="851d05fa-4391-47bb-ae93-c3e4d81e91bf" />
   <Project Path="Utilities/Utilities.csproj" Id="3e96c733-58e8-4620-a809-b71903550776" />

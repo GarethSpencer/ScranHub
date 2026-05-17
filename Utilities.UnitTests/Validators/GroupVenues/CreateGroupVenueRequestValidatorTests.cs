@@ -4,6 +4,7 @@ using Utilities.Validators.GroupVenues;
 
 namespace Utilities.UnitTests.Validators.GroupVenues;
 
+[Trait("Category", "Unit")]
 public class CreateGroupVenueRequestValidatorTests
 {
     [Fact]

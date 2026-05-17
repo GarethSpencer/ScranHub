@@ -1,10 +1,10 @@
 ﻿using FluentAssertions;
-using Moq;
 using Utilities.Models.Requests.Generic;
 using Utilities.Validators.Generic;
 
 namespace Utilities.UnitTests.Validators.Generic;
 
+[Trait("Category", "Unit")]
 public class PaginationBaseRequestValidatorTests
 {
     [Fact]

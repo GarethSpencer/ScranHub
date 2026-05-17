@@ -4,10 +4,11 @@ using Utilities.Validators.Users;
 
 namespace Utilities.UnitTests.Validators.Users;
 
+[Trait("Category", "Unit")]
 public class CreateUserRequestValidatorTests
 {
-    public readonly string Email256Chars = new string('a', 246) + "@gmail.com";
-    public readonly string Email257Chars = new string('a', 247) + "@gmail.com";
+    public readonly string Email256Chars = new string('a', 246) + "@email.com";
+    public readonly string Email257Chars = new string('a', 247) + "@email.com";
 
     [Fact]
     public async Task ValidateAsync_ReturnsValidWithDefaultRequest()
@@ -22,7 +23,7 @@ public class CreateUserRequestValidatorTests
     }
 
     [Theory]
-    [InlineData("1@gmail.com")]
+    [InlineData("1@email.com")]
     [InlineData("helloitsme@hotmail.co.uk")]
     public async Task ValidateAsync_ReturnsValidEmail(string email)
     {
@@ -38,8 +39,8 @@ public class CreateUserRequestValidatorTests
 
     [Theory]
     [InlineData("", "required")]
-    [InlineData("test@gmail.com ", "leading or trailing spaces")]
-    [InlineData(" test@gmail.com", "leading or trailing spaces")]
+    [InlineData("test@email.com ", "leading or trailing spaces")]
+    [InlineData(" test@email.com", "leading or trailing spaces")]
     [InlineData("testemail.com", "invalid")]
     [InlineData("@email", "invalid")]
     public async Task ValidateAsync_ReturnsInvalidEmail(string email, string error)
@@ -124,7 +125,7 @@ public class CreateUserRequestValidatorTests
 
     private static CreateUserRequest CreateValidRequest() => new()
     {
-        Email = "test@gmail.com",
+        Email = "test@email.com",
         DisplayName = "Test User",
         Admin = true
     };
