@@ -188,9 +188,18 @@ public sealed class UserRepository(ScranHubDbContext dbContext) : EFRepository<U
     public async Task DeleteAsync(Guid userId, CancellationToken ct)
     {
         var user = await _dbSet.FindAsync([userId], ct);
-        if (user != null)
+
+        if (user == null)
         {
-            _dbSet.Remove(user);
+            return;
         }
+
+        // handle friendId references that EF doesn't manage due to DeleteBehavior.NoAction
+        var receivedFriendships = await _dbContext.UserFriends
+            .Where(uf => uf.FriendId == userId)
+            .ToListAsync(ct);
+        _dbContext.UserFriends.RemoveRange(receivedFriendships);
+
+        _dbSet.Remove(user);
     }
 }

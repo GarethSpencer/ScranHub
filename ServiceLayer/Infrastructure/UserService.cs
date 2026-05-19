@@ -4,12 +4,12 @@ using RepositoryLayer.Abstractions.Generic;
 using ServiceLayer.Abstractions;
 using System.Net;
 using Utilities.Enums;
+using Utilities.Helpers;
 using Utilities.Models.Requests.Generic;
 using Utilities.Models.Requests.Users;
 using Utilities.Models.Responses.Generic;
 using Utilities.Models.Responses.Users;
 using Utilities.Token;
-using Utilities.Helpers;
 
 namespace ServiceLayer.Infrastructure;
 
@@ -71,7 +71,7 @@ public class UserService(ITokenData tokenData,
         }
 
         var callingUserId = _tokenData.UserId!.Value;
-        var userExists = await _userRepository.ExistsAsync(x => x.Email.ToLower() == request.Email.ToLower(), ct);
+        var userExists = await _userRepository.ExistsAsync(x => x.Email == request.Email, ct);
         if (userExists)
         {
             return new CommonResponse
@@ -81,7 +81,7 @@ public class UserService(ITokenData tokenData,
             }.WithResponseLog(_logger, callingUserId);
         }
 
-        var userNameExists = await _userRepository.ExistsAsync(x => x.DisplayName.ToLower() == request.DisplayName.ToLower(), ct);
+        var userNameExists = await _userRepository.ExistsAsync(x => x.DisplayName == request.DisplayName, ct);
         if (userNameExists)
         {
             return new CommonResponse
@@ -193,7 +193,7 @@ public class UserService(ITokenData tokenData,
         {
             StatusCode = HttpStatusCode.OK,
             Message = "User updated successfully."
-        }.WithResponseLog(_logger, callingUserId);
+        }.WithResponseLog(_logger, callingUserId, $"User [{userId}] created successfully.");
     }
 
     public async Task<CommonResponse> GetUserAsync(Guid userId, CancellationToken ct)
@@ -208,17 +208,6 @@ public class UserService(ITokenData tokenData,
         }
 
         var callingUserId = _tokenData.UserId!.Value;
-        var areUsersFriends = await _userFriendRepository.IsFriendshipAcceptedAsync(callingUserId, userId, ct);
-        var isAdmin = await _userRepository.IsUserAdminAsync(callingUserId, ct);
-        if (!isAdmin && !areUsersFriends && callingUserId != userId)
-        {
-            return new CommonResponse
-            {
-                StatusCode = HttpStatusCode.Unauthorized,
-                Message = "Only admins or friends can search for another user by Id."
-            }.WithResponseLog(_logger, callingUserId);
-        }
-
         var user = await _userRepository.GetDetailsByIdAsync(userId, ct);
         if (user == null)
         {
@@ -226,6 +215,17 @@ public class UserService(ITokenData tokenData,
             {
                 StatusCode = HttpStatusCode.NotFound,
                 Message = "User with that Id was not found."
+            }.WithResponseLog(_logger, callingUserId);
+        }
+
+        var areUsersFriends = await _userFriendRepository.IsFriendshipAcceptedAsync(callingUserId, userId, ct);
+        var isAdmin = await _userRepository.IsUserAdminAsync(callingUserId, ct);
+        if (!isAdmin && !areUsersFriends && callingUserId != userId)
+        {
+            return new CommonResponse
+            {
+                StatusCode = HttpStatusCode.Forbidden,
+                Message = "Only admins or friends can search for another user by Id."
             }.WithResponseLog(_logger, callingUserId);
         }
 
@@ -284,9 +284,9 @@ public class UserService(ITokenData tokenData,
         return new AddUserFriendResponse
         {
             UserFriendId = userFriendId,
-            StatusCode = HttpStatusCode.OK,
+            StatusCode = HttpStatusCode.Created,
             Message = "Successfully sent friend request."
-        }.WithResponseLog(_logger, callingUserId);
+        }.WithResponseLog(_logger, callingUserId, $"Successfully sent friend request to [{friendId}].");
     }
 
     public async Task<CommonResponse> UpdateUserFriendAsync(Guid friendId, UpdateUserFriendRequest request, CancellationToken ct)
@@ -315,7 +315,7 @@ public class UserService(ITokenData tokenData,
         {
             return new CommonResponse
             {
-                StatusCode = HttpStatusCode.BadRequest,
+                StatusCode = HttpStatusCode.NotFound,
                 Message = "Friend not found."
             }.WithResponseLog(_logger, callingUserId);
         }
@@ -324,7 +324,7 @@ public class UserService(ITokenData tokenData,
         {
             return new CommonResponse
             {
-                StatusCode = HttpStatusCode.BadRequest,
+                StatusCode = HttpStatusCode.Forbidden,
                 Message = "Only the requested user can update this friend request."
             }.WithResponseLog(_logger, callingUserId);
         }
@@ -336,7 +336,7 @@ public class UserService(ITokenData tokenData,
         {
             StatusCode = HttpStatusCode.OK,
             Message = $"Successfully updated friend status to {request.Status}."
-        }.WithResponseLog(_logger, callingUserId);
+        }.WithResponseLog(_logger, callingUserId, $"Successfully updated friend status of [{friendId}] to {request.Status}.");
     }
 
     public async Task<CommonResponse> DeleteUserAsync(Guid userId, CancellationToken ct)
@@ -387,8 +387,8 @@ public class UserService(ITokenData tokenData,
         return new CommonResponse
         {
             StatusCode = HttpStatusCode.OK,
-            Message = "Successfully deleted the user."
-        }.WithResponseLog(_logger, callingUserId);
+            Message = "User deleted successfully."
+        }.WithResponseLog(_logger, callingUserId, $"User [{userId}] deleted successfully.");
     }
 
     public async Task<CommonResponse> AddUserFriendByEmailAsync(AddFriendRequest request, CancellationToken ct)
@@ -410,36 +410,38 @@ public class UserService(ITokenData tokenData,
             {
                 StatusCode = HttpStatusCode.OK,
                 Message = "If a user with this email exists, a friend request will be sent to them."
-            }.WithResponseLog(_logger, callingUserId);
+            }.WithResponseLog(_logger, callingUserId, "User with that email does not exist.");
         }
 
-        if (userToFriend.UserId == callingUserId)
+        var friendId = userToFriend.UserId;
+        if (friendId == callingUserId)
         {
             return new CommonResponse
             {
                 StatusCode = HttpStatusCode.OK,
                 Message = "If a user with this email exists, a friend request will be sent to them."
-            }.WithResponseLog(_logger, callingUserId);
+            }.WithResponseLog(_logger, callingUserId, "User tried to add themselves as a friend.");
         }
 
-        var existingUserFriend = await _userFriendRepository.GetUserFriendAsync(callingUserId, userToFriend.UserId, ct);
+        var existingUserFriend = await _userFriendRepository.GetUserFriendAsync(callingUserId, friendId, ct);
         if (existingUserFriend != null)
         {
             return new CommonResponse
             {
                 StatusCode = HttpStatusCode.OK,
                 Message = "If a user with this email exists, a friend request will be sent to them."
-            }.WithResponseLog(_logger, callingUserId);
+            }.WithResponseLog(_logger, callingUserId, "User tried to add a friend they already have.");
         }
 
-        _ = await _userFriendRepository.CreateUserFriendAsync(callingUserId, userToFriend.UserId, ct);
+        //Don't return the new Id to avoid leaking whether or not the email exists to the user
+        _ = await _userFriendRepository.CreateUserFriendAsync(callingUserId, friendId, ct);
         await _unitOfWork.SaveChangesAsync(ct);
 
         return new CommonResponse
         {
             StatusCode = HttpStatusCode.OK,
             Message = "If a user with this email exists, a friend request will be sent to them."
-        }.WithResponseLog(_logger, callingUserId);
+        }.WithResponseLog(_logger, callingUserId, $"Friend [{friendId}] requested successfully via email.");
     }
 
     public async Task<CommonResponse> GetAllUsersAsync(PaginationBaseRequest request, CancellationToken ct)
