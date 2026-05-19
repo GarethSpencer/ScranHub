@@ -11,11 +11,8 @@ using Utilities.Models.Results.Generic;
 
 namespace RepositoryLayer.Infrastructure;
 
-public sealed class GroupRepository(ScranHubDbContext dbContext,
-    IUserRepository userRepository) : EFRepository<Group>(dbContext), IGroupRepository
+public sealed class GroupRepository(ScranHubDbContext dbContext) : EFRepository<Group>(dbContext), IGroupRepository
 {
-    private readonly IUserRepository _userRepository = userRepository;
-
     public async Task<(IEnumerable<GroupDetailedResult>, int)> GetAllAsync(PaginationBaseRequest request, CancellationToken ct)
     {
         var groups = await _dbSet
@@ -81,7 +78,8 @@ public sealed class GroupRepository(ScranHubDbContext dbContext,
         var groupsQuery = _dbSet
             .Where(x => x.Active && EF.Functions.Like(x.GroupName, $"%{request.SearchText}%"));
 
-        var isAdmin = await _userRepository.IsUserAdminAsync(userId, ct);
+        var user = await _dbContext.Users.FindAsync([userId], ct);
+        var isAdmin = user != null && user.Admin;
 
         if (!isAdmin)
         {
