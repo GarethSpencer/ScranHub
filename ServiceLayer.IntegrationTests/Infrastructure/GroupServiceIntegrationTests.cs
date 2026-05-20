@@ -9,12 +9,9 @@ using ServiceLayer.Infrastructure;
 using ServiceLayer.IntegrationTests.Fixtures;
 using ServiceLayer.IntegrationTests.Helpers;
 using System.Net;
-using Utilities.Enums;
 using Utilities.Models.Requests.Generic;
 using Utilities.Models.Requests.Groups;
-using Utilities.Models.Requests.Users;
-using Utilities.Models.Responses.Generic;
-using Utilities.Models.Responses.Users;
+using Utilities.Models.Responses.Groups;
 using Utilities.Token;
 using static ServiceLayer.IntegrationTests.Helpers.TestConstants;
 
@@ -73,6 +70,34 @@ public class GroupServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifet
         var result = await _service!.CreateGroupAsync(request, ct);
         _checks.OutputFailureCheck(result, "unauthorized", "CreateGroupAsync", HttpStatusCode.Unauthorized);
     }
+
+    [Fact]
+    public async Task CreateGroupAsync_NameAlreadyTaken_ReturnsConflict()
+    {
+        var request = new CreateGroupRequest
+        {
+            GroupName = TestGroup2Name
+        };
+
+        var result = await _service!.CreateGroupAsync(request, ct);
+        _checks.OutputFailureCheck(result, "already exists", "CreateGroupAsync", HttpStatusCode.Conflict);
+    }
+
+    [Fact]
+    public async Task CreateGroupAsync_ValidNewName_ReturnsCreated()
+    {
+        var request = new CreateGroupRequest
+        {
+            GroupName = "New Test Group"
+        };
+
+        var result = await _service!.CreateGroupAsync(request, ct);
+        _checks.OutputSuccessCheck(result, "success", "CreateGroupAsync", HttpStatusCode.Created);
+
+        var typedResult = result.Should().BeOfType<AddGroupResponse>().Subject;
+        _logger.Entries.Should().ContainSingle(e => e.Message.Contains(request.GroupName, StringComparison.InvariantCultureIgnoreCase));
+        _context!.UserGroups.Should().ContainSingle(e => e.UserId == SeedUser2NonAdminId && e.GroupId == typedResult.GroupId);
+    }
     #endregion
 
     #region GetGroupAsync
@@ -84,6 +109,34 @@ public class GroupServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifet
         var result = await _service!.GetGroupAsync(TestGroup1Id, ct);
         _checks.OutputFailureCheck(result, "unauthorized", "GetGroupAsync", HttpStatusCode.Unauthorized);
     }
+
+    [Fact]
+    public async Task GetGroupAsync_InvalidGroupId_ReturnsNotFound()
+    {
+        _tokenData.Setup(x => x.UserId).Returns(TestUser4NonAdminId);
+
+        var result = await _service!.GetGroupAsync(Guid.Empty, ct);
+        _checks.OutputFailureCheck(result, "not found", "GetGroupAsync", HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    public async Task GetGroupAsync_NotAdminOrMember_ReturnsForbidden()
+    {
+        _tokenData.Setup(x => x.UserId).Returns(TestUser4NonAdminId);
+
+        var result = await _service!.GetGroupAsync(TestGroup2Id, ct);
+        _checks.OutputFailureCheck(result, "only admins or group members", "GetGroupAsync", HttpStatusCode.Forbidden);
+    }
+
+    [Fact]
+    public async Task GetGroupAsync_ValidDetails_ReturnsOk()
+    {
+        var result = await _service!.GetGroupAsync(TestGroup1Id, ct);
+        _checks.OutputSuccessCheck(result, "success", "GetGroupAsync", HttpStatusCode.OK);
+
+        var typedResult = result.Should().BeOfType<GetGroupResponse>().Subject;
+        typedResult.Group!.GroupId.Should().Be(TestGroup1Id);
+    }
     #endregion
 
     #region SearchGroupsAsync
@@ -92,7 +145,8 @@ public class GroupServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifet
     {
         _tokenData.Setup(x => x.UserId).Returns((Guid?)null);
 
-        var request = new SearchGroupRequest {
+        var request = new SearchGroupRequest
+        {
             PageNumber = 1,
             PageSize = 10,
             SearchText = "test"

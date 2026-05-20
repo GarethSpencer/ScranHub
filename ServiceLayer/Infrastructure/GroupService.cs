@@ -72,18 +72,6 @@ public class GroupService(ITokenData tokenData,
         }
 
         var callingUserId = _tokenData.UserId!.Value;
-        var isAdmin = await _userRepository.IsUserAdminAsync(callingUserId, ct);
-        var isMember = await _userGroupRepository.IsUserInGroupAsync(groupId, callingUserId, ct);
-
-        if (!isAdmin && !isMember)
-        {
-            return new CommonResponse
-            {
-                StatusCode = HttpStatusCode.Unauthorized,
-                Message = "Only admins or group members can search for a group by Id."
-            }.WithResponseLog(_logger, callingUserId);
-        }
-
         var group = await _groupRepository.GetDetailsByIdAsync(groupId, ct);
         if (group == null)
         {
@@ -91,6 +79,18 @@ public class GroupService(ITokenData tokenData,
             {
                 StatusCode = HttpStatusCode.NotFound,
                 Message = $"Group with ID {groupId} not found."
+            }.WithResponseLog(_logger, callingUserId);
+        }
+
+        var isAdmin = await _userRepository.IsUserAdminAsync(callingUserId, ct);
+        var isMember = await _userGroupRepository.IsUserInGroupAsync(groupId, callingUserId, ct);
+
+        if (!isAdmin && !isMember)
+        {
+            return new CommonResponse
+            {
+                StatusCode = HttpStatusCode.Forbidden,
+                Message = "Only admins or group members can search for a group by Id."
             }.WithResponseLog(_logger, callingUserId);
         }
 
