@@ -76,15 +76,16 @@ public sealed class GroupRepository(ScranHubDbContext dbContext) : EFRepository<
     public async Task<(IEnumerable<GroupResult>, int)> SearchByNameAsync(SearchGroupRequest request, Guid userId, CancellationToken ct)
     {
         var groupsQuery = _dbSet
-            .Where(x => x.Active && EF.Functions.Like(x.GroupName, $"%{request.SearchText}%"));
+            .Where(x => EF.Functions.Like(x.GroupName, $"%{request.SearchText}%"));
 
         var user = await _dbContext.Users.FindAsync([userId], ct);
         var isAdmin = user != null && user.Admin;
 
         if (!isAdmin)
         {
-            groupsQuery = groupsQuery.Where(g => g.UserGroups.Any(ug => ug.User!.InitiatedFriendships.Any(f => f.FriendId == userId && f.Status == FriendshipStatus.Accepted))
-                || g.UserGroups.Any(ug => ug.User!.ReceivedFriendships.Any(f => f.UserId == userId && f.Status == FriendshipStatus.Accepted)));
+            groupsQuery = groupsQuery.Where(g => g.Active
+                && (g.UserGroups.Any(ug => ug.User!.InitiatedFriendships.Any(f => f.FriendId == userId && f.Status == FriendshipStatus.Accepted))
+                || g.UserGroups.Any(ug => ug.User!.ReceivedFriendships.Any(f => f.UserId == userId && f.Status == FriendshipStatus.Accepted))));
         }
 
         var totalCount = await groupsQuery.CountAsync(ct);

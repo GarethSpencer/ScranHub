@@ -88,15 +88,19 @@ public class DatabaseFixture : IAsyncLifetime
         {
             GroupId = TestGroup1Id,
             GroupName = TestGroup1Name,
-            Active = true,
-            CreatedBy = SeedUser1AdminId
+            Active = true
         },
         new Group
         {
             GroupId = TestGroup2Id,
             GroupName = TestGroup2Name,
-            Active = false,
-            CreatedBy = SeedUser1AdminId
+            Active = false
+        },
+        new Group
+        {
+            GroupId = TestGroup3Id,
+            GroupName = TestGroup3Name,
+            Active = true
         }
         );
 
@@ -132,9 +136,21 @@ public class DatabaseFixture : IAsyncLifetime
         },
         new UserGroup
         {
+            UserGroupId = TestGroup2User1Id,
+            GroupId = TestGroup2Id,
+            UserId = SeedUser1AdminId,
+        },
+        new UserGroup
+        {
             UserGroupId = TestGroup2User2Id,
             GroupId = TestGroup2Id,
             UserId = SeedUser2NonAdminId,
+        },
+        new UserGroup
+        {
+            UserGroupId = TestGroup3User1Id,
+            GroupId = TestGroup3Id,
+            UserId = SeedUser1AdminId,
         }
         );
 

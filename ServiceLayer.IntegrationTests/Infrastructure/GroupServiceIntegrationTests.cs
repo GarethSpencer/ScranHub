@@ -155,6 +155,67 @@ public class GroupServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifet
         var result = await _service!.SearchGroupsAsync(request, ct);
         _checks.OutputFailureCheck(result, "unauthorized", "SearchGroupsAsync", HttpStatusCode.Unauthorized);
     }
+
+    [Fact]
+    public async Task SearchGroupsAsync_ValidNonAdminSearch_ReturnsOk()
+    {
+        var request = new SearchGroupRequest
+        {
+            PageNumber = 1,
+            PageSize = 10,
+            SearchText = "test"
+        };
+
+        var result = await _service!.SearchGroupsAsync(request, ct);
+        _checks.OutputSuccessCheck(result, "success", "SearchGroupsAsync", HttpStatusCode.OK);
+
+        var typedResult = result.Should().BeOfType<GetGroupsResponse>().Subject;
+        typedResult.TotalCount.Should().Be(2); //Group 2 is inactive
+        typedResult.Groups.Should().Contain(e => e.GroupId == TestGroup1Id);
+        typedResult.Groups.Should().Contain(e => e.GroupId == TestGroup3Id);
+    }
+
+    [Fact]
+    public async Task SearchGroupsAsync_ValidAdminSearch_ReturnsOk()
+    {
+        _tokenData.Setup(x => x.UserId).Returns(SeedUser1AdminId);
+
+        var request = new SearchGroupRequest
+        {
+            PageNumber = 1,
+            PageSize = 10,
+            SearchText = "test"
+        };
+
+        var result = await _service!.SearchGroupsAsync(request, ct);
+        _checks.OutputSuccessCheck(result, "success", "SearchGroupsAsync", HttpStatusCode.OK);
+
+        var typedResult = result.Should().BeOfType<GetGroupsResponse>().Subject;
+        typedResult.TotalCount.Should().Be(3);
+        typedResult.Groups.Should().Contain(e => e.GroupId == TestGroup1Id);
+        typedResult.Groups.Should().Contain(e => e.GroupId == TestGroup2Id);
+        typedResult.Groups.Should().Contain(e => e.GroupId == TestGroup3Id);
+    }
+
+    [Fact]
+    public async Task SearchGroupsAsync_ValidFriendlessSearch_ReturnsOk()
+    {
+        _tokenData.Setup(x => x.UserId).Returns(TestUser4NonAdminId);
+
+        var request = new SearchGroupRequest
+        {
+            PageNumber = 1,
+            PageSize = 10,
+            SearchText = "test"
+        };
+
+        var result = await _service!.SearchGroupsAsync(request, ct);
+        _checks.OutputSuccessCheck(result, "success", "SearchGroupsAsync", HttpStatusCode.OK);
+
+        var typedResult = result.Should().BeOfType<GetGroupsResponse>().Subject;
+        typedResult.TotalCount.Should().Be(0);
+        typedResult.Groups.Should().BeEmpty();
+    }
     #endregion
 
     #region UpdateGroupAsync
@@ -172,6 +233,90 @@ public class GroupServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifet
         var result = await _service!.UpdateGroupAsync(TestGroup1Id, request, ct);
         _checks.OutputFailureCheck(result, "unauthorized", "UpdateGroupAsync", HttpStatusCode.Unauthorized);
     }
+
+    [Fact]
+    public async Task UpdateGroupAsync_InvalidGroupId_ReturnsNotFound()
+    {
+        var request = new UpdateGroupRequest
+        {
+            GroupName = "Updated Test Group",
+            Active = true
+        };
+
+        var result = await _service!.UpdateGroupAsync(Guid.Empty, request, ct);
+        _checks.OutputFailureCheck(result, "not found", "UpdateGroupAsync", HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    public async Task UpdateGroupAsync_UpdatingSomeoneElsesGroup_ReturnsForbidden()
+    {
+        var request = new UpdateGroupRequest
+        {
+            GroupName = "Updated Test Group",
+            Active = true
+        };
+
+        var result = await _service!.UpdateGroupAsync(TestGroup1Id, request, ct);
+        _checks.OutputFailureCheck(result, "not create", "UpdateGroupAsync", HttpStatusCode.Forbidden);
+    }
+
+    [Fact]
+    public async Task UpdateGroupAsync_AdminUpdatingSomeoneElsesGroup_ReturnsForbidden()
+    {
+        var request = new UpdateGroupRequest
+        {
+            GroupName = "Updated Test Group",
+            Active = true
+        };
+
+        var result = await _service!.UpdateGroupAsync(TestGroup3Id, request, ct);
+        _checks.OutputFailureCheck(result, "not create", "UpdateGroupAsync", HttpStatusCode.Forbidden);
+    }
+
+    [Fact]
+    public async Task UpdateGroupAsync_UpdatingGroupToExistingName_ReturnsConflict()
+    {
+        _tokenData.Setup(x => x.UserId).Returns(SeedUser1AdminId);
+
+        var request = new UpdateGroupRequest
+        {
+            GroupName = TestGroup1Name.ToUpperInvariant(),
+            Active = true
+        };
+
+        var result = await _service!.UpdateGroupAsync(TestGroup3Id, request, ct);
+        _checks.OutputFailureCheck(result, "already exists", "UpdateGroupAsync", HttpStatusCode.Conflict);
+    }
+
+    [Fact]
+    public async Task UpdateGroupAsync_ValidDetailsChangeName_ReturnsOK()
+    {
+        _tokenData.Setup(x => x.UserId).Returns(SeedUser1AdminId);
+
+        var request = new UpdateGroupRequest
+        {
+            GroupName = "Updated Test Group",
+            Active = false
+        };
+
+        var result = await _service!.UpdateGroupAsync(TestGroup3Id, request, ct);
+        _checks.OutputSuccessCheck(result, "success", "UpdateGroupAsync", HttpStatusCode.OK);
+    }
+
+    [Fact]
+    public async Task UpdateGroupAsync_ValidDetailsSameNameDifferentCase_ReturnsOK()
+    {
+        _tokenData.Setup(x => x.UserId).Returns(SeedUser1AdminId);
+
+        var request = new UpdateGroupRequest
+        {
+            GroupName = TestGroup3Name.ToLowerInvariant(),
+            Active = false
+        };
+
+        var result = await _service!.UpdateGroupAsync(TestGroup3Id, request, ct);
+        _checks.OutputSuccessCheck(result, "success", "UpdateGroupAsync", HttpStatusCode.OK);
+    }
     #endregion
 
     #region GetGroupsForUserAsync
@@ -183,6 +328,33 @@ public class GroupServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifet
         var result = await _service!.GetGroupsForUserAsync(ct);
         _checks.OutputFailureCheck(result, "unauthorized", "GetGroupsForUserAsync", HttpStatusCode.Unauthorized);
     }
+
+    [Fact]
+    public async Task GetGroupsForUserAsync_ValidNonAdminUser_ReturnsOK()
+    {
+        var result = await _service!.GetGroupsForUserAsync(ct);
+        _checks.OutputSuccessCheck(result, "success", "GetGroupsForUserAsync", HttpStatusCode.OK);
+
+        var typedResult = result.Should().BeOfType<UserGroupsResponse>().Subject;
+        typedResult.UserId.Should().Be(SeedUser2NonAdminId);
+        typedResult.UserGroups.Should().HaveCount(2);
+        typedResult.UserGroups.Should().Contain(e => e.GroupId == TestGroup1Id);
+        typedResult.UserGroups.Should().Contain(e => e.GroupId == TestGroup2Id);
+    }
+
+    [Fact]
+    public async Task GetGroupsForUserAsync_ValidAdminUser_ReturnsOK()
+    {
+        _tokenData.Setup(x => x.UserId).Returns(TestUser3AdminId);
+
+        var result = await _service!.GetGroupsForUserAsync(ct);
+        _checks.OutputSuccessCheck(result, "success", "GetGroupsForUserAsync", HttpStatusCode.OK);
+
+        var typedResult = result.Should().BeOfType<UserGroupsResponse>().Subject;
+        typedResult.UserId.Should().Be(TestUser3AdminId);
+        typedResult.UserGroups.Should().HaveCount(1);
+        typedResult.UserGroups.Should().Contain(e => e.GroupId == TestGroup1Id);
+    }
     #endregion
 
     #region LeaveGroupAsync
@@ -193,6 +365,37 @@ public class GroupServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifet
 
         var result = await _service!.LeaveGroupAsync(TestGroup1Id, ct);
         _checks.OutputFailureCheck(result, "unauthorized", "LeaveGroupAsync", HttpStatusCode.Unauthorized);
+    }
+
+    [Fact]
+    public async Task LeaveGroupAsync_InvalidGroupId_ReturnsNotFound()
+    {
+        var result = await _service!.LeaveGroupAsync(Guid.Empty, ct);
+        _checks.OutputFailureCheck(result, "not found", "LeaveGroupAsync", HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    public async Task LeaveGroupAsync_NotInGroup_ReturnsBadRequest()
+    {
+        var result = await _service!.LeaveGroupAsync(TestGroup3Id, ct);
+        _checks.OutputFailureCheck(result, "not a member", "LeaveGroupAsync", HttpStatusCode.BadRequest);
+    }
+
+    [Fact]
+    public async Task LeaveGroupAsync_CreatedGroup_ReturnsBadRequest()
+    {
+        _tokenData.Setup(x => x.UserId).Returns(SeedUser1AdminId);
+
+        var result = await _service!.LeaveGroupAsync(TestGroup3Id, ct);
+        _checks.OutputFailureCheck(result, "created", "LeaveGroupAsync", HttpStatusCode.Forbidden);
+    }
+
+    [Fact]
+    public async Task LeaveGroupAsync_ValidRequest_ReturnsOK()
+    {
+        var result = await _service!.LeaveGroupAsync(TestGroup2Id, ct);
+        _checks.OutputSuccessCheck(result, "success", "LeaveGroupAsync", HttpStatusCode.OK);
+        _context!.UserGroups.Should().NotContain(e => e.UserId == SeedUser2NonAdminId && e.GroupId == TestGroup2Id);
     }
     #endregion
 

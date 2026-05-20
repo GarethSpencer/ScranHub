@@ -38,7 +38,7 @@ public class GroupService(ITokenData tokenData,
         }
 
         var callingUserId = _tokenData.UserId!.Value;
-        var groupNameExists = await _groupRepository.ExistsAsync(x => x.GroupName.ToLower() == groupRequest.GroupName.ToLower(), ct);
+        var groupNameExists = await _groupRepository.ExistsAsync(x => x.GroupName == groupRequest.GroupName, ct);
         if (groupNameExists)
         {
             return new CommonResponse
@@ -159,7 +159,7 @@ public class GroupService(ITokenData tokenData,
 
         if (!String.Equals(group.GroupName, groupRequest.GroupName, StringComparison.OrdinalIgnoreCase))
         {
-            var groupNameExists = await _groupRepository.ExistsAsync(x => x.GroupName.ToLower() == groupRequest.GroupName.ToLower(), ct);
+            var groupNameExists = await _groupRepository.ExistsAsync(x => x.GroupName == groupRequest.GroupName, ct);
             if (groupNameExists)
             {
                 return new CommonResponse
