@@ -36,27 +36,27 @@ public class UserService(ITokenData tokenData,
             }.WithResponseLog(_logger);
         }
 
-        var userId = _tokenData.UserId!.Value;
-        var userFriends = await _userRepository.GetFriendsForUserAsync(userId, ct);
+        var callingUserId = _tokenData.UserId!.Value;
+        var userFriends = await _userRepository.GetFriendsForUserAsync(callingUserId, ct);
         if (userFriends == null)
         {
             return new CommonResponse
             {
                 StatusCode = HttpStatusCode.NotFound,
                 Message = "User not found."
-            }.WithResponseLog(_logger, userId);
+            }.WithResponseLog(_logger, callingUserId);
         }
 
         var friendCount = userFriends.Count(x => x.Status == FriendshipStatus.Accepted);
 
         return new UserFriendsResponse
         {
-            UserId = userId,
+            UserId = callingUserId,
             Friends = userFriends,
             FriendCount = friendCount,
             StatusCode = friendCount > 0 ? HttpStatusCode.OK : HttpStatusCode.NoContent,
             Message = "Friends retrieved successfully."
-        }.WithResponseLog(_logger, userId);
+        }.WithResponseLog(_logger, callingUserId);
     }
 
     public async Task<CommonResponse> CreateUserAsync(CreateUserRequest request, CancellationToken ct)

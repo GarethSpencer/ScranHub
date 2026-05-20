@@ -19,4 +19,17 @@ public class TestConstants
     public const string TestUser3AdminEmail = "user3@example.com";
     public const string TestUser4NonAdminEmail = "user4@example.com";
     public const string TestUser5NonAdminEmail = "user5@example.com";
+
+    public static readonly Guid TestGroup1Id = Guid.Parse("10000000-0000-0000-0000-000000000000");
+    public static readonly Guid TestGroup2Id = Guid.Parse("20000000-0000-0000-0000-000000000000");
+
+    public const string TestGroup1Name = "Test Group 1";
+    public const string TestGroup2Name = "Test Group 2";
+
+    public static readonly Guid TestGroup1User1Id = Guid.Parse("10000001-0000-0000-0000-000000000000");
+    public static readonly Guid TestGroup1User2Id = Guid.Parse("10000002-0000-0000-0000-000000000000");
+    public static readonly Guid TestGroup1User3Id = Guid.Parse("10000003-0000-0000-0000-000000000000");
+    public static readonly Guid TestGroup1User4Id = Guid.Parse("10000004-0000-0000-0000-000000000000");
+    public static readonly Guid TestGroup1User5Id = Guid.Parse("10000005-0000-0000-0000-000000000000");
+    public static readonly Guid TestGroup2User2Id = Guid.Parse("20000001-0000-0000-0000-000000000000");
 }

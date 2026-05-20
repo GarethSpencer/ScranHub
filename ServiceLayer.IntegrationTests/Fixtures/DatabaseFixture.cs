@@ -83,6 +83,61 @@ public class DatabaseFixture : IAsyncLifetime
             Status = FriendshipStatus.Accepted
         }
         );
+
+        context.Groups.AddRange(new Group
+        {
+            GroupId = TestGroup1Id,
+            GroupName = TestGroup1Name,
+            Active = true,
+            CreatedBy = SeedUser1AdminId
+        },
+        new Group
+        {
+            GroupId = TestGroup2Id,
+            GroupName = TestGroup2Name,
+            Active = false,
+            CreatedBy = SeedUser1AdminId
+        }
+        );
+
+        context.UserGroups.AddRange(new UserGroup
+        {
+            UserGroupId = TestGroup1User1Id,
+            GroupId = TestGroup1Id,
+            UserId = SeedUser1AdminId,
+        },
+        new UserGroup
+        {
+            UserGroupId = TestGroup1User2Id,
+            GroupId = TestGroup1Id,
+            UserId = SeedUser2NonAdminId,
+        },
+        new UserGroup
+        {
+            UserGroupId = TestGroup1User3Id,
+            GroupId = TestGroup1Id,
+            UserId = TestUser3AdminId,
+        },
+        new UserGroup
+        {
+            UserGroupId = TestGroup1User4Id,
+            GroupId = TestGroup1Id,
+            UserId = TestUser4NonAdminId,
+        },
+        new UserGroup
+        {
+            UserGroupId = TestGroup1User5Id,
+            GroupId = TestGroup1Id,
+            UserId = TestUser5NonAdminId,
+        },
+        new UserGroup
+        {
+            UserGroupId = TestGroup2User2Id,
+            GroupId = TestGroup2Id,
+            UserId = SeedUser2NonAdminId,
+        }
+        );
+
         await context.SaveChangesAsync();
     }
 }

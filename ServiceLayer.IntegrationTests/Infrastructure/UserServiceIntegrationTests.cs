@@ -2,7 +2,6 @@
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
-using Microsoft.Extensions.Logging;
 using Moq;
 using RepositoryLayer.Infrastructure;
 using RepositoryLayer.Infrastructure.Generic;
@@ -13,7 +12,6 @@ using System.Net;
 using Utilities.Enums;
 using Utilities.Models.Requests.Generic;
 using Utilities.Models.Requests.Users;
-using Utilities.Models.Responses.Generic;
 using Utilities.Models.Responses.Users;
 using Utilities.Token;
 using static ServiceLayer.IntegrationTests.Helpers.TestConstants;
@@ -29,12 +27,14 @@ public class UserServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
     private ScranHubDbContext? _context;
     private FakeLogger<UserService> _logger = new();
     private readonly Mock<ITokenData> _tokenData = new();
+    private OutputChecks<UserService> _checks = new(new FakeLogger<UserService>());
     private UserService? _service;
     private static readonly CancellationToken ct = CancellationToken.None;
 
     public async Task InitializeAsync()
     {
         _logger = new FakeLogger<UserService>();
+        _checks = new OutputChecks<UserService>(_logger);
 
         var options = new DbContextOptionsBuilder<ScranHubDbContext>()
             .UseSqlServer(_fixture.ConnectionString)
@@ -61,7 +61,7 @@ public class UserServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
         _tokenData.Setup(x => x.UserId).Returns((Guid?)null);
 
         var result = await _service!.GetFriendsForUserAsync(ct);
-        OutputFailureCheck(result, "unauthorized", "GetFriendsForUserAsync", HttpStatusCode.Unauthorized);
+        _checks.OutputFailureCheck(result, "unauthorized", "GetFriendsForUserAsync", HttpStatusCode.Unauthorized);
     }
 
     [Fact]
@@ -70,7 +70,7 @@ public class UserServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
         _tokenData.Setup(x => x.UserId).Returns(Guid.Empty);
 
         var result = await _service!.GetFriendsForUserAsync(ct);
-        OutputFailureCheck(result, "not found", "GetFriendsForUserAsync", HttpStatusCode.NotFound);
+        _checks.OutputFailureCheck(result, "not found", "GetFriendsForUserAsync", HttpStatusCode.NotFound);
     }
 
     [Fact]
@@ -79,7 +79,7 @@ public class UserServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
         _tokenData.Setup(x => x.UserId).Returns(SeedUser1AdminId);
 
         var result = await _service!.GetFriendsForUserAsync(ct);
-        OutputSuccessCheck(result, "success", "GetFriendsForUserAsync", HttpStatusCode.OK);
+        _checks.OutputSuccessCheck(result, "success", "GetFriendsForUserAsync", HttpStatusCode.OK);
 
         var typedResult = result.Should().BeOfType<UserFriendsResponse>().Subject;
         typedResult.UserId.Should().Be(SeedUser1AdminId);
@@ -93,7 +93,7 @@ public class UserServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
         _tokenData.Setup(x => x.UserId).Returns(SeedUser2NonAdminId);
 
         var result = await _service!.GetFriendsForUserAsync(ct);
-        OutputSuccessCheck(result, "success", "GetFriendsForUserAsync", HttpStatusCode.OK);
+        _checks.OutputSuccessCheck(result, "success", "GetFriendsForUserAsync", HttpStatusCode.OK);
 
         var typedResult = result.Should().BeOfType<UserFriendsResponse>().Subject;
         typedResult.UserId.Should().Be(SeedUser2NonAdminId);
@@ -107,7 +107,7 @@ public class UserServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
         _tokenData.Setup(x => x.UserId).Returns(TestUser3AdminId);
 
         var result = await _service!.GetFriendsForUserAsync(ct);
-        OutputSuccessCheck(result, "success", "GetFriendsForUserAsync", HttpStatusCode.NoContent);
+        _checks.OutputSuccessCheck(result, "success", "GetFriendsForUserAsync", HttpStatusCode.NoContent);
 
         var typedResult = result.Should().BeOfType<UserFriendsResponse>().Subject;
         typedResult.UserId.Should().Be(TestUser3AdminId);
@@ -121,7 +121,7 @@ public class UserServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
         _tokenData.Setup(x => x.UserId).Returns(TestUser4NonAdminId);
 
         var result = await _service!.GetFriendsForUserAsync(ct);
-        OutputSuccessCheck(result, "success", "GetFriendsForUserAsync", HttpStatusCode.NoContent);
+        _checks.OutputSuccessCheck(result, "success", "GetFriendsForUserAsync", HttpStatusCode.NoContent);
 
         var typedResult = result.Should().BeOfType<UserFriendsResponse>().Subject;
         typedResult.UserId.Should().Be(TestUser4NonAdminId);
@@ -135,7 +135,7 @@ public class UserServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
         _tokenData.Setup(x => x.UserId).Returns(TestUser5NonAdminId);
 
         var result = await _service!.GetFriendsForUserAsync(ct);
-        OutputSuccessCheck(result, "success", "GetFriendsForUserAsync", HttpStatusCode.OK);
+        _checks.OutputSuccessCheck(result, "success", "GetFriendsForUserAsync", HttpStatusCode.OK);
 
         var typedResult = result.Should().BeOfType<UserFriendsResponse>().Subject;
         typedResult.UserId.Should().Be(TestUser5NonAdminId);
@@ -158,7 +158,7 @@ public class UserServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
         };
 
         var result = await _service!.CreateUserAsync(request, ct);
-        OutputFailureCheck(result, "unauthorized", "CreateUserAsync", HttpStatusCode.Unauthorized);
+        _checks.OutputFailureCheck(result, "unauthorized", "CreateUserAsync", HttpStatusCode.Unauthorized);
     }
 
     [Theory]
@@ -175,7 +175,7 @@ public class UserServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
         };
 
         var result = await _service!.CreateUserAsync(request, ct);
-        OutputFailureCheck(result, "already exists", "CreateUserAsync", HttpStatusCode.Conflict);
+        _checks.OutputFailureCheck(result, "already exists", "CreateUserAsync", HttpStatusCode.Conflict);
     }
 
     [Theory]
@@ -192,7 +192,7 @@ public class UserServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
         };
 
         var result = await _service!.CreateUserAsync(request, ct);
-        OutputFailureCheck(result, "already taken", "CreateUserAsync", HttpStatusCode.Conflict);
+        _checks.OutputFailureCheck(result, "already taken", "CreateUserAsync", HttpStatusCode.Conflict);
     }
 
     [Fact]
@@ -206,7 +206,7 @@ public class UserServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
         };
 
         var result = await _service!.CreateUserAsync(request, ct);
-        OutputFailureCheck(result, "admin", "CreateUserAsync", HttpStatusCode.Unauthorized);
+        _checks.OutputFailureCheck(result, "admin", "CreateUserAsync", HttpStatusCode.Unauthorized);
     }
 
     [Fact]
@@ -220,7 +220,7 @@ public class UserServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
         };
 
         var result = await _service!.CreateUserAsync(request, ct);
-        OutputSuccessCheck(result, "success", "CreateUserAsync", HttpStatusCode.Created);
+        _checks.OutputSuccessCheck(result, "success", "CreateUserAsync", HttpStatusCode.Created);
         result.Should().BeOfType<AddUserResponse>();
     }
 
@@ -237,7 +237,7 @@ public class UserServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
         };
 
         var result = await _service!.CreateUserAsync(request, ct);
-        OutputSuccessCheck(result, "success", "CreateUserAsync", HttpStatusCode.Created);
+        _checks.OutputSuccessCheck(result, "success", "CreateUserAsync", HttpStatusCode.Created);
         result.Should().BeOfType<AddUserResponse>();
     }
     #endregion
@@ -256,7 +256,7 @@ public class UserServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
         };
 
         var result = await _service!.SearchUsersAsync(request, ct);
-        OutputFailureCheck(result, "unauthorized", "SearchUsersAsync", HttpStatusCode.Unauthorized);
+        _checks.OutputFailureCheck(result, "unauthorized", "SearchUsersAsync", HttpStatusCode.Unauthorized);
     }
 
     [Fact]
@@ -270,7 +270,7 @@ public class UserServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
         };
 
         var result = await _service!.SearchUsersAsync(request, ct);
-        OutputSuccessCheck(result, "success", "SearchUsersAsync", HttpStatusCode.OK);
+        _checks.OutputSuccessCheck(result, "success", "SearchUsersAsync", HttpStatusCode.OK);
 
         var typedResult = result.Should().BeOfType<GetUsersResponse>().Subject;
         typedResult.TotalCount.Should().Be(2);
@@ -291,7 +291,7 @@ public class UserServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
         };
 
         var result = await _service!.SearchUsersAsync(request, ct);
-        OutputSuccessCheck(result, "success", "SearchUsersAsync", HttpStatusCode.OK);
+        _checks.OutputSuccessCheck(result, "success", "SearchUsersAsync", HttpStatusCode.OK);
 
         var typedResult = result.Should().BeOfType<GetUsersResponse>().Subject;
         typedResult.TotalCount.Should().Be(1);
@@ -310,7 +310,7 @@ public class UserServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
         };
 
         var result = await _service!.SearchUsersAsync(request, ct);
-        OutputSuccessCheck(result, "success", "SearchUsersAsync", HttpStatusCode.OK);
+        _checks.OutputSuccessCheck(result, "success", "SearchUsersAsync", HttpStatusCode.OK);
 
         var typedResult = result.Should().BeOfType<GetUsersResponse>().Subject;
         typedResult.TotalCount.Should().Be(2);
@@ -329,7 +329,7 @@ public class UserServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
         };
 
         var result = await _service!.SearchUsersAsync(request, ct);
-        OutputSuccessCheck(result, "success", "SearchUsersAsync", HttpStatusCode.OK);
+        _checks.OutputSuccessCheck(result, "success", "SearchUsersAsync", HttpStatusCode.OK);
 
         var typedResult = result.Should().BeOfType<GetUsersResponse>().Subject;
         typedResult.TotalCount.Should().Be(1);
@@ -351,7 +351,7 @@ public class UserServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
         };
 
         var result = await _service!.UpdateUserAsync(SeedUser2NonAdminId, request, ct);
-        OutputFailureCheck(result, "unauthorized", "UpdateUserAsync", HttpStatusCode.Unauthorized);
+        _checks.OutputFailureCheck(result, "unauthorized", "UpdateUserAsync", HttpStatusCode.Unauthorized);
     }
 
     [Fact]
@@ -365,7 +365,7 @@ public class UserServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
         };
 
         var result = await _service!.UpdateUserAsync(TestUser4NonAdminId, request, ct);
-        OutputFailureCheck(result, "update this user", "UpdateUserAsync", HttpStatusCode.Unauthorized);
+        _checks.OutputFailureCheck(result, "update this user", "UpdateUserAsync", HttpStatusCode.Unauthorized);
     }
 
     [Fact]
@@ -379,7 +379,7 @@ public class UserServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
         };
 
         var result = await _service!.UpdateUserAsync(SeedUser2NonAdminId, request, ct);
-        OutputFailureCheck(result, "make yourself an admin", "UpdateUserAsync", HttpStatusCode.Unauthorized);
+        _checks.OutputFailureCheck(result, "make yourself an admin", "UpdateUserAsync", HttpStatusCode.Unauthorized);
     }
 
     [Fact]
@@ -395,7 +395,7 @@ public class UserServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
         };
 
         var result = await _service!.UpdateUserAsync(Guid.Empty, request, ct);
-        OutputFailureCheck(result, "not found", "UpdateUserAsync", HttpStatusCode.NotFound);
+        _checks.OutputFailureCheck(result, "not found", "UpdateUserAsync", HttpStatusCode.NotFound);
     }
 
     [Fact]
@@ -411,7 +411,7 @@ public class UserServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
         };
 
         var result = await _service!.UpdateUserAsync(TestUser3AdminId, request, ct);
-        OutputFailureCheck(result, "update this user", "UpdateUserAsync", HttpStatusCode.Unauthorized);
+        _checks.OutputFailureCheck(result, "update this user", "UpdateUserAsync", HttpStatusCode.Unauthorized);
     }
 
     [Fact]
@@ -425,7 +425,7 @@ public class UserServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
         };
 
         var result = await _service!.UpdateUserAsync(SeedUser2NonAdminId, request, ct);
-        OutputSuccessCheck(result, "success", "UpdateUserAsync", HttpStatusCode.OK);
+        _checks.OutputSuccessCheck(result, "success", "UpdateUserAsync", HttpStatusCode.OK);
         _context!.Users.Should().ContainSingle(e => e.UserId == SeedUser2NonAdminId && e.DisplayName == "New Test User" && e.Admin == false && e.Active == true);
     }
 
@@ -442,7 +442,7 @@ public class UserServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
         };
 
         var result = await _service!.UpdateUserAsync(SeedUser2NonAdminId, request, ct);
-        OutputSuccessCheck(result, "success", "UpdateUserAsync", HttpStatusCode.OK);
+        _checks.OutputSuccessCheck(result, "success", "UpdateUserAsync", HttpStatusCode.OK);
         _context!.Users.Should().ContainSingle(e => e.UserId == SeedUser2NonAdminId && e.DisplayName == "New Test User" && e.Admin == true && e.Active == true);
     }
     #endregion
@@ -454,28 +454,28 @@ public class UserServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
         _tokenData.Setup(x => x.UserId).Returns((Guid?)null);
 
         var result = await _service!.GetUserAsync(SeedUser2NonAdminId, ct);
-        OutputFailureCheck(result, "unauthorized", "GetUserAsync", HttpStatusCode.Unauthorized);
+        _checks.OutputFailureCheck(result, "unauthorized", "GetUserAsync", HttpStatusCode.Unauthorized);
     }
 
     [Fact]
     public async Task GetUserAsync_NotValidUserId_ReturnsNotFound()
     {
         var result = await _service!.GetUserAsync(Guid.Empty, ct);
-        OutputFailureCheck(result, "not found", "GetUserAsync", HttpStatusCode.NotFound);
+        _checks.OutputFailureCheck(result, "not found", "GetUserAsync", HttpStatusCode.NotFound);
     }
 
     [Fact]
     public async Task GetUserAsync_NotAdminAndUserNotFriend_ReturnsForbidden()
     {
         var result = await _service!.GetUserAsync(TestUser3AdminId, ct);
-        OutputFailureCheck(result, "admins or friends", "GetUserAsync", HttpStatusCode.Forbidden);
+        _checks.OutputFailureCheck(result, "admins or friends", "GetUserAsync", HttpStatusCode.Forbidden);
     }
 
     [Fact]
     public async Task GetUserAsync_NonAdminSearchingForFriend_ReturnsOK()
     {
         var result = await _service!.GetUserAsync(SeedUser1AdminId, ct);
-        OutputSuccessCheck(result, "success", "GetUserAsync", HttpStatusCode.OK);
+        _checks.OutputSuccessCheck(result, "success", "GetUserAsync", HttpStatusCode.OK);
 
         var typedResult = result.Should().BeOfType<GetUserResponse>().Subject;
         typedResult.User!.UserId.Should().Be(SeedUser1AdminId);
@@ -487,7 +487,7 @@ public class UserServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
         _tokenData.Setup(x => x.UserId).Returns(TestUser3AdminId);
 
         var result = await _service!.GetUserAsync(SeedUser2NonAdminId, ct);
-        OutputSuccessCheck(result, "success", "GetUserAsync", HttpStatusCode.OK);
+        _checks.OutputSuccessCheck(result, "success", "GetUserAsync", HttpStatusCode.OK);
 
         var typedResult = result.Should().BeOfType<GetUserResponse>().Subject;
         typedResult.User!.UserId.Should().Be(SeedUser2NonAdminId);
@@ -501,28 +501,28 @@ public class UserServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
         _tokenData.Setup(x => x.UserId).Returns((Guid?)null);
 
         var result = await _service!.AddUserFriendAsync(TestUser3AdminId, ct);
-        OutputFailureCheck(result, "unauthorized", "AddUserFriendAsync", HttpStatusCode.Unauthorized);
+        _checks.OutputFailureCheck(result, "unauthorized", "AddUserFriendAsync", HttpStatusCode.Unauthorized);
     }
 
     [Fact]
     public async Task AddUserFriendAsync_AddSelf_ReturnsBadRequest()
     {
         var result = await _service!.AddUserFriendAsync(SeedUser2NonAdminId, ct);
-        OutputFailureCheck(result, "add yourself", "AddUserFriendAsync", HttpStatusCode.BadRequest);
+        _checks.OutputFailureCheck(result, "add yourself", "AddUserFriendAsync", HttpStatusCode.BadRequest);
     }
 
     [Fact]
     public async Task AddUserFriendAsync_AddInvalidaUserId_ReturnsNotFound()
     {
         var result = await _service!.AddUserFriendAsync(Guid.Empty, ct);
-        OutputFailureCheck(result, "not exist", "AddUserFriendAsync", HttpStatusCode.NotFound);
+        _checks.OutputFailureCheck(result, "not exist", "AddUserFriendAsync", HttpStatusCode.NotFound);
     }
 
     [Fact]
     public async Task AddUserFriendAsync_AddExistingAcceptedUserFriend_ReturnsBadRequest()
     {
         var result = await _service!.AddUserFriendAsync(SeedUser1AdminId, ct);
-        OutputFailureCheck(result, "already requested", "AddUserFriendAsync", HttpStatusCode.BadRequest);
+        _checks.OutputFailureCheck(result, "already requested", "AddUserFriendAsync", HttpStatusCode.BadRequest);
     }
 
     [Fact]
@@ -531,14 +531,14 @@ public class UserServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
         _tokenData.Setup(x => x.UserId).Returns(TestUser4NonAdminId);
 
         var result = await _service!.AddUserFriendAsync(SeedUser1AdminId, ct);
-        OutputFailureCheck(result, "already requested", "AddUserFriendAsync", HttpStatusCode.BadRequest);
+        _checks.OutputFailureCheck(result, "already requested", "AddUserFriendAsync", HttpStatusCode.BadRequest);
     }
 
     [Fact]
     public async Task AddUserFriendAsync_NonAdminAddingAdmin_ReturnsCreated()
     {
         var result = await _service!.AddUserFriendAsync(TestUser3AdminId, ct);
-        OutputSuccessCheck(result, "success", "AddUserFriendAsync", HttpStatusCode.Created);
+        _checks.OutputSuccessCheck(result, "success", "AddUserFriendAsync", HttpStatusCode.Created);
 
         result.Should().BeOfType<AddUserFriendResponse>();
     }
@@ -549,7 +549,7 @@ public class UserServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
         _tokenData.Setup(x => x.UserId).Returns(TestUser3AdminId);
 
         var result = await _service!.AddUserFriendAsync(SeedUser2NonAdminId, ct);
-        OutputSuccessCheck(result, "success", "AddUserFriendAsync", HttpStatusCode.Created);
+        _checks.OutputSuccessCheck(result, "success", "AddUserFriendAsync", HttpStatusCode.Created);
 
         result.Should().BeOfType<AddUserFriendResponse>();
     }
@@ -567,7 +567,7 @@ public class UserServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
         };
 
         var result = await _service!.UpdateUserFriendAsync(SeedUser1AdminId, request, ct);
-        OutputFailureCheck(result, "unauthorized", "UpdateUserFriendAsync", HttpStatusCode.Unauthorized);
+        _checks.OutputFailureCheck(result, "unauthorized", "UpdateUserFriendAsync", HttpStatusCode.Unauthorized);
     }
 
     [Fact]
@@ -579,7 +579,7 @@ public class UserServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
         };
 
         var result = await _service!.UpdateUserFriendAsync(SeedUser2NonAdminId, request, ct);
-        OutputFailureCheck(result, "yourself", "UpdateUserFriendAsync", HttpStatusCode.BadRequest);
+        _checks.OutputFailureCheck(result, "yourself", "UpdateUserFriendAsync", HttpStatusCode.BadRequest);
     }
 
     [Fact]
@@ -591,7 +591,7 @@ public class UserServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
         };
 
         var result = await _service!.UpdateUserFriendAsync(Guid.Empty, request, ct);
-        OutputFailureCheck(result, "not found", "UpdateUserFriendAsync", HttpStatusCode.NotFound);
+        _checks.OutputFailureCheck(result, "not found", "UpdateUserFriendAsync", HttpStatusCode.NotFound);
     }
 
     [Fact]
@@ -605,7 +605,7 @@ public class UserServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
         };
 
         var result = await _service!.UpdateUserFriendAsync(SeedUser2NonAdminId, request, ct);
-        OutputFailureCheck(result, "requested user", "UpdateUserFriendAsync", HttpStatusCode.Forbidden);
+        _checks.OutputFailureCheck(result, "requested user", "UpdateUserFriendAsync", HttpStatusCode.Forbidden);
     }
 
     [Theory]
@@ -620,7 +620,7 @@ public class UserServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
         };
 
         var result = await _service!.UpdateUserFriendAsync(SeedUser1AdminId, request, ct);
-        OutputSuccessCheck(result, "success", "UpdateUserFriendAsync", HttpStatusCode.OK);
+        _checks.OutputSuccessCheck(result, "success", "UpdateUserFriendAsync", HttpStatusCode.OK);
     }
     #endregion
 
@@ -631,21 +631,21 @@ public class UserServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
         _tokenData.Setup(x => x.UserId).Returns((Guid?)null);
 
         var result = await _service!.DeleteUserAsync(SeedUser2NonAdminId, ct);
-        OutputFailureCheck(result, "unauthorized", "DeleteUserAsync", HttpStatusCode.Unauthorized);
+        _checks.OutputFailureCheck(result, "unauthorized", "DeleteUserAsync", HttpStatusCode.Unauthorized);
     }
 
     [Fact]
     public async Task DeleteUserAsync_InvalidUserId_ReturnsNotFound()
     {
         var result = await _service!.DeleteUserAsync(Guid.Empty, ct);
-        OutputFailureCheck(result, "not found", "DeleteUserAsync", HttpStatusCode.NotFound);
+        _checks.OutputFailureCheck(result, "not found", "DeleteUserAsync", HttpStatusCode.NotFound);
     }
 
     [Fact]
     public async Task DeleteUserAsync_NonAdminDeletingOtherUser_ReturnsForbidden()
     {
         var result = await _service!.DeleteUserAsync(TestUser4NonAdminId, ct);
-        OutputFailureCheck(result, "not delete other users", "DeleteUserAsync", HttpStatusCode.Forbidden);
+        _checks.OutputFailureCheck(result, "not delete other users", "DeleteUserAsync", HttpStatusCode.Forbidden);
     }
 
     [Fact]
@@ -654,7 +654,7 @@ public class UserServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
         _tokenData.Setup(x => x.UserId).Returns(SeedUser1AdminId);
 
         var result = await _service!.DeleteUserAsync(TestUser3AdminId, ct);
-        OutputFailureCheck(result, "not delete other admins", "DeleteUserAsync", HttpStatusCode.Forbidden);
+        _checks.OutputFailureCheck(result, "not delete other admins", "DeleteUserAsync", HttpStatusCode.Forbidden);
     }
 
     [Fact]
@@ -663,7 +663,7 @@ public class UserServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
         _tokenData.Setup(x => x.UserId).Returns(SeedUser1AdminId);
 
         var result = await _service!.DeleteUserAsync(TestUser4NonAdminId, ct);
-        OutputSuccessCheck(result, "success", "DeleteUserAsync", HttpStatusCode.OK);
+        _checks.OutputSuccessCheck(result, "success", "DeleteUserAsync", HttpStatusCode.OK);
     }
 
     [Fact]
@@ -672,7 +672,7 @@ public class UserServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
         _tokenData.Setup(x => x.UserId).Returns(TestUser5NonAdminId);
 
         var result = await _service!.DeleteUserAsync(TestUser5NonAdminId, ct);
-        OutputSuccessCheck(result, "success", "DeleteUserAsync", HttpStatusCode.OK);
+        _checks.OutputSuccessCheck(result, "success", "DeleteUserAsync", HttpStatusCode.OK);
     }
     #endregion
 
@@ -688,7 +688,7 @@ public class UserServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
         };
 
         var result = await _service!.AddUserFriendByEmailAsync(request, ct);
-        OutputFailureCheck(result, "unauthorized", "AddUserFriendByEmailAsync", HttpStatusCode.Unauthorized);
+        _checks.OutputFailureCheck(result, "unauthorized", "AddUserFriendByEmailAsync", HttpStatusCode.Unauthorized);
     }
 
     [Fact]
@@ -700,7 +700,7 @@ public class UserServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
         };
 
         var result = await _service!.AddUserFriendByEmailAsync(request, ct);
-        OutputSuccessCheck(result, "If a user with this email exists, a friend request will be sent to them.",
+        _checks.OutputSuccessCheck(result, "If a user with this email exists, a friend request will be sent to them.",
             "AddUserFriendByEmailAsync", HttpStatusCode.OK);
 
         _logger.Entries.Should().ContainSingle(e => e.Message.Contains("User with that email does not exist.", StringComparison.InvariantCultureIgnoreCase));
@@ -715,7 +715,7 @@ public class UserServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
         };
 
         var result = await _service!.AddUserFriendByEmailAsync(request, ct);
-        OutputSuccessCheck(result, "If a user with this email exists, a friend request will be sent to them.",
+        _checks.OutputSuccessCheck(result, "If a user with this email exists, a friend request will be sent to them.",
             "AddUserFriendByEmailAsync", HttpStatusCode.OK);
 
         _logger.Entries.Should().ContainSingle(e => e.Message.Contains("User tried to add themselves as a friend.", StringComparison.InvariantCultureIgnoreCase));
@@ -730,7 +730,7 @@ public class UserServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
         };
 
         var result = await _service!.AddUserFriendByEmailAsync(request, ct);
-        OutputSuccessCheck(result, "If a user with this email exists, a friend request will be sent to them.",
+        _checks.OutputSuccessCheck(result, "If a user with this email exists, a friend request will be sent to them.",
             "AddUserFriendByEmailAsync", HttpStatusCode.OK);
 
         _logger.Entries.Should().ContainSingle(e => e.Message.Contains("User tried to add a friend they already have.", StringComparison.InvariantCultureIgnoreCase));
@@ -745,7 +745,7 @@ public class UserServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
         };
 
         var result = await _service!.AddUserFriendByEmailAsync(request, ct);
-        OutputSuccessCheck(result, "If a user with this email exists, a friend request will be sent to them.",
+        _checks.OutputSuccessCheck(result, "If a user with this email exists, a friend request will be sent to them.",
             "AddUserFriendByEmailAsync", HttpStatusCode.OK);
 
         _logger.Entries.Should().ContainSingle(e => e.Message.Contains("requested successfully via email.", StringComparison.InvariantCultureIgnoreCase));
@@ -765,7 +765,7 @@ public class UserServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
         };
 
         var result = await _service!.GetAllUsersAsync(request, ct);
-        OutputFailureCheck(result, "unauthorized", "GetAllUsersAsync", HttpStatusCode.Unauthorized);
+        _checks.OutputFailureCheck(result, "unauthorized", "GetAllUsersAsync", HttpStatusCode.Unauthorized);
     }
 
     [Fact]
@@ -778,7 +778,7 @@ public class UserServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
         };
 
         var result = await _service!.GetAllUsersAsync(request, ct);
-        OutputFailureCheck(result, "admin", "GetAllUsersAsync", HttpStatusCode.Forbidden);
+        _checks.OutputFailureCheck(result, "admin", "GetAllUsersAsync", HttpStatusCode.Forbidden);
     }
 
     [Fact]
@@ -793,32 +793,12 @@ public class UserServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
         };
 
         var result = await _service!.GetAllUsersAsync(request, ct);
-        OutputSuccessCheck(result, "success", "GetAllUsersAsync", HttpStatusCode.OK);
+        _checks.OutputSuccessCheck(result, "success", "GetAllUsersAsync", HttpStatusCode.OK);
 
         var typedResult = result.Should().BeOfType<GetUsersDetailedResponse>().Subject;
         typedResult.TotalCount.Should().Be(5);
     }
     #endregion
-
-    private void OutputFailureCheck(CommonResponse result, string errorText, string methodName, HttpStatusCode code)
-    {
-        result.StatusCode.Should().Be(code);
-        result.Message?.ToLowerInvariant().Should().Contain(errorText.ToLowerInvariant());
-
-        _logger.Entries.Should().ContainSingle(e =>
-            e.Level == LogLevel.Warning &&
-            e.Message.Contains(methodName));
-    }
-
-    private void OutputSuccessCheck(CommonResponse result, string successText, string methodName, HttpStatusCode code)
-    {
-        result.StatusCode.Should().Be(code);
-        result.Message?.ToLowerInvariant().Should().Contain(successText.ToLowerInvariant());
-
-        _logger.Entries.Should().ContainSingle(e =>
-            e.Level == LogLevel.Information &&
-            e.Message.Contains(methodName));
-    }
 
     public async Task DisposeAsync()
     {
