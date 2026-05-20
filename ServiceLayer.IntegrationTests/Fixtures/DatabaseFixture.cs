@@ -154,6 +154,42 @@ public class DatabaseFixture : IAsyncLifetime
         }
         );
 
+        context.GroupVenues.AddRange(new GroupVenue
+        {
+            GroupVenueId = TestGroupVenue1Id,
+            Visited = true,
+            GroupId = TestGroup1Id,
+            VenueName = TestGroupVenue1Name,
+            FoodTypeOptionId = TestFoodTypeOption1Id,
+            VenueTypeOptionId = TestVenueTypeOption1Id
+        },
+        new GroupVenue
+        {
+            GroupVenueId = TestGroupVenue2Id,
+            Visited = false,
+            GroupId = TestGroup1Id,
+            VenueName = TestGroupVenue2Name,
+            FoodTypeOptionId = TestFoodTypeOption2Id,
+            VenueTypeOptionId = TestVenueTypeOption2Id
+        },
+        new GroupVenue
+        {
+            GroupVenueId = TestGroupVenue3Id,
+            Visited = false,
+            GroupId = TestGroup1Id,
+            VenueName = TestGroupVenue3Name,
+            FoodTypeOptionId = TestFoodTypeOption1Id,
+            VenueTypeOptionId = TestVenueTypeOption1Id
+        },
+        new GroupVenue
+        {
+            GroupVenueId = TestGroupVenue4Id,
+            Visited = false,
+            GroupId = TestGroup1Id,
+            VenueName = TestGroupVenue4Name
+        }
+        );
+
         await context.SaveChangesAsync();
     }
 }

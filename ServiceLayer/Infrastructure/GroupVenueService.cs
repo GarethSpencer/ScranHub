@@ -3,6 +3,7 @@ using RepositoryLayer.Abstractions;
 using RepositoryLayer.Abstractions.Generic;
 using ServiceLayer.Abstractions;
 using System.Net;
+using Utilities.Helpers;
 using Utilities.Models.Requests.GroupVenues;
 using Utilities.Models.Responses.Generic;
 using Utilities.Models.Responses.GroupVenues;
@@ -34,84 +35,74 @@ public class GroupVenueService(ITokenData tokenData,
     {
         if (!_tokenData.UserId.HasValue)
         {
-            _logger.LogWarning("GetGroupVenueAsync called with no authenticated user.");
             return new CommonResponse
             {
                 StatusCode = HttpStatusCode.Unauthorized,
                 Message = "Unauthorized."
-            };
+            }.WithResponseLog(_logger);
         }
 
+        var callingUserId = _tokenData.UserId.Value;
         var groupVenue = await _groupVenueRepository.GetByIdAsync(groupVenueId, ct);
-
         if (groupVenue == null)
         {
-            _logger.LogWarning("GroupVenue with ID {GroupVenueId} not found.", groupVenueId);
             return new CommonResponse
             {
                 StatusCode = HttpStatusCode.NotFound,
                 Message = "Venue not found."
-            };
+            }.WithResponseLog(_logger, callingUserId);
         }
 
-        var userId = _tokenData.UserId.Value;
-        var isAdmin = await _userRepository.IsUserAdminAsync(userId, ct);
-        var isUserInGroup = await _userGroupRepository.IsUserInGroupAsync(groupVenue.GroupId, userId, ct);
-
+        var isAdmin = await _userRepository.IsUserAdminAsync(callingUserId, ct);
+        var isUserInGroup = await _userGroupRepository.IsUserInGroupAsync(groupVenue.GroupId, callingUserId, ct);
         if (!isUserInGroup && !isAdmin)
         {
-            _logger.LogWarning("User {UserId} is not in group {GroupId}.", userId, groupVenue.GroupId);
             return new CommonResponse
             {
                 StatusCode = HttpStatusCode.Forbidden,
                 Message = "User is not in group."
-            };
+            }.WithResponseLog(_logger, callingUserId);
         }
-
-        _logger.LogInformation("GroupVenue [{GroupVenueId}] returned successfully.", groupVenue.GroupVenueId);
 
         return new GetGroupVenueResponse
         {
             StatusCode = HttpStatusCode.OK,
             Message = "Venue returned successfully.",
             GroupVenue = groupVenue
-        };
+        }.WithResponseLog(_logger, callingUserId);
     }
 
     public async Task<CommonResponse> SearchGroupVenuesAsync(Guid groupId, SearchGroupVenueRequest request, CancellationToken ct)
     {
         if (!_tokenData.UserId.HasValue)
         {
-            _logger.LogWarning("SearchGroupVenuesAsync called with no authenticated user.");
             return new CommonResponse
             {
                 StatusCode = HttpStatusCode.Unauthorized,
                 Message = "Unauthorized."
-            };
+            }.WithResponseLog(_logger);
         }
 
-        var userId = _tokenData.UserId!.Value;
+        var callingUserId = _tokenData.UserId!.Value;
         var isGroupActive = await _groupRepository.ExistsAsync(x => x.GroupId == groupId && x.Active, ct);
         if (!isGroupActive)
         {
-            _logger.LogWarning("Group with ID {GroupId} not found or inactive so user {UserId} cannot search venues.", groupId, userId);
             return new CommonResponse
             {
                 StatusCode = HttpStatusCode.NotFound,
                 Message = "Group not found or inactive."
-            };
+            }.WithResponseLog(_logger, callingUserId);
         }
 
-        var isAdmin = await _userRepository.IsUserAdminAsync(userId, ct);
-        var isUserInGroup = await _userGroupRepository.IsUserInGroupAsync(groupId, userId, ct);
+        var isAdmin = await _userRepository.IsUserAdminAsync(callingUserId, ct);
+        var isUserInGroup = await _userGroupRepository.IsUserInGroupAsync(groupId, callingUserId, ct);
         if (!isAdmin && !isUserInGroup)
         {
-            _logger.LogWarning("User {UserId} is not an admin or group member and cannot search venues in this group {GroupId}.", userId, groupId);
             return new CommonResponse
             {
                 StatusCode = HttpStatusCode.Forbidden,
                 Message = "You cannot search venues in this group."
-            };
+            }.WithResponseLog(_logger, callingUserId);
         }
 
         var (groupVenues, totalCount) = await _groupVenueRepository.SearchByNameAsync(groupId, request, ct);
@@ -122,146 +113,133 @@ public class GroupVenueService(ITokenData tokenData,
             Message = "Venues returned successfully.",
             GroupVenues = groupVenues,
             TotalCount = totalCount
-        };
+        }.WithResponseLog(_logger, callingUserId);
     }
 
     public async Task<CommonResponse> CreateGroupVenueAsync(CreateGroupVenueRequest request, CancellationToken ct)
     {
         if (!_tokenData.UserId.HasValue)
         {
-            _logger.LogWarning("CreateGroupVenueAsync called with no authenticated user.");
             return new CommonResponse
             {
                 StatusCode = HttpStatusCode.Unauthorized,
                 Message = "Unauthorized."
-            };
+            }.WithResponseLog(_logger);
         }
 
         var callingUserId = _tokenData.UserId.Value;
-
         var isGroupActive = await _groupRepository.ExistsAsync(x => x.GroupId == request.GroupId && x.Active, ct);
         if (!isGroupActive)
         {
-            _logger.LogWarning("Group with ID {GroupId} not found or inactive.", request.GroupId);
             return new CommonResponse
             {
                 StatusCode = HttpStatusCode.NotFound,
                 Message = "Group not found or inactive."
-            };
+            }.WithResponseLog(_logger, callingUserId);
         }
 
         var isUserInGroup = await _userGroupRepository.IsUserInGroupAsync(request.GroupId, callingUserId, ct);
         if (!isUserInGroup)
         {
-            _logger.LogWarning("User {UserId} is not in group {GroupId}.", callingUserId, request.GroupId);
             return new CommonResponse
             {
                 StatusCode = HttpStatusCode.Forbidden,
                 Message = "User is not in group."
-            };
+            }.WithResponseLog(_logger, callingUserId);
         }
 
         var validFoodTypes = await _foodTypeOptionRepository.GetForGroupIdAsync(request.GroupId, ct);
         if (request.FoodTypeOptionId != null && !validFoodTypes.Any(fto => fto.OptionId == request.FoodTypeOptionId))
         {
-            _logger.LogWarning("Invalid food type ID {FoodTypeOptionId} provided for group {GroupId}.", request.FoodTypeOptionId, request.GroupId);
             return new CommonResponse
             {
                 StatusCode = HttpStatusCode.BadRequest,
                 Message = "Invalid food type provided."
-            };
+            }.WithResponseLog(_logger, callingUserId);
         }
 
         var validVenueTypes = await _venueTypeOptionRepository.GetForGroupIdAsync(request.GroupId, ct);
         if (request.VenueTypeOptionId != null && !validVenueTypes.Any(vto => vto.OptionId == request.VenueTypeOptionId))
         {
-            _logger.LogWarning("Invalid venue type ID {VenueTypeOptionId} provided for group {GroupId}.", request.VenueTypeOptionId, request.GroupId);
             return new CommonResponse
             {
                 StatusCode = HttpStatusCode.BadRequest,
                 Message = "Invalid venue type provided."
-            };
+            }.WithResponseLog(_logger, callingUserId);
         }
 
         var doesGroupVenueNameExist = await _groupVenueRepository.ExistsAsync(x => x.GroupId == request.GroupId && x.VenueName.ToLower() == request.VenueName.ToLower(), ct);
         if (doesGroupVenueNameExist)
         {
-            _logger.LogWarning("Venue with name {VenueName} already exists in group {GroupId}.", request.VenueName, request.GroupId);
             return new CommonResponse
             {
                 StatusCode = HttpStatusCode.Conflict,
                 Message = "Venue with this name already exists in the group."
-            };
+            }.WithResponseLog(_logger, callingUserId);
         }
 
         var groupVenueId = await _groupVenueRepository.CreateAsync(request, ct);
 
         await _unitOfWork.SaveChangesAsync(ct);
-        _logger.LogInformation("GroupVenue [{GroupVenueId}] created successfully.", groupVenueId);
 
         return new AddGroupVenueResponse
         {
             StatusCode = HttpStatusCode.Created,
             Message = "Venue created successfully.",
             GroupVenueId = groupVenueId,
-        };
+        }.WithResponseLog(_logger, callingUserId, $"Venue [{groupVenueId}] created successfully.");
     }
 
     public async Task<CommonResponse> UpdateGroupVenueAsync(Guid groupVenueId, UpdateGroupVenueRequest request, CancellationToken ct)
     {
         if (!_tokenData.UserId.HasValue)
         {
-            _logger.LogWarning("UpdateGroupVenueAsync called with no authenticated user.");
             return new CommonResponse
             {
                 StatusCode = HttpStatusCode.Unauthorized,
                 Message = "Unauthorized."
-            };
+            }.WithResponseLog(_logger);
         }
 
         var callingUserId = _tokenData.UserId.Value;
         var groupVenue = await _groupVenueRepository.GetByIdAsync(groupVenueId, ct);
         if (groupVenue == null)
         {
-            _logger.LogWarning("GroupVenue with ID {GroupVenueId} not found, so user {UserId} cannot update it.", groupVenueId, callingUserId);
             return new CommonResponse
             {
                 StatusCode = HttpStatusCode.NotFound,
                 Message = "Venue not found."
-            };
+            }.WithResponseLog(_logger, callingUserId);
         }
 
         var isUserInGroup = await _userGroupRepository.IsUserInGroupAsync(groupVenue.GroupId, callingUserId, ct);
         if (!isUserInGroup)
         {
-            _logger.LogWarning("User {UserId} is not in group {GroupId} so cannot update it.", callingUserId, groupVenue.GroupId);
             return new AddGroupVenueResponse
             {
                 StatusCode = HttpStatusCode.Forbidden,
                 Message = "User is not in group."
-            };
+            }.WithResponseLog(_logger, callingUserId);
         }
 
         var validFoodTypes = await _foodTypeOptionRepository.GetForGroupIdAsync(groupVenue.GroupId, ct);
         if (request.FoodTypeOptionId != null && !validFoodTypes.Any(fto => fto.OptionId == request.FoodTypeOptionId))
         {
-            _logger.LogWarning("Invalid food type ID {FoodTypeOptionId} provided for group {GroupId}.", request.FoodTypeOptionId, groupVenue.GroupId);
             return new AddGroupVenueResponse
             {
                 StatusCode = HttpStatusCode.BadRequest,
                 Message = "Invalid food type provided."
-            };
+            }.WithResponseLog(_logger, callingUserId);
         }
 
         var validVenueTypes = await _venueTypeOptionRepository.GetForGroupIdAsync(groupVenue.GroupId, ct);
         if (request.VenueTypeOptionId != null && !validVenueTypes.Any(vto => vto.OptionId == request.VenueTypeOptionId))
         {
-            _logger.LogWarning("Invalid venue type ID {VenueTypeOptionId} provided for group {GroupId}.", request.VenueTypeOptionId, groupVenue.GroupId);
             return new AddGroupVenueResponse
             {
                 StatusCode = HttpStatusCode.BadRequest,
                 Message = "Invalid venue type provided."
-            };
+            }.WithResponseLog(_logger, callingUserId);
         }
 
         if (!String.Equals(groupVenue.VenueName, request.VenueName, StringComparison.OrdinalIgnoreCase))
@@ -269,73 +247,64 @@ public class GroupVenueService(ITokenData tokenData,
             var groupVenueNameExists = await _groupVenueRepository.ExistsAsync(x => x.GroupId == groupVenue.GroupId && x.VenueName.ToLower() == request.VenueName.ToLower(), ct);
             if (groupVenueNameExists)
             {
-                _logger.LogWarning("GroupVenue with name {GroupName} already exists.", request.VenueName);
                 return new CommonResponse
                 {
                     StatusCode = HttpStatusCode.Conflict,
                     Message = $"Venue with name {request.VenueName} already exists in this group."
-                };
+                }.WithResponseLog(_logger, callingUserId);
             }
         }
 
         await _groupVenueRepository.UpdateAsync(groupVenueId, request, ct);
-
         await _unitOfWork.SaveChangesAsync(ct);
-        _logger.LogInformation("GroupVenue [{GroupVenueId}] updated successfully.", groupVenueId);
 
         return new CommonResponse
         {
             StatusCode = HttpStatusCode.OK,
             Message = "GroupVenue updated successfully.",
-        };
+        }.WithResponseLog(_logger, callingUserId);
     }
 
     public async Task<CommonResponse> DeleteGroupVenueAsync(Guid groupVenueId, CancellationToken ct)
     {
         if (!_tokenData.UserId.HasValue)
         {
-            _logger.LogWarning("DeleteGroupVenueAsync called with no authenticated user.");
             return new CommonResponse
             {
                 StatusCode = HttpStatusCode.Unauthorized,
                 Message = "Unauthorized."
-            };
+            }.WithResponseLog(_logger);
         }
 
-        var userId = _tokenData.UserId!.Value;
+        var callingUserId = _tokenData.UserId!.Value;
         var groupVenue = await _groupVenueRepository.GetByIdAsync(groupVenueId, ct);
         if (groupVenue == null)
         {
-            _logger.LogWarning("GroupVenue with ID {GroupVenueId} not found, so user {UserId} cannot update it.", groupVenueId, userId);
             return new CommonResponse
             {
                 StatusCode = HttpStatusCode.NotFound,
                 Message = "Venue not found."
-            };
+            }.WithResponseLog(_logger, callingUserId);
         }
 
-        var isAdmin = await _userRepository.IsUserAdminAsync(userId, ct);
-        var isUserInGroup = await _userGroupRepository.IsUserInGroupAsync(groupVenue.GroupId, userId, ct);
-
+        var isAdmin = await _userRepository.IsUserAdminAsync(callingUserId, ct);
+        var isUserInGroup = await _userGroupRepository.IsUserInGroupAsync(groupVenue.GroupId, callingUserId, ct);
         if (!isAdmin && !isUserInGroup)
         {
-            _logger.LogWarning("User {UserId} is not an admin or group member and cannot delete group venue {GroupVenueId}.", userId, groupVenueId);
             return new CommonResponse
             {
                 StatusCode = HttpStatusCode.Forbidden,
                 Message = "You are not an admin or group member and cannot delete this venue."
-            };
+            }.WithResponseLog(_logger, callingUserId);
         }
 
         await _groupVenueRepository.DeleteAsync(groupVenueId, ct);
-
         await _unitOfWork.SaveChangesAsync(ct);
-        _logger.LogInformation("User {UserId} deleted group venue {GroupVenueId} successfully.", userId, groupVenueId);
 
         return new CommonResponse
         {
             StatusCode = HttpStatusCode.OK,
             Message = "Successfully deleted the venue."
-        };
+        }.WithResponseLog(_logger, callingUserId, $"Successfully deleted venue [{groupVenueId}]");
     }
 }
