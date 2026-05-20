@@ -3,10 +3,10 @@ using DAL.Entities;
 using Microsoft.EntityFrameworkCore;
 using RepositoryLayer.Abstractions;
 using RepositoryLayer.Infrastructure.Generic;
-using Utilities.Models.Results;
-using Utilities.Models.Requests.Groups;
 using Utilities.Enums;
 using Utilities.Models.Requests.Generic;
+using Utilities.Models.Requests.Groups;
+using Utilities.Models.Results;
 using Utilities.Models.Results.Generic;
 
 namespace RepositoryLayer.Infrastructure;
@@ -15,28 +15,31 @@ public sealed class GroupRepository(ScranHubDbContext dbContext) : EFRepository<
 {
     public async Task<(IEnumerable<GroupDetailedResult>, int)> GetAllAsync(PaginationBaseRequest request, CancellationToken ct)
     {
-        var groups = await _dbSet
+        var query = _dbSet
             .Include(x => x.UserGroups)
             .Include(x => x.GroupVenues)
-            .OrderBy(g => g.GroupName)
+            .OrderBy(g => g.GroupName);
+
+        var total = await query.CountAsync(ct);
+
+        var results = await query
             .Skip((request.PageNumber - 1) * request.PageSize)
             .Take(request.PageSize)
+            .Select(g => new GroupDetailedResult
+            {
+                GroupId = g.GroupId,
+                GroupName = g.GroupName,
+                Active = g.Active,
+                UserCount = g.UserGroups.Count,
+                VenueCount = g.GroupVenues.Count,
+                CreatedOn = g.CreatedOn,
+                CreatedBy = g.CreatedBy,
+                UpdatedOn = g.UpdatedOn,
+                UpdatedBy = g.UpdatedBy,
+            })
             .ToListAsync(ct);
 
-        var groupResults = groups.Select(g => new GroupDetailedResult
-        {
-            GroupId = g.GroupId,
-            GroupName = g.GroupName,
-            Active = g.Active,
-            UserCount = g.UserGroups.Count,
-            VenueCount = g.GroupVenues.Count,
-            CreatedOn = g.CreatedOn,
-            CreatedBy = g.CreatedBy,
-            UpdatedOn = g.UpdatedOn,
-            UpdatedBy = g.UpdatedBy,
-        });
-
-        return (groupResults, groupResults.Count());
+        return (results, total);
     }
 
     public async Task<GroupResult?> GetDetailsByIdAsync(Guid id, CancellationToken ct)

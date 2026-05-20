@@ -297,14 +297,14 @@ public class GroupService(ITokenData tokenData,
             }.WithResponseLog(_logger, callingUserId);
         }
 
-        await _userGroupRepository.AddUserToGroupAsync(groupId, callingUserId, ct);
+        var userGroupId = await _userGroupRepository.AddUserToGroupAsync(groupId, callingUserId, ct);
         await _unitOfWork.SaveChangesAsync(ct);
 
         return new CommonResponse
         {
-            StatusCode = HttpStatusCode.OK,
+            StatusCode = HttpStatusCode.Created,
             Message = "Successfully joined the group."
-        }.WithResponseLog(_logger, callingUserId, $"Successfully joined the group [{groupId}].");
+        }.WithResponseLog(_logger, callingUserId, $"Successfully joined the group, userGroupId [{userGroupId}].");
     }
 
     public async Task<CommonResponse> DeleteGroupAsync(Guid groupId, CancellationToken ct)

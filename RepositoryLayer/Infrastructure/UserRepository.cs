@@ -13,8 +13,12 @@ public sealed class UserRepository(ScranHubDbContext dbContext) : EFRepository<U
 {
     public async Task<(IEnumerable<UserDetailedResult>, int)> GetAllAsync(PaginationBaseRequest request, CancellationToken ct)
     {
-        var users = await _dbSet
-            .OrderBy(u => u.DisplayName)
+        var query = _dbSet
+            .OrderBy(u => u.DisplayName);
+
+        var total = await query.CountAsync(ct);
+
+        var results = await query
             .Skip((request.PageNumber - 1) * request.PageSize)
             .Take(request.PageSize)
             .Select(u => new UserDetailedResult
@@ -31,7 +35,7 @@ public sealed class UserRepository(ScranHubDbContext dbContext) : EFRepository<U
             })
             .ToListAsync(ct);
 
-        return (users, users.Count);
+        return (results, total);
     }
 
     public async Task<UserResult?> GetDetailsByIdAsync(Guid id, CancellationToken ct)

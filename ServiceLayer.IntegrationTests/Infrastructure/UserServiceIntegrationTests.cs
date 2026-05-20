@@ -789,7 +789,7 @@ public class UserServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
         var request = new PaginationBaseRequest
         {
             PageNumber = 1,
-            PageSize = 10
+            PageSize = 4
         };
 
         var result = await _service!.GetAllUsersAsync(request, ct);
@@ -797,6 +797,11 @@ public class UserServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
 
         var typedResult = result.Should().BeOfType<GetUsersDetailedResponse>().Subject;
         typedResult.TotalCount.Should().Be(5);
+        typedResult.Users!.Count().Should().Be(4); //ordered by name
+        typedResult.Users.Should().Contain(e => e.UserId == SeedUser1AdminId);
+        typedResult.Users.Should().Contain(e => e.UserId == TestUser3AdminId);
+        typedResult.Users.Should().Contain(e => e.UserId == TestUser4NonAdminId);
+        typedResult.Users.Should().Contain(e => e.UserId == TestUser5NonAdminId);
     }
     #endregion
 

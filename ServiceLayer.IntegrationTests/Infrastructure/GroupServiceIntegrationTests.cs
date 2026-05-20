@@ -288,34 +288,25 @@ public class GroupServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifet
         _checks.OutputFailureCheck(result, "already exists", "UpdateGroupAsync", HttpStatusCode.Conflict);
     }
 
-    [Fact]
-    public async Task UpdateGroupAsync_ValidDetailsChangeName_ReturnsOK()
+    [Theory]
+    [InlineData("Updated Test Group")]
+    [InlineData("Test Group 3")]
+    [InlineData("test group 3")]
+    [InlineData("TEST GROUP 3")]
+    public async Task UpdateGroupAsync_ValidDetailsSameNameDifferentCase_ReturnsOK(string newGroupName)
     {
         _tokenData.Setup(x => x.UserId).Returns(SeedUser1AdminId);
 
         var request = new UpdateGroupRequest
         {
-            GroupName = "Updated Test Group",
+            GroupName = newGroupName,
             Active = false
         };
 
         var result = await _service!.UpdateGroupAsync(TestGroup3Id, request, ct);
         _checks.OutputSuccessCheck(result, "success", "UpdateGroupAsync", HttpStatusCode.OK);
-    }
 
-    [Fact]
-    public async Task UpdateGroupAsync_ValidDetailsSameNameDifferentCase_ReturnsOK()
-    {
-        _tokenData.Setup(x => x.UserId).Returns(SeedUser1AdminId);
-
-        var request = new UpdateGroupRequest
-        {
-            GroupName = TestGroup3Name.ToLowerInvariant(),
-            Active = false
-        };
-
-        var result = await _service!.UpdateGroupAsync(TestGroup3Id, request, ct);
-        _checks.OutputSuccessCheck(result, "success", "UpdateGroupAsync", HttpStatusCode.OK);
+        _context!.Groups.Should().ContainSingle(x => x.GroupName == newGroupName);
     }
     #endregion
 
@@ -408,6 +399,47 @@ public class GroupServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifet
         var result = await _service!.JoinGroupAsync(TestGroup2Id, ct);
         _checks.OutputFailureCheck(result, "unauthorized", "JoinGroupAsync", HttpStatusCode.Unauthorized);
     }
+
+    [Fact]
+    public async Task JoinGroupAsync_InvalidGroupId_ReturnsNotFound()
+    {
+        var result = await _service!.JoinGroupAsync(Guid.Empty, ct);
+        _checks.OutputFailureCheck(result, "not found", "JoinGroupAsync", HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    public async Task JoinGroupAsync_AlreadyInGroup_ReturnsBadRequest()
+    {
+        var result = await _service!.JoinGroupAsync(TestGroup2Id, ct);
+        _checks.OutputFailureCheck(result, "already", "JoinGroupAsync", HttpStatusCode.BadRequest);
+    }
+
+    [Fact]
+    public async Task JoinGroupAsync_NotFriendsWithGroupMember_ReturnsBadRequest()
+    {
+        _tokenData.Setup(x => x.UserId).Returns(TestUser3AdminId);
+
+        var result = await _service!.JoinGroupAsync(TestGroup2Id, ct);
+        _checks.OutputFailureCheck(result, "not friends", "JoinGroupAsync", HttpStatusCode.BadRequest);
+    }
+
+    [Fact]
+    public async Task JoinGroupAsync_NotAcceptedFriendsWithGroupMember_ReturnsBadRequest()
+    {
+        _tokenData.Setup(x => x.UserId).Returns(TestUser3AdminId);
+
+        var result = await _service!.JoinGroupAsync(TestGroup3Id, ct);
+        _checks.OutputFailureCheck(result, "not friends", "JoinGroupAsync", HttpStatusCode.BadRequest);
+    }
+
+    [Fact]
+    public async Task JoinGroupAsync_ValidRequest_ReturnsCreated()
+    {
+        var result = await _service!.JoinGroupAsync(TestGroup3Id, ct);
+        _checks.OutputSuccessCheck(result, "success", "JoinGroupAsync", HttpStatusCode.Created);
+
+        _context!.UserGroups.Should().ContainSingle(e => e.UserId == SeedUser2NonAdminId && e.GroupId == TestGroup3Id);
+    }
     #endregion
 
     #region DeleteGroupAsync
@@ -418,6 +450,30 @@ public class GroupServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifet
 
         var result = await _service!.DeleteGroupAsync(TestGroup1Id, ct);
         _checks.OutputFailureCheck(result, "unauthorized", "DeleteGroupAsync", HttpStatusCode.Unauthorized);
+    }
+
+    [Fact]
+    public async Task DeleteGroupAsync_InvalidGroupId_ReturnsNotFound()
+    {
+        var result = await _service!.DeleteGroupAsync(Guid.Empty, ct);
+        _checks.OutputFailureCheck(result, "not found", "DeleteGroupAsync", HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    public async Task DeleteGroupAsync_NotAdmin_ReturnsForbidden()
+    {
+        var result = await _service!.DeleteGroupAsync(TestGroup1Id, ct);
+        _checks.OutputFailureCheck(result, "admin", "DeleteGroupAsync", HttpStatusCode.Forbidden);
+    }
+
+    [Fact]
+    public async Task DeleteGroupAsync_ValidRequest_ReturnsOK()
+    {
+        _tokenData.Setup(x => x.UserId).Returns(SeedUser1AdminId);
+
+        var result = await _service!.DeleteGroupAsync(TestGroup1Id, ct);
+        _checks.OutputSuccessCheck(result, "success", "DeleteGroupAsync", HttpStatusCode.OK);
+        _context!.Groups.Should().NotContain(x => x.GroupId == TestGroup1Id);
     }
     #endregion
 
@@ -435,6 +491,40 @@ public class GroupServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifet
 
         var result = await _service!.GetAllGroupsAsync(request, ct);
         _checks.OutputFailureCheck(result, "unauthorized", "GetAllGroupsAsync", HttpStatusCode.Unauthorized);
+    }
+
+    [Fact]
+    public async Task GetAllGroupsAsync_NotAdmin_ReturnsForbidden()
+    {
+        var request = new PaginationBaseRequest
+        {
+            PageNumber = 1,
+            PageSize = 10
+        };
+
+        var result = await _service!.GetAllGroupsAsync(request, ct);
+        _checks.OutputFailureCheck(result, "admin", "GetAllGroupsAsync", HttpStatusCode.Forbidden);
+    }
+
+    [Fact]
+    public async Task GetAllGroupsAsync_Admin_ReturnsOK()
+    {
+        _tokenData.Setup(x => x.UserId).Returns(SeedUser1AdminId);
+
+        var request = new PaginationBaseRequest
+        {
+            PageNumber = 1,
+            PageSize = 2
+        };
+
+        var result = await _service!.GetAllGroupsAsync(request, ct);
+        _checks.OutputSuccessCheck(result, "success", "GetAllGroupsAsync", HttpStatusCode.OK);
+
+        var typedResult = result.Should().BeOfType<GetGroupsDetailedResponse>().Subject;
+        typedResult.TotalCount.Should().Be(3);
+        typedResult.Groups!.Count().Should().Be(2); //ordered by name
+        typedResult.Groups.Should().Contain(e => e.GroupId == TestGroup1Id);
+        typedResult.Groups.Should().Contain(e => e.GroupId == TestGroup2Id);
     }
     #endregion
 
