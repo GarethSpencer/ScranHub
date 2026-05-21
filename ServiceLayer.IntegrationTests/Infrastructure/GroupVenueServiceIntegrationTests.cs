@@ -242,7 +242,7 @@ public class GroupVenueServiceIntegrationTests(DatabaseFixture fixture) : IAsync
         {
             GroupId = TestGroup3Id,
             VenueName = "New Test Venue",
-            FoodTypeOptionId = TestFoodTypeOption1Id,
+            FoodTypeOptionId = SeedFoodTypeOption1Id,
             VenueTypeOptionId = TestVenueTypeOption4Id
         };
 
@@ -260,7 +260,7 @@ public class GroupVenueServiceIntegrationTests(DatabaseFixture fixture) : IAsync
             GroupId = TestGroup3Id,
             VenueName = "New Test Venue",
             FoodTypeOptionId = TestFoodTypeOption7Id,
-            VenueTypeOptionId = TestVenueTypeOption1Id
+            VenueTypeOptionId = SeedVenueTypeOption1Id
         };
 
         var result = await _service!.CreateGroupVenueAsync(request, ct);
@@ -402,15 +402,15 @@ public class GroupVenueServiceIntegrationTests(DatabaseFixture fixture) : IAsync
         {
             VenueName = "New Test Venue",
             Visited = true,
-            FoodTypeOptionId = TestFoodTypeOption3Id,
-            VenueTypeOptionId = TestVenueTypeOption3Id
+            FoodTypeOptionId = SeedFoodTypeOption3Id,
+            VenueTypeOptionId = SeedVenueTypeOption3Id
         };
 
         var result = await _service!.UpdateGroupVenueAsync(TestGroupVenue2Id, request, ct);
         _checks.OutputSuccessCheck(result, "success", "UpdateGroupVenueAsync", HttpStatusCode.OK);
 
         _context!.GroupVenues.Should().ContainSingle(e => e.GroupId == TestGroup1Id && e.GroupVenueId == TestGroupVenue2Id && e.VenueName == "New Test Venue"
-            && e.FoodTypeOptionId == TestFoodTypeOption3Id && e.VenueTypeOptionId == TestVenueTypeOption3Id);
+            && e.FoodTypeOptionId == SeedFoodTypeOption3Id && e.VenueTypeOptionId == SeedVenueTypeOption3Id);
     }
     #endregion
 

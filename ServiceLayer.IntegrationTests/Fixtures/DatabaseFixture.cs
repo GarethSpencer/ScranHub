@@ -160,8 +160,8 @@ public class DatabaseFixture : IAsyncLifetime
             Visited = true,
             GroupId = TestGroup1Id,
             VenueName = TestGroupVenue1Name,
-            FoodTypeOptionId = TestFoodTypeOption1Id,
-            VenueTypeOptionId = TestVenueTypeOption1Id
+            FoodTypeOptionId = SeedFoodTypeOption1Id,
+            VenueTypeOptionId = SeedVenueTypeOption1Id
         },
         new GroupVenue
         {
@@ -169,8 +169,8 @@ public class DatabaseFixture : IAsyncLifetime
             Visited = false,
             GroupId = TestGroup1Id,
             VenueName = TestGroupVenue2Name,
-            FoodTypeOptionId = TestFoodTypeOption2Id,
-            VenueTypeOptionId = TestVenueTypeOption2Id
+            FoodTypeOptionId = SeedFoodTypeOption2Id,
+            VenueTypeOptionId = SeedVenueTypeOption2Id
         },
         new GroupVenue
         {
@@ -178,8 +178,8 @@ public class DatabaseFixture : IAsyncLifetime
             Visited = false,
             GroupId = TestGroup1Id,
             VenueName = TestGroupVenue3Name,
-            FoodTypeOptionId = TestFoodTypeOption1Id,
-            VenueTypeOptionId = TestVenueTypeOption1Id
+            FoodTypeOptionId = SeedFoodTypeOption1Id,
+            VenueTypeOptionId = SeedVenueTypeOption1Id
         },
         new GroupVenue
         {
@@ -197,8 +197,7 @@ public class DatabaseFixture : IAsyncLifetime
         }
         );
 
-        context.FoodTypeOptions.AddRange(
-        new FoodTypeOption
+        context.FoodTypeOptions.AddRange(new FoodTypeOption
         {
             FoodTypeOptionId = TestFoodTypeOption7Id,
             Label = TestFoodTypeOption7Label,
@@ -212,8 +211,7 @@ public class DatabaseFixture : IAsyncLifetime
         }
         );
 
-        context.VenueTypeOptions.AddRange(
-        new VenueTypeOption
+        context.VenueTypeOptions.AddRange(new VenueTypeOption
         {
             VenueTypeOptionId = TestVenueTypeOption4Id,
             Label = TestVenueTypeOption4Label,
@@ -227,24 +225,52 @@ public class DatabaseFixture : IAsyncLifetime
         }
         );
 
+        context.CostOptions.AddRange(new CostOption
+        {
+            CostOptionId = TestCostOption4Id,
+            Label = TestCostOption4Label,
+            GroupId = TestGroup3Id,
+        },
+        new CostOption
+        {
+            CostOptionId = TestCostOption5Id,
+            Label = TestCostOption5Label,
+            GroupId = TestGroup3Id,
+        }
+        );
+
+        context.QualityOptions.AddRange(new QualityOption
+        {
+            QualityOptionId = TestQualityOption5Id,
+            Label = TestQualityOption5Label,
+            GroupId = TestGroup3Id,
+        },
+        new QualityOption
+        {
+            QualityOptionId = TestQualityOption6Id,
+            Label = TestQualityOption6Label,
+            GroupId = TestGroup3Id,
+        }
+        );
+
         context.CostRatings.AddRange(new CostRating
         {
             CostRatingId = TestCostRating1Id,
-            CostOptionId = TestCostOption1Id,
+            CostOptionId = SeedCostOption1Id,
             UserId = SeedUser1AdminId,
             GroupVenueId = TestGroupVenue1Id
         },
         new CostRating
         {
             CostRatingId = TestCostRating2Id,
-            CostOptionId = TestCostOption1Id,
+            CostOptionId = SeedCostOption1Id,
             UserId = SeedUser2NonAdminId,
             GroupVenueId = TestGroupVenue1Id
         },
         new CostRating
         {
             CostRatingId = TestCostRating3Id,
-            CostOptionId = TestCostOption1Id,
+            CostOptionId = SeedCostOption1Id,
             UserId = SeedUser1AdminId,
             GroupVenueId = TestGroupVenue2Id
         }
@@ -253,21 +279,21 @@ public class DatabaseFixture : IAsyncLifetime
         context.QualityRatings.AddRange(new QualityRating
         {
             QualityRatingId = TestQualityRating1Id,
-            QualityOptionId = TestQualityOption1Id,
+            QualityOptionId = SeedQualityOption1Id,
             UserId = SeedUser1AdminId,
             GroupVenueId = TestGroupVenue1Id
         },
         new QualityRating
         {
             QualityRatingId = TestQualityRating2Id,
-            QualityOptionId = TestQualityOption1Id,
+            QualityOptionId = SeedQualityOption1Id,
             UserId = SeedUser2NonAdminId,
             GroupVenueId = TestGroupVenue1Id
         },
         new QualityRating
         {
             QualityRatingId = TestQualityRating3Id,
-            QualityOptionId = TestQualityOption1Id,
+            QualityOptionId = SeedQualityOption1Id,
             UserId = SeedUser1AdminId,
             GroupVenueId = TestGroupVenue2Id
         }
