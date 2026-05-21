@@ -43,8 +43,6 @@ public class GroupVenueServiceIntegrationTests(DatabaseFixture fixture) : IAsync
 
         _tokenData.Setup(x => x.UserId).Returns(SeedUser2NonAdminId);
 
-        var userRepository = new UserRepository(_context);
-
         _service = new GroupVenueService(
             tokenData: _tokenData.Object,
             logger: _logger,

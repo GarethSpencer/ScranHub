@@ -4,6 +4,7 @@ using RepositoryLayer.Abstractions.Generic;
 using ServiceLayer.Abstractions;
 using ServiceLayer.Infrastructure.Generic;
 using System.Net;
+using Utilities.Helpers;
 using Utilities.Models.Responses.Generic;
 using Utilities.Models.Responses.Ratings;
 using Utilities.Token;
@@ -26,24 +27,22 @@ public class CostRatingService(ITokenData tokenData,
     {
         if (!_tokenData.UserId.HasValue)
         {
-            _logger.LogWarning("GetRatingsForGroupAsync called with no authenticated user.");
             return new CommonResponse
             {
                 StatusCode = HttpStatusCode.Unauthorized,
                 Message = "Unauthorized."
-            };
+            }.WithResponseLog(_logger);
         }
 
-        var userId = _tokenData.UserId!.Value;
-        var isUserInGroup = await _userGroupRepository.IsUserInGroupAsync(groupId, userId, ct);
+        var callingUserId = _tokenData.UserId!.Value;
+        var isUserInGroup = await _userGroupRepository.IsUserInGroupAsync(groupId, callingUserId, ct);
         if (!isUserInGroup)
         {
-            _logger.LogWarning("User {UserId} is not a member of group {GroupId}.", userId, groupId);
             return new CommonResponse
             {
                 StatusCode = HttpStatusCode.Forbidden,
                 Message = "You do not have permission to see ratings for this group."
-            };
+            }.WithResponseLog(_logger, callingUserId);
         }
 
         var ratings = await _groupRepository.GetVenueCostRatingsForGroupAsync(groupId, ct);
@@ -53,6 +52,6 @@ public class CostRatingService(ITokenData tokenData,
             StatusCode = HttpStatusCode.OK,
             Message = "Cost ratings retrieved successfully.",
             GroupVenueRatingsResults = ratings
-        };
+        }.WithResponseLog(_logger, callingUserId);
     }
 }

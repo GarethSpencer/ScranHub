@@ -8,7 +8,6 @@ using RepositoryLayer.Infrastructure.Generic;
 using ServiceLayer.Infrastructure;
 using ServiceLayer.IntegrationTests.Fixtures;
 using ServiceLayer.IntegrationTests.Helpers;
-using System.Linq.Expressions;
 using System.Net;
 using Utilities.Enums;
 using Utilities.Models.Requests.Generic;

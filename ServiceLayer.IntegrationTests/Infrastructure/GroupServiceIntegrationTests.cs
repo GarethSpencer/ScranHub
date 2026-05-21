@@ -44,8 +44,6 @@ public class GroupServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifet
 
         _tokenData.Setup(x => x.UserId).Returns(SeedUser2NonAdminId);
 
-        var userRepository = new UserRepository(_context);
-
         _service = new GroupService(
             tokenData: _tokenData.Object,
             logger: _logger,
