@@ -305,8 +305,7 @@ public class GroupServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifet
 
         var result = await _service!.UpdateGroupAsync(TestGroup3Id, request, ct);
         _checks.OutputSuccessCheck(result, "success", "UpdateGroupAsync", HttpStatusCode.OK);
-
-        _context!.Groups.Should().ContainSingle(x => x.GroupName == newGroupName);
+        _context!.Groups.Should().ContainSingle(x => x.GroupId == TestGroup3Id && x.GroupName == newGroupName);
     }
     #endregion
 

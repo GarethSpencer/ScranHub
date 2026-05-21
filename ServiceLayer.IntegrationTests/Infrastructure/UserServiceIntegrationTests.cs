@@ -8,6 +8,7 @@ using RepositoryLayer.Infrastructure.Generic;
 using ServiceLayer.Infrastructure;
 using ServiceLayer.IntegrationTests.Fixtures;
 using ServiceLayer.IntegrationTests.Helpers;
+using System.Linq.Expressions;
 using System.Net;
 using Utilities.Enums;
 using Utilities.Models.Requests.Generic;
@@ -221,7 +222,10 @@ public class UserServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
 
         var result = await _service!.CreateUserAsync(request, ct);
         _checks.OutputSuccessCheck(result, "success", "CreateUserAsync", HttpStatusCode.Created);
-        result.Should().BeOfType<AddUserResponse>();
+
+        var typedResult = result.Should().BeOfType<AddUserResponse>().Subject;
+        _context!.Users.Should().Contain(x => x.UserId == typedResult.UserId && x.Email == "new@testemail.com"
+            && x.Admin == false && x.DisplayName == "New User");
     }
 
     [Fact]
@@ -238,7 +242,10 @@ public class UserServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
 
         var result = await _service!.CreateUserAsync(request, ct);
         _checks.OutputSuccessCheck(result, "success", "CreateUserAsync", HttpStatusCode.Created);
-        result.Should().BeOfType<AddUserResponse>();
+
+        var typedResult = result.Should().BeOfType<AddUserResponse>().Subject;
+        _context!.Users.Should().Contain(x => x.UserId == typedResult.UserId && x.Email == "new@testemail.com"
+            && x.Admin == true && x.DisplayName == "New User");
     }
     #endregion
 
@@ -540,7 +547,8 @@ public class UserServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
         var result = await _service!.AddUserFriendAsync(TestUser3AdminId, ct);
         _checks.OutputSuccessCheck(result, "success", "AddUserFriendAsync", HttpStatusCode.Created);
 
-        result.Should().BeOfType<AddUserFriendResponse>();
+        var typedResult = result.Should().BeOfType<AddUserFriendResponse>().Subject;
+        _context!.UserFriends.Should().Contain(x => x.UserFriendId == typedResult.UserFriendId);
     }
 
     [Fact]
@@ -551,7 +559,8 @@ public class UserServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
         var result = await _service!.AddUserFriendAsync(SeedUser2NonAdminId, ct);
         _checks.OutputSuccessCheck(result, "success", "AddUserFriendAsync", HttpStatusCode.Created);
 
-        result.Should().BeOfType<AddUserFriendResponse>();
+        var typedResult = result.Should().BeOfType<AddUserFriendResponse>().Subject;
+        _context!.UserFriends.Should().Contain(x => x.UserFriendId == typedResult.UserFriendId);
     }
     #endregion
 
@@ -621,6 +630,7 @@ public class UserServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
 
         var result = await _service!.UpdateUserFriendAsync(SeedUser1AdminId, request, ct);
         _checks.OutputSuccessCheck(result, "success", "UpdateUserFriendAsync", HttpStatusCode.OK);
+        _context!.UserFriends.Should().Contain(x => x.UserId == SeedUser1AdminId && x.FriendId == SeedUser2NonAdminId && x.Status == status);
     }
     #endregion
 
@@ -664,6 +674,7 @@ public class UserServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
 
         var result = await _service!.DeleteUserAsync(TestUser4NonAdminId, ct);
         _checks.OutputSuccessCheck(result, "success", "DeleteUserAsync", HttpStatusCode.OK);
+        _context!.Users.Should().NotContain(x => x.UserId == TestUser4NonAdminId);
     }
 
     [Fact]
@@ -673,6 +684,7 @@ public class UserServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
 
         var result = await _service!.DeleteUserAsync(TestUser5NonAdminId, ct);
         _checks.OutputSuccessCheck(result, "success", "DeleteUserAsync", HttpStatusCode.OK);
+        _context!.Users.Should().NotContain(x => x.UserId == TestUser5NonAdminId);
     }
     #endregion
 
@@ -747,8 +759,8 @@ public class UserServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
         var result = await _service!.AddUserFriendByEmailAsync(request, ct);
         _checks.OutputSuccessCheck(result, "If a user with this email exists, a friend request will be sent to them.",
             "AddUserFriendByEmailAsync", HttpStatusCode.OK);
-
         _logger.Entries.Should().ContainSingle(e => e.Message.Contains("requested successfully via email.", StringComparison.InvariantCultureIgnoreCase));
+        _context!.UserFriends.Should().ContainSingle(x => x.UserId == SeedUser2NonAdminId && x.FriendId == TestUser3AdminId && x.Status == FriendshipStatus.Pending);
     }
     #endregion
 

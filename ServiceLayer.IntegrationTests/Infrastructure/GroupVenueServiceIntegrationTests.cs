@@ -10,7 +10,6 @@ using ServiceLayer.IntegrationTests.Fixtures;
 using ServiceLayer.IntegrationTests.Helpers;
 using System.Net;
 using Utilities.Models.Requests.GroupVenues;
-using Utilities.Models.Responses.Groups;
 using Utilities.Models.Responses.GroupVenues;
 using Utilities.Token;
 using static ServiceLayer.IntegrationTests.Helpers.TestConstants;
@@ -321,13 +320,99 @@ public class GroupVenueServiceIntegrationTests(DatabaseFixture fixture) : IAsync
         var request = new UpdateGroupVenueRequest
         {
             VenueName = TestGroupVenue2Name,
-            Visited = true,
-            FoodTypeOptionId = TestFoodTypeOption1Id,
-            VenueTypeOptionId = TestVenueTypeOption1Id
+            Visited = true
         };
 
         var result = await _service!.UpdateGroupVenueAsync(TestGroupVenue2Id, request, ct);
         _checks.OutputFailureCheck(result, "unauthorized", "UpdateGroupVenueAsync", HttpStatusCode.Unauthorized);
+    }
+
+    [Fact]
+    public async Task UpdateGroupVenueAsync_InvalidVenueId_ReturnsNotFound()
+    {
+        var request = new UpdateGroupVenueRequest
+        {
+            VenueName = TestGroupVenue2Name,
+            Visited = true
+        };
+
+        var result = await _service!.UpdateGroupVenueAsync(Guid.Empty, request, ct);
+        _checks.OutputFailureCheck(result, "not found", "UpdateGroupVenueAsync", HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    public async Task UpdateGroupVenueAsync_UserNotInGroup_ReturnsForbidden()
+    {
+        var request = new UpdateGroupVenueRequest
+        {
+            VenueName = TestGroupVenue5Name,
+            Visited = true
+        };
+
+        var result = await _service!.UpdateGroupVenueAsync(TestGroupVenue5Id, request, ct);
+        _checks.OutputFailureCheck(result, "not in group", "UpdateGroupVenueAsync", HttpStatusCode.Forbidden);
+    }
+
+    [Fact]
+    public async Task UpdateGroupVenueAsync_InvalidFoodType_ReturnsBadRequest()
+    {
+        var request = new UpdateGroupVenueRequest
+        {
+            VenueName = TestGroupVenue2Name,
+            Visited = true,
+            FoodTypeOptionId = TestFoodTypeOption8Id
+        };
+
+        var result = await _service!.UpdateGroupVenueAsync(TestGroupVenue2Id, request, ct);
+        _checks.OutputFailureCheck(result, "food", "UpdateGroupVenueAsync", HttpStatusCode.BadRequest);
+    }
+
+    [Fact]
+    public async Task UpdateGroupVenueAsync_InvalidVenueType_ReturnsBadRequest()
+    {
+        var request = new UpdateGroupVenueRequest
+        {
+            VenueName = TestGroupVenue2Name,
+            Visited = true,
+            VenueTypeOptionId = TestVenueTypeOption5Id
+        };
+
+        var result = await _service!.UpdateGroupVenueAsync(TestGroupVenue2Id, request, ct);
+        _checks.OutputFailureCheck(result, "venue", "UpdateGroupVenueAsync", HttpStatusCode.BadRequest);
+    }
+
+    [Theory]
+    [InlineData("Test Venue 1")]
+    [InlineData("test venue 1")]
+    [InlineData("TEST VENUE 1")]
+    public async Task UpdateGroupVenueAsync_NameAlreadyTaken_ReturnsConflict(string venueName)
+    {
+        var request = new UpdateGroupVenueRequest
+        {
+            VenueName = venueName,
+            Visited = true
+        };
+
+        var result = await _service!.UpdateGroupVenueAsync(TestGroupVenue2Id, request, ct);
+        _checks.OutputFailureCheck(result, venueName, "UpdateGroupVenueAsync", HttpStatusCode.Conflict);
+    }
+
+    [Fact]
+    public async Task UpdateGroupVenueAsync_ValidRequest_ReturnsOK()
+    {
+        var request = new UpdateGroupVenueRequest
+        {
+            VenueName = "New Test Venue",
+            Visited = true,
+            FoodTypeOptionId = TestFoodTypeOption3Id,
+            VenueTypeOptionId = TestVenueTypeOption3Id
+        };
+
+        var result = await _service!.UpdateGroupVenueAsync(TestGroupVenue2Id, request, ct);
+        _checks.OutputSuccessCheck(result, "success", "UpdateGroupVenueAsync", HttpStatusCode.OK);
+
+        _context!.GroupVenues.Should().ContainSingle(e => e.GroupId == TestGroup1Id && e.GroupVenueId == TestGroupVenue2Id && e.VenueName == "New Test Venue"
+            && e.FoodTypeOptionId == TestFoodTypeOption3Id && e.VenueTypeOptionId == TestVenueTypeOption3Id);
     }
     #endregion
 
@@ -339,6 +424,40 @@ public class GroupVenueServiceIntegrationTests(DatabaseFixture fixture) : IAsync
 
         var result = await _service!.DeleteGroupVenueAsync(TestGroupVenue1Id, ct);
         _checks.OutputFailureCheck(result, "unauthorized", "DeleteGroupVenueAsync", HttpStatusCode.Unauthorized);
+    }
+
+    [Fact]
+    public async Task DeleteGroupVenueAsync_InvalidVenueId_ReturnsNotFound()
+    {
+        var result = await _service!.DeleteGroupVenueAsync(Guid.Empty, ct);
+        _checks.OutputFailureCheck(result, "not found", "DeleteGroupVenueAsync", HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    public async Task DeleteGroupVenueAsync_NotAdminNotInGroup_ReturnsForbidden()
+    {
+        var result = await _service!.DeleteGroupVenueAsync(TestGroupVenue5Id, ct);
+        _checks.OutputFailureCheck(result, "admin or group", "DeleteGroupVenueAsync", HttpStatusCode.Forbidden);
+    }
+
+    [Fact]
+    public async Task DeleteGroupVenueAsync_NotAdminInGroup_ReturnsOK()
+    {
+        var result = await _service!.DeleteGroupVenueAsync(TestGroupVenue4Id, ct);
+        _checks.OutputSuccessCheck(result, "success", "DeleteGroupVenueAsync", HttpStatusCode.OK);
+
+        _context!.GroupVenues.Should().NotContain(x => x.GroupVenueId == TestGroupVenue4Id);
+    }
+
+    [Fact]
+    public async Task DeleteGroupVenueAsync_AdminNotInGroup_ReturnsOK()
+    {
+        _tokenData.Setup(x => x.UserId).Returns(TestUser3AdminId);
+
+        var result = await _service!.DeleteGroupVenueAsync(TestGroupVenue5Id, ct);
+        _checks.OutputSuccessCheck(result, "success", "DeleteGroupVenueAsync", HttpStatusCode.OK);
+
+        _context!.GroupVenues.Should().NotContain(x => x.GroupVenueId == TestGroupVenue5Id);
     }
     #endregion
 

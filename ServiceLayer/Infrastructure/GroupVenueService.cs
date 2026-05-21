@@ -244,7 +244,7 @@ public class GroupVenueService(ITokenData tokenData,
 
         if (!String.Equals(groupVenue.VenueName, request.VenueName, StringComparison.OrdinalIgnoreCase))
         {
-            var groupVenueNameExists = await _groupVenueRepository.ExistsAsync(x => x.GroupId == groupVenue.GroupId && x.VenueName.ToLower() == request.VenueName.ToLower(), ct);
+            var groupVenueNameExists = await _groupVenueRepository.ExistsAsync(x => x.GroupId == groupVenue.GroupId && x.VenueName == request.VenueName, ct);
             if (groupVenueNameExists)
             {
                 return new CommonResponse
