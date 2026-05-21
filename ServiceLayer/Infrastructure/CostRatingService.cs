@@ -22,7 +22,6 @@ public class CostRatingService(ITokenData tokenData,
     (costRatingRepository, costOptionRepository, tokenData, logger, groupRepository, userGroupRepository, groupVenueRepository, unitOfWork),
     ICostRatingService
 {
-
     public override async Task<CommonResponse> GetRatingsForGroupAsync(Guid groupId, CancellationToken ct)
     {
         if (!_tokenData.UserId.HasValue)
@@ -50,7 +49,7 @@ public class CostRatingService(ITokenData tokenData,
         return new GetGroupRatingsResponse
         {
             StatusCode = HttpStatusCode.OK,
-            Message = "Cost ratings retrieved successfully.",
+            Message = "Ratings retrieved successfully.",
             GroupVenueRatingsResults = ratings
         }.WithResponseLog(_logger, callingUserId);
     }

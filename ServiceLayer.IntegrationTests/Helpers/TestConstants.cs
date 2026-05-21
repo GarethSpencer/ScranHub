@@ -96,4 +96,12 @@ public class TestConstants
     public const string TestVenueTypeOption3Label = "Both";
     public const string TestVenueTypeOption4Label = "Override 1";
     public const string TestVenueTypeOption5Label = "Override 2";
+
+    public static readonly Guid TestCostRating1Id = Guid.Parse("00000000-0000-0001-0000-000000000001");
+    public static readonly Guid TestCostRating2Id = Guid.Parse("00000000-0000-0001-0000-000000000002");
+    public static readonly Guid TestCostRating3Id = Guid.Parse("00000000-0000-0001-0000-000000000003");
+
+    public static readonly Guid TestQualityRating1Id = Guid.Parse("00000000-0000-0002-0000-000000000001");
+    public static readonly Guid TestQualityRating2Id = Guid.Parse("00000000-0000-0002-0000-000000000002");
+    public static readonly Guid TestQualityRating3Id = Guid.Parse("00000000-0000-0002-0000-000000000003");
 }

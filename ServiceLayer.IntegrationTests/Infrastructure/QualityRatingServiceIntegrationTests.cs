@@ -17,21 +17,21 @@ namespace ServiceLayer.IntegrationTests.Infrastructure;
 
 [Trait("Category", "Integration")]
 [Collection("Database")]
-public class CostRatingServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifetime
+public class QualityRatingServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifetime
 {
     private readonly DatabaseFixture _fixture = fixture;
     private IDbContextTransaction? _transaction;
     private ScranHubDbContext? _context;
-    private FakeLogger<CostRatingService> _logger = new();
+    private FakeLogger<QualityRatingService> _logger = new();
     private readonly Mock<ITokenData> _tokenData = new();
-    private OutputChecks<CostRatingService> _checks = new(new FakeLogger<CostRatingService>());
-    private CostRatingService? _service;
+    private OutputChecks<QualityRatingService> _checks = new(new FakeLogger<QualityRatingService>());
+    private QualityRatingService? _service;
     private static readonly CancellationToken ct = CancellationToken.None;
 
     public async Task InitializeAsync()
     {
-        _logger = new FakeLogger<CostRatingService>();
-        _checks = new OutputChecks<CostRatingService>(_logger);
+        _logger = new FakeLogger<QualityRatingService>();
+        _checks = new OutputChecks<QualityRatingService>(_logger);
 
         var options = new DbContextOptionsBuilder<ScranHubDbContext>()
             .UseSqlServer(_fixture.ConnectionString)
@@ -42,11 +42,11 @@ public class CostRatingServiceIntegrationTests(DatabaseFixture fixture) : IAsync
 
         _tokenData.Setup(x => x.UserId).Returns(SeedUser2NonAdminId);
 
-        _service = new CostRatingService(
+        _service = new QualityRatingService(
             tokenData: _tokenData.Object,
             logger: _logger,
-            costRatingRepository: new CostRatingRepository(_context),
-            costOptionRepository: new CostOptionRepository(_context),
+            qualityRatingRepository: new QualityRatingRepository(_context),
+            qualityOptionRepository: new QualityOptionRepository(_context),
             groupRepository: new GroupRepository(_context),
             userGroupRepository: new UserGroupRepository(_context),
             groupVenueRepository: new GroupVenueRepository(_context),

@@ -227,6 +227,52 @@ public class DatabaseFixture : IAsyncLifetime
         }
         );
 
+        context.CostRatings.AddRange(new CostRating
+        {
+            CostRatingId = TestCostRating1Id,
+            CostOptionId = TestCostOption1Id,
+            UserId = SeedUser1AdminId,
+            GroupVenueId = TestGroupVenue1Id
+        },
+        new CostRating
+        {
+            CostRatingId = TestCostRating2Id,
+            CostOptionId = TestCostOption1Id,
+            UserId = SeedUser2NonAdminId,
+            GroupVenueId = TestGroupVenue1Id
+        },
+        new CostRating
+        {
+            CostRatingId = TestCostRating3Id,
+            CostOptionId = TestCostOption1Id,
+            UserId = SeedUser1AdminId,
+            GroupVenueId = TestGroupVenue2Id
+        }
+        );
+
+        context.QualityRatings.AddRange(new QualityRating
+        {
+            QualityRatingId = TestQualityRating1Id,
+            QualityOptionId = TestQualityOption1Id,
+            UserId = SeedUser1AdminId,
+            GroupVenueId = TestGroupVenue1Id
+        },
+        new QualityRating
+        {
+            QualityRatingId = TestQualityRating2Id,
+            QualityOptionId = TestQualityOption1Id,
+            UserId = SeedUser2NonAdminId,
+            GroupVenueId = TestGroupVenue1Id
+        },
+        new QualityRating
+        {
+            QualityRatingId = TestQualityRating3Id,
+            QualityOptionId = TestQualityOption1Id,
+            UserId = SeedUser1AdminId,
+            GroupVenueId = TestGroupVenue2Id
+        }
+        );
+
         await context.SaveChangesAsync();
     }
 }
