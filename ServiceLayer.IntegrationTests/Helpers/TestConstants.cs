@@ -41,11 +41,13 @@ public class TestConstants
     public static readonly Guid TestGroupVenue2Id = Guid.Parse("00000000-0002-0000-0000-000000000000");
     public static readonly Guid TestGroupVenue3Id = Guid.Parse("00000000-0003-0000-0000-000000000000");
     public static readonly Guid TestGroupVenue4Id = Guid.Parse("00000000-0004-0000-0000-000000000000");
+    public static readonly Guid TestGroupVenue5Id = Guid.Parse("00000000-0005-0000-0000-000000000000");
 
     public const string TestGroupVenue1Name = "Test Venue 1";
     public const string TestGroupVenue2Name = "Test Venue 2";
     public const string TestGroupVenue3Name = "Test Venue 3";
     public const string TestGroupVenue4Name = "Test Venue 4";
+    public const string TestGroupVenue5Name = "Test Venue 5";
 
     public static readonly Guid TestCostOption1Id = Guid.Parse("00000000-0000-0000-0001-000000000001");
     public static readonly Guid TestCostOption2Id = Guid.Parse("00000000-0000-0000-0001-000000000002");
@@ -58,7 +60,7 @@ public class TestConstants
     public static readonly Guid TestQualityOption1Id = Guid.Parse("00000000-0000-0000-0002-000000000001");
     public static readonly Guid TestQualityOption2Id = Guid.Parse("00000000-0000-0000-0002-000000000002");
     public static readonly Guid TestQualityOption3Id = Guid.Parse("00000000-0000-0000-0002-000000000003");
-    public static readonly Guid TestQualityOption4Id = Guid.Parse("00000000-0000-0000-0002-000000000003");
+    public static readonly Guid TestQualityOption4Id = Guid.Parse("00000000-0000-0000-0002-000000000004");
 
     public const string TestQualityOption1Label = "Great";
     public const string TestQualityOption2Label = "Good";
@@ -71,6 +73,8 @@ public class TestConstants
     public static readonly Guid TestFoodTypeOption4Id = Guid.Parse("00000000-0000-0000-0003-000000000004");
     public static readonly Guid TestFoodTypeOption5Id = Guid.Parse("00000000-0000-0000-0003-000000000005");
     public static readonly Guid TestFoodTypeOption6Id = Guid.Parse("00000000-0000-0000-0003-000000000006");
+    public static readonly Guid TestFoodTypeOption7Id = Guid.Parse("00000000-0000-0000-0003-000000000007");
+    public static readonly Guid TestFoodTypeOption8Id = Guid.Parse("00000000-0000-0000-0003-000000000008");
 
     public const string TestFoodTypeOption1Label = "Café";
     public const string TestFoodTypeOption2Label = "Burgers";
@@ -78,12 +82,18 @@ public class TestConstants
     public const string TestFoodTypeOption4Label = "Pizza";
     public const string TestFoodTypeOption5Label = "Oriental";
     public const string TestFoodTypeOption6Label = "Other";
+    public const string TestFoodTypeOption7Label = "Override 1";
+    public const string TestFoodTypeOption8Label = "Override 2";
 
     public static readonly Guid TestVenueTypeOption1Id = Guid.Parse("00000000-0000-0000-0004-000000000001");
     public static readonly Guid TestVenueTypeOption2Id = Guid.Parse("00000000-0000-0000-0004-000000000002");
     public static readonly Guid TestVenueTypeOption3Id = Guid.Parse("00000000-0000-0000-0004-000000000003");
+    public static readonly Guid TestVenueTypeOption4Id = Guid.Parse("00000000-0000-0000-0004-000000000004");
+    public static readonly Guid TestVenueTypeOption5Id = Guid.Parse("00000000-0000-0000-0004-000000000005");
 
     public const string TestVenueTypeOption1Label = "Eat-In";
     public const string TestVenueTypeOption2Label = "Takeaway";
     public const string TestVenueTypeOption3Label = "Both";
+    public const string TestVenueTypeOption4Label = "Override 1";
+    public const string TestVenueTypeOption5Label = "Override 2";
 }

@@ -187,6 +187,43 @@ public class DatabaseFixture : IAsyncLifetime
             Visited = false,
             GroupId = TestGroup1Id,
             VenueName = TestGroupVenue4Name
+        },
+        new GroupVenue
+        {
+            GroupVenueId = TestGroupVenue5Id,
+            Visited = false,
+            GroupId = TestGroup3Id,
+            VenueName = TestGroupVenue5Name
+        }
+        );
+
+        context.FoodTypeOptions.AddRange(
+        new FoodTypeOption
+        {
+            FoodTypeOptionId = TestFoodTypeOption7Id,
+            Label = TestFoodTypeOption7Label,
+            GroupId = TestGroup3Id,
+        },
+        new FoodTypeOption
+        {
+            FoodTypeOptionId = TestFoodTypeOption8Id,
+            Label = TestFoodTypeOption8Label,
+            GroupId = TestGroup3Id,
+        }
+        );
+
+        context.VenueTypeOptions.AddRange(
+        new VenueTypeOption
+        {
+            VenueTypeOptionId = TestVenueTypeOption4Id,
+            Label = TestVenueTypeOption4Label,
+            GroupId = TestGroup3Id,
+        },
+        new VenueTypeOption
+        {
+            VenueTypeOptionId = TestVenueTypeOption5Id,
+            Label = TestVenueTypeOption5Label,
+            GroupId = TestGroup3Id,
         }
         );
 

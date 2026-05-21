@@ -63,6 +63,7 @@ public sealed class GroupVenueRepository(ScranHubDbContext dbContext) : EFReposi
         var results = await groupVenueQuery
             .Skip((request.PageNumber - 1) * request.PageSize)
             .Take(request.PageSize)
+            .OrderBy(x => x.VenueName)
             .Select(x => new GroupVenueResult
             {
                 GroupVenueId = x.GroupVenueId,
