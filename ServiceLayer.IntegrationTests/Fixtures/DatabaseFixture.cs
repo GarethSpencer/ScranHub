@@ -193,7 +193,9 @@ public class DatabaseFixture : IAsyncLifetime
             GroupVenueId = TestGroupVenue5Id,
             Visited = false,
             GroupId = TestGroup3Id,
-            VenueName = TestGroupVenue5Name
+            VenueName = TestGroupVenue5Name,
+            FoodTypeOptionId = TestFoodTypeOption7Id,
+            VenueTypeOptionId = TestVenueTypeOption4Id
         }
         );
 
