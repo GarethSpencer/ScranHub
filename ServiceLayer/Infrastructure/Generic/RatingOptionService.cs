@@ -3,6 +3,7 @@ using RepositoryLayer.Abstractions;
 using RepositoryLayer.Abstractions.Generic;
 using ServiceLayer.Abstractions.Generic;
 using System.Net;
+using Utilities.Helpers;
 using Utilities.Models.Requests.Options;
 using Utilities.Models.Responses.Generic;
 using Utilities.Models.Responses.Options;
@@ -33,64 +34,57 @@ public abstract class RatingOptionService<TRatingRepository, TRatingOptionReposi
     {
         if (!_tokenData.UserId.HasValue)
         {
-            _logger.LogWarning("SetGroupCustomOptionsAsync called with no authenticated user.");
             return new CommonResponse
             {
                 StatusCode = HttpStatusCode.Unauthorized,
                 Message = "Unauthorized."
-            };
+            }.WithResponseLog(_logger);
         }
 
-        var userId = _tokenData.UserId!.Value;
-        var isUserInGroup = await _userGroupRepository.IsUserInGroupAsync(request.GroupId, userId, ct);
-
+        var callingUserId = _tokenData.UserId!.Value;
+        var isUserInGroup = await _userGroupRepository.IsUserInGroupAsync(request.GroupId, callingUserId, ct);
         if (!isUserInGroup)
         {
-            _logger.LogWarning("SetGroupCustomOptionsAsync called by user {UserId} who is not in group {GroupId}.", userId, request.GroupId);
             return new CommonResponse
             {
                 StatusCode = HttpStatusCode.Forbidden,
                 Message = "You do not have permission to set options for this group."
-            };
+            }.WithResponseLog(_logger, callingUserId);
         }
 
         var group = await _groupRepository.GetDetailsByIdAsync(request.GroupId, ct);
         if (group?.Active != true)
         {
-            _logger.LogWarning("SetGroupCustomOptionsAsync called for inactive or non-existent group {GroupId} by user {UserId}.", request.GroupId, userId);
             return new CommonResponse
             {
                 StatusCode = HttpStatusCode.BadRequest,
                 Message = "The group does not exist or is not active."
-            };
+            }.WithResponseLog(_logger, callingUserId);
         }
 
         var usingDefaults = await _ratingOptionRepository.IsGroupUsingDefaultValues(request.GroupId, ct);
         if (!usingDefaults)
         {
-            _logger.LogWarning("SetGroupCustomOptionsAsync called for group {GroupId} by user {UserId} when group already has custom options.", request.GroupId, userId);
             return new CommonResponse
             {
                 StatusCode = HttpStatusCode.BadRequest,
                 Message = "The group is already using custom options."
-            };
+            }.WithResponseLog(_logger, callingUserId);
         }
 
         var ratingOptionsInUse = await _ratingRepository.GetDistinctRatingsGivenForGroupAsync(request.GroupId, ct);
         if (ratingOptionsInUse.Count() > request.Labels.Length)
         {
-            _logger.LogWarning("SetGroupCustomOptionsAsync called for group {GroupId} by user {UserId} without enough labels.", request.GroupId, userId);
             return new CommonResponse
             {
                 StatusCode = HttpStatusCode.BadRequest,
                 Message = $"You need to provide at least {ratingOptionsInUse.Count()} labels to map the current options."
-            };
+            }.WithResponseLog(_logger, callingUserId);
         }
 
         var defaults = await _ratingOptionRepository.GetDefaultsAsync(ct);
         var optionIds = await _ratingOptionRepository.AddRangeAsync(request, ct);
         var squashNeeded = false;
-
         if (defaults.Count() == request.Labels.Length)
         {
             // We have as many default options as new options, so we can map cleanly
@@ -115,79 +109,71 @@ public abstract class RatingOptionService<TRatingRepository, TRatingOptionReposi
         }
 
         await _unitOfWork.SaveChangesAsync(ct);
-        _logger.LogInformation("User {UserId} set group-specific options for group {GroupId}.", userId, request.GroupId);
 
         return new SetOptionsResponse
         {
             StatusCode = HttpStatusCode.Created,
             Message = "Custom ratings were created and mapped successfully" + (squashNeeded ? ", but existing ratings were squashed." : "."),
             OptionsIds = optionIds
-        };
+        }.WithResponseLog(_logger, callingUserId, $"Custom ratings [{string.Join(", ", optionIds)}] were created and mapped successfully"
+            + (squashNeeded ? ", but existing ratings were squashed." : "."));
     }
 
     public async Task<CommonResponse> RemoveGroupCustomOptionsAsync(Guid groupId, CancellationToken ct)
     {
         if (!_tokenData.UserId.HasValue)
         {
-            _logger.LogWarning("RemoveGroupCustomOptionsAsync called with no authenticated user.");
             return new CommonResponse
             {
                 StatusCode = HttpStatusCode.Unauthorized,
                 Message = "Unauthorized."
-            };
+            }.WithResponseLog(_logger);
         }
 
-        var userId = _tokenData.UserId!.Value;
-        var isUserInGroup = await _userGroupRepository.IsUserInGroupAsync(groupId, userId, ct);
-
+        var callingUserId = _tokenData.UserId!.Value;
+        var isUserInGroup = await _userGroupRepository.IsUserInGroupAsync(groupId, callingUserId, ct);
         if (!isUserInGroup)
         {
-            _logger.LogWarning("RemoveGroupCustomOptionsAsync called by user {UserId} who is not in group {GroupId}.", userId, groupId);
             return new CommonResponse
             {
                 StatusCode = HttpStatusCode.Forbidden,
                 Message = "You do not have permission to remove options for this group."
-            };
+            }.WithResponseLog(_logger, callingUserId);
         }
 
         var group = await _groupRepository.GetDetailsByIdAsync(groupId, ct);
         if (group?.Active != true)
         {
-            _logger.LogWarning("RemoveGroupCustomOptionsAsync called for inactive or non-existent group {GroupId} by user {UserId}.", groupId, userId);
             return new CommonResponse
             {
                 StatusCode = HttpStatusCode.BadRequest,
                 Message = "The group does not exist or is not active."
-            };
+            }.WithResponseLog(_logger, callingUserId);
         }
 
         var usingDefaults = await _ratingOptionRepository.IsGroupUsingDefaultValues(groupId, ct);
         if (usingDefaults)
         {
-            _logger.LogWarning("RemoveGroupCustomOptionsAsync called for group {GroupId} by user {UserId} when group is already using default options.", groupId, userId);
             return new CommonResponse
             {
                 StatusCode = HttpStatusCode.BadRequest,
                 Message = "The group is already using default options."
-            };
+            }.WithResponseLog(_logger, callingUserId);
         }
 
         var ratingOptionsInUse = await _ratingRepository.GetDistinctRatingsGivenForGroupAsync(groupId, ct);
         var defaultOptions = await _ratingOptionRepository.GetDefaultsAsync(ct);
-
         if (ratingOptionsInUse.Count() > defaultOptions.Count())
         {
-            _logger.LogWarning("RemoveGroupCustomOptionsAsync called for group {GroupId} by user {UserId} without enough labels.", groupId, userId);
             return new CommonResponse
             {
                 StatusCode = HttpStatusCode.BadRequest,
                 Message = $"Cannot remove custom options. The group is using {ratingOptionsInUse.Count()} labels but there are only {defaultOptions.Count()} default options."
-            };
+            }.WithResponseLog(_logger, callingUserId);
         }
 
         var currentOptions = await _ratingOptionRepository.GetForGroupIdAsync(groupId, ct);
         var squashNeeded = false;
-
         if (currentOptions.Count() == defaultOptions.Count())
         {
             // We have as many default options as current options, so we can map cleanly
@@ -212,407 +198,362 @@ public abstract class RatingOptionService<TRatingRepository, TRatingOptionReposi
         }
 
         await _ratingOptionRepository.RemoveCustomRatingsForGroupAsync(groupId, ct);
-
         await _unitOfWork.SaveChangesAsync(ct);
-        _logger.LogInformation("User {UserId} removed group-specific options for group {GroupId}.", userId, groupId);
 
         return new CommonResponse
         {
             StatusCode = HttpStatusCode.OK,
             Message = "Custom ratings were removed successfully" + (squashNeeded ? ", but ratings were squashed to fit the default options." : "."),
-        };
+        }.WithResponseLog(_logger, callingUserId, $"Custom ratings were removed successfully for group [{groupId}]"
+            + (squashNeeded ? ", but ratings were squashed to fit the default options." : "."));
     }
 
     public async Task<CommonResponse> AddOptionAsync(SetOptionRequest request, CancellationToken ct)
     {
         if (!_tokenData.UserId.HasValue)
         {
-            _logger.LogWarning("AddOptionAsync called with no authenticated user.");
             return new CommonResponse
             {
                 StatusCode = HttpStatusCode.Unauthorized,
                 Message = "Unauthorized."
-            };
+            }.WithResponseLog(_logger);
         }
 
-        var userId = _tokenData.UserId!.Value;
-        var isUserInGroup = await _userGroupRepository.IsUserInGroupAsync(request.GroupId, userId, ct);
-
+        var callingUserId = _tokenData.UserId!.Value;
+        var isUserInGroup = await _userGroupRepository.IsUserInGroupAsync(request.GroupId, callingUserId, ct);
         if (!isUserInGroup)
         {
-            _logger.LogWarning("AddOptionAsync called by user {UserId} who is not in group {GroupId}.", userId, request.GroupId);
             return new CommonResponse
             {
                 StatusCode = HttpStatusCode.Forbidden,
                 Message = "You do not have permission to set options for this group."
-            };
+            }.WithResponseLog(_logger, callingUserId);
         }
 
         var group = await _groupRepository.GetDetailsByIdAsync(request.GroupId, ct);
         if (group?.Active != true)
         {
-            _logger.LogWarning("AddOptionAsync called for inactive or non-existent group {GroupId} by user {UserId}.", request.GroupId, userId);
             return new CommonResponse
             {
                 StatusCode = HttpStatusCode.BadRequest,
                 Message = "The group does not exist or is not active."
-            };
+            }.WithResponseLog(_logger, callingUserId);
         }
 
         var usingDefaults = await _ratingOptionRepository.IsGroupUsingDefaultValues(request.GroupId, ct);
         if (usingDefaults)
         {
-            _logger.LogWarning("AddOptionAsync called for group {GroupId} by user {UserId} when group is using default options.", request.GroupId, userId);
             return new CommonResponse
             {
                 StatusCode = HttpStatusCode.BadRequest,
                 Message = "The group is not using custom options so they cannot be amended."
-            };
+            }.WithResponseLog(_logger, callingUserId);
         }
 
         var currentOptions = await _ratingOptionRepository.GetForGroupIdAsync(request.GroupId, ct);
         if (currentOptions.Any(x => string.Equals(x.Label, request.Label, StringComparison.OrdinalIgnoreCase)))
         {
-            _logger.LogWarning("AddOptionAsync called for group {GroupId} by user {UserId} with duplicate label.", request.GroupId, userId);
             return new CommonResponse
             {
                 StatusCode = HttpStatusCode.BadRequest,
                 Message = "An option with that label already exists for this group."
-            };
+            }.WithResponseLog(_logger, callingUserId);
         }
 
         var optionId = await _ratingOptionRepository.AddAsync(request, ct);
-
         await _unitOfWork.SaveChangesAsync(ct);
-        _logger.LogInformation("User {UserId} added rating option for group {GroupId}.", userId, request.GroupId);
 
         return new SetOptionResponse
         {
             StatusCode = HttpStatusCode.Created,
             Message = "New rating added successfully.",
             OptionsId = optionId
-        };
+        }.WithResponseLog(_logger, callingUserId, $"New rating [{optionId}] added successfully.");
     }
 
     public async Task<CommonResponse> UpdateOptionAsync(Guid optionId, UpdateOptionRequest request, CancellationToken ct)
     {
         if (!_tokenData.UserId.HasValue)
         {
-            _logger.LogWarning("UpdateOptionAsync called with no authenticated user.");
             return new CommonResponse
             {
                 StatusCode = HttpStatusCode.Unauthorized,
                 Message = "Unauthorized."
-            };
+            }.WithResponseLog(_logger);
         }
 
-        var userId = _tokenData.UserId!.Value;
+        var callingUserId = _tokenData.UserId!.Value;
         var option = await _ratingOptionRepository.GetByIdAsync(optionId, ct);
         if (option == null || option.GroupId == null)
         {
-            _logger.LogWarning("UpdateOptionAsync called by user {UserId} for option {OptionId} which cannot be updated.", userId, optionId);
             return new CommonResponse
             {
                 StatusCode = HttpStatusCode.BadRequest,
                 Message = "The option does not exist or cannot be updated."
-            };
+            }.WithResponseLog(_logger, callingUserId);
         }
 
-        var isUserInGroup = await _userGroupRepository.IsUserInGroupAsync(option.GroupId.Value, userId, ct);
+        var isUserInGroup = await _userGroupRepository.IsUserInGroupAsync(option.GroupId.Value, callingUserId, ct);
         if (!isUserInGroup)
         {
-            _logger.LogWarning("UpdateOptionAsync called by user {UserId} who is not in group {GroupId}.", userId, option.GroupId);
             return new CommonResponse
             {
                 StatusCode = HttpStatusCode.Forbidden,
                 Message = "You do not have permission to update options for this group."
-            };
+            }.WithResponseLog(_logger, callingUserId);
         }
 
         var group = await _groupRepository.GetDetailsByIdAsync(option.GroupId.Value, ct);
         if (group?.Active != true)
         {
-            _logger.LogWarning("UpdateOptionAsync called for inactive or non-existent group {GroupId} by user {UserId}.", option.GroupId, userId);
             return new CommonResponse
             {
                 StatusCode = HttpStatusCode.BadRequest,
                 Message = "The group does not exist or is not active."
-            };
+            }.WithResponseLog(_logger, callingUserId);
         }
 
         var currentOptions = await _ratingOptionRepository.GetForGroupIdAsync(option.GroupId.Value, ct);
         if (currentOptions.Any(x => x.OptionId != optionId && string.Equals(x.Label, request.Label, StringComparison.OrdinalIgnoreCase)))
         {
-            _logger.LogWarning("UpdateOptionAsync called for group {GroupId} by user {UserId} with duplicate label.", option.GroupId, userId);
             return new CommonResponse
             {
                 StatusCode = HttpStatusCode.BadRequest,
                 Message = "An option with that label already exists for this group."
-            };
+            }.WithResponseLog(_logger, callingUserId);
         }
 
         await _ratingOptionRepository.UpdateAsync(optionId, request.Label, ct);
-
         await _unitOfWork.SaveChangesAsync(ct);
-        _logger.LogInformation("User {UserId} updated option for group {GroupId}.", userId, option.GroupId);
 
         return new CommonResponse
         {
             StatusCode = HttpStatusCode.OK,
             Message = "Rating option updated successfully.",
-        };
+        }.WithResponseLog(_logger, callingUserId, $"Rating option [{optionId}] updated successfully.");
     }
 
     public async Task<CommonResponse> DeleteOptionAsync(Guid optionId, CancellationToken ct)
     {
         if (!_tokenData.UserId.HasValue)
         {
-            _logger.LogWarning("DeleteOptionAsync called with no authenticated user.");
             return new CommonResponse
             {
                 StatusCode = HttpStatusCode.Unauthorized,
                 Message = "Unauthorized."
-            };
+            }.WithResponseLog(_logger);
         }
 
-        var userId = _tokenData.UserId!.Value;
+        var callingUserId = _tokenData.UserId!.Value;
         var option = await _ratingOptionRepository.GetByIdAsync(optionId, ct);
         if (option == null || option.GroupId == null)
         {
-            _logger.LogWarning("DeleteOptionAsync called by user {UserId} for option {OptionId} which cannot be deleted.", userId, optionId);
             return new CommonResponse
             {
                 StatusCode = HttpStatusCode.BadRequest,
                 Message = "The option does not exist or cannot be deleted."
-            };
+            }.WithResponseLog(_logger, callingUserId);
         }
 
-        var isUserInGroup = await _userGroupRepository.IsUserInGroupAsync(option.GroupId.Value, userId, ct);
+        var isUserInGroup = await _userGroupRepository.IsUserInGroupAsync(option.GroupId.Value, callingUserId, ct);
         if (!isUserInGroup)
         {
-            _logger.LogWarning("DeleteOptionAsync called by user {UserId} who is not in group {GroupId}.", userId, option.GroupId);
             return new CommonResponse
             {
                 StatusCode = HttpStatusCode.Forbidden,
                 Message = "You do not have permission to delete options for this group."
-            };
+            }.WithResponseLog(_logger, callingUserId);
         }
 
         var group = await _groupRepository.GetDetailsByIdAsync(option.GroupId.Value, ct);
         if (group?.Active != true)
         {
-            _logger.LogWarning("DeleteOptionAsync called for inactive or non-existent group {GroupId} by user {UserId}.", option.GroupId, userId);
             return new CommonResponse
             {
                 StatusCode = HttpStatusCode.BadRequest,
                 Message = "The group does not exist or is not active."
-            };
+            }.WithResponseLog(_logger, callingUserId);
         }
 
         var isOptionUsed = await _ratingRepository.IsOptionBeingUsedAsync(optionId, ct);
         if (isOptionUsed)
         {
-            _logger.LogWarning("DeleteOptionAsync called for option {OptionId} by user {UserId} which is currently in use.", optionId, userId);
             return new CommonResponse
             {
                 StatusCode = HttpStatusCode.BadRequest,
                 Message = "Cannot delete this option because it is being used to rate a venue. Amend ratings to other options first."
-            };
+            }.WithResponseLog(_logger, callingUserId);
         }
 
         await _ratingOptionRepository.DeleteAsync(optionId, ct);
         await _ratingOptionRepository.CondenseDisplayOrdersAsync(option.GroupId.Value, optionId, ct);
-
         await _unitOfWork.SaveChangesAsync(ct);
-        _logger.LogInformation("User {UserId} deleted option {OptionId}.", userId, optionId);
 
         return new CommonResponse
         {
             StatusCode = HttpStatusCode.OK,
             Message = "Rating option deleted successfully.",
-        };
+        }.WithResponseLog(_logger, callingUserId, $"Rating option [{optionId}] deleted successfully.");
     }
 
     public async Task<CommonResponse> ReorderOptionsAsync(OrderOptionsRequest request, CancellationToken ct)
     {
         if (!_tokenData.UserId.HasValue)
         {
-            _logger.LogWarning("ReorderOptionsAsync called with no authenticated user.");
             return new CommonResponse
             {
                 StatusCode = HttpStatusCode.Unauthorized,
                 Message = "Unauthorized."
-            };
+            }.WithResponseLog(_logger);
         }
 
-        var userId = _tokenData.UserId!.Value;
-        var isUserInGroup = await _userGroupRepository.IsUserInGroupAsync(request.GroupId, userId, ct);
-
+        var callingUserId = _tokenData.UserId!.Value;
+        var isUserInGroup = await _userGroupRepository.IsUserInGroupAsync(request.GroupId, callingUserId, ct);
         if (!isUserInGroup)
         {
-            _logger.LogWarning("ReorderOptionsAsync called by user {UserId} who is not in group {GroupId}.", userId, request.GroupId);
             return new CommonResponse
             {
                 StatusCode = HttpStatusCode.Forbidden,
                 Message = "You do not have permission to set options for this group."
-            };
+            }.WithResponseLog(_logger, callingUserId);
         }
 
         var group = await _groupRepository.GetDetailsByIdAsync(request.GroupId, ct);
         if (group?.Active != true)
         {
-            _logger.LogWarning("ReorderOptionsAsync called for inactive or non-existent group {GroupId} by user {UserId}.", request.GroupId, userId);
             return new CommonResponse
             {
                 StatusCode = HttpStatusCode.BadRequest,
                 Message = "The group does not exist or is not active."
-            };
+            }.WithResponseLog(_logger, callingUserId);
         }
 
         var usingDefaults = await _ratingOptionRepository.IsGroupUsingDefaultValues(request.GroupId, ct);
         if (usingDefaults)
         {
-            _logger.LogWarning("ReorderOptionsAsync called for group {GroupId} by user {UserId} when group is using default options.", request.GroupId, userId);
             return new CommonResponse
             {
                 StatusCode = HttpStatusCode.BadRequest,
                 Message = "The group is not using custom options so they cannot be amended."
-            };
+            }.WithResponseLog(_logger, callingUserId);
         }
 
         var currentOptions = await _ratingOptionRepository.GetForGroupIdAsync(request.GroupId, ct);
-
         if (currentOptions.Count() != request.OptionsIds.Length
             || currentOptions.Any(x => !request.OptionsIds.Contains(x.OptionId)))
         {
-            _logger.LogWarning("ReorderOptionsAsync called for group {GroupId} by user {UserId} with invalid option IDs.", request.GroupId, userId);
             return new CommonResponse
             {
                 StatusCode = HttpStatusCode.BadRequest,
                 Message = "The provided option IDs do not match the current options for this group."
-            };
+            }.WithResponseLog(_logger, callingUserId);
         }
 
         await _ratingOptionRepository.ReorderAsync(request.GroupId, request.OptionsIds, ct);
-
         await _unitOfWork.SaveChangesAsync(ct);
-        _logger.LogInformation("User {UserId} reordered options for group {GroupId}.", userId, request.GroupId);
 
         return new CommonResponse
         {
             StatusCode = HttpStatusCode.OK,
             Message = $"Group-specific options reordered successfully."
-        };
+        }.WithResponseLog(_logger, callingUserId);
     }
 
     public async Task<CommonResponse> GetGroupRatingOptionsAsync(Guid? groupId, CancellationToken ct)
     {
         if (!_tokenData.UserId.HasValue)
         {
-            _logger.LogWarning("GetGroupRatingOptionsAsync called with no authenticated user.");
             return new CommonResponse
             {
                 StatusCode = HttpStatusCode.Unauthorized,
                 Message = "Unauthorized."
-            };
+            }.WithResponseLog(_logger);
         }
 
-        var userId = _tokenData.UserId!.Value;
-
+        var callingUserId = _tokenData.UserId!.Value;
         if (groupId != null)
         {
-            var isUserInGroup = await _userGroupRepository.IsUserInGroupAsync(groupId.Value, userId, ct);
-
+            var isUserInGroup = await _userGroupRepository.IsUserInGroupAsync(groupId.Value, callingUserId, ct);
             if (!isUserInGroup)
             {
-                _logger.LogWarning("GetGroupRatingOptionsAsync called by user {UserId} who is not in group {GroupId}.", userId, groupId);
                 return new CommonResponse
                 {
                     StatusCode = HttpStatusCode.Forbidden,
                     Message = "You do not have permission to view options for this group."
-                };
+                }.WithResponseLog(_logger, callingUserId);
             }
 
             var group = await _groupRepository.GetDetailsByIdAsync(groupId.Value, ct);
             if (group?.Active != true)
             {
-                _logger.LogWarning("GetGroupRatingOptionsAsync called for inactive or non-existent group {GroupId} by user {UserId}.", groupId, userId);
                 return new CommonResponse
                 {
                     StatusCode = HttpStatusCode.BadRequest,
                     Message = "The group does not exist or is not active."
-                };
+                }.WithResponseLog(_logger, callingUserId);
             }
         }
 
         var options = await _ratingOptionRepository.GetForGroupIdAsync(groupId, ct);
-        _logger.LogInformation("User {UserId} retrieved options for group {GroupId}.", userId, groupId);
 
         return new GetRatingOptionsResponse
         {
             StatusCode = HttpStatusCode.OK,
             Message = "Options retrieved successfully.",
             Options = options
-        };
+        }.WithResponseLog(_logger, callingUserId);
     }
 
     public async Task<CommonResponse> GetRatingOptionAsync(Guid optionId, CancellationToken ct)
     {
         if (!_tokenData.UserId.HasValue)
         {
-            _logger.LogWarning("GetRatingOptionAsync called with no authenticated user.");
             return new CommonResponse
             {
                 StatusCode = HttpStatusCode.Unauthorized,
                 Message = "Unauthorized."
-            };
+            }.WithResponseLog(_logger);
         }
 
-        var userId = _tokenData.UserId!.Value;
+        var callingUserId = _tokenData.UserId!.Value;
         var option = await _ratingOptionRepository.GetByIdAsync(optionId, ct);
-
         if (option == null)
         {
-            _logger.LogWarning("GetRatingOptionAsync called by user {UserId} for option {OptionId} which does not exist.", userId, optionId);
             return new CommonResponse
             {
                 StatusCode = HttpStatusCode.BadRequest,
                 Message = "The option does not exist."
-            };
+            }.WithResponseLog(_logger, callingUserId);
         }
 
         if (option.GroupId == null)
         {
-            _logger.LogInformation("User {UserId} retrieved default option {OptionId}.", userId, optionId);
             return new GetRatingOptionResponse
             {
                 StatusCode = HttpStatusCode.OK,
-                Message = "Option retrieved successfully.",
+                Message = "Default option retrieved successfully.",
                 Option = option
-            };
+            }.WithResponseLog(_logger, callingUserId);
         }
 
-        var isUserInGroup = await _userGroupRepository.IsUserInGroupAsync(option.GroupId.Value, userId, ct);
-
+        var isUserInGroup = await _userGroupRepository.IsUserInGroupAsync(option.GroupId.Value, callingUserId, ct);
         if (!isUserInGroup)
         {
-            _logger.LogWarning("SetGroupCustomOptionsAsync called by user {UserId} who is not in group {GroupId}.", userId, option.GroupId);
             return new CommonResponse
             {
                 StatusCode = HttpStatusCode.Forbidden,
                 Message = "You do not have permission to view options for this group."
-            };
+            }.WithResponseLog(_logger, callingUserId);
         }
 
         var group = await _groupRepository.GetDetailsByIdAsync(option.GroupId.Value, ct);
         if (group?.Active != true)
         {
-            _logger.LogWarning("SetGroupCustomOptionsAsync called for inactive or non-existent group {GroupId} by user {UserId}.", option.GroupId, userId);
             return new CommonResponse
             {
                 StatusCode = HttpStatusCode.BadRequest,
                 Message = "The group does not exist or is not active."
-            };
+            }.WithResponseLog(_logger, callingUserId);
         }
 
         return new GetRatingOptionResponse
@@ -620,6 +561,6 @@ public abstract class RatingOptionService<TRatingRepository, TRatingOptionReposi
             StatusCode = HttpStatusCode.OK,
             Message = "Option retrieved successfully.",
             Option = option
-        };
+        }.WithResponseLog(_logger, callingUserId);
     }
 }

@@ -68,6 +68,100 @@ public abstract class RatingOptionServiceIntegrationTests<TService>(DatabaseFixt
     }
     #endregion
 
+    #region RemoveGroupCustomOptionsAsync
+    [Fact]
+    public async Task RemoveGroupCustomOptionsAsync_NotAuthenticated_ReturnsUnauthorized()
+    {
+        _tokenData.Setup(x => x.UserId).Returns((Guid?)null);
+
+        var result = await _service!.RemoveGroupCustomOptionsAsync(TestGroup1Id, ct);
+        _checks.OutputFailureCheck(result, "unauthorized", "RemoveGroupCustomOptionsAsync", HttpStatusCode.Unauthorized);
+    }
+    #endregion
+
+    #region AddOptionAsync
+    [Fact]
+    public async Task AddOptionAsync_NotAuthenticated_ReturnsUnauthorized()
+    {
+        _tokenData.Setup(x => x.UserId).Returns((Guid?)null);
+
+        var request = new SetOptionRequest
+        {
+            GroupId = TestGroup1Id,
+            Label = "New Test Label"
+        };
+
+        var result = await _service!.AddOptionAsync(request, ct);
+        _checks.OutputFailureCheck(result, "unauthorized", "AddOptionAsync", HttpStatusCode.Unauthorized);
+    }
+    #endregion
+
+    #region UpdateOptionAsync
+    [Fact]
+    public async Task UpdateOptionAsync_NotAuthenticated_ReturnsUnauthorized()
+    {
+        _tokenData.Setup(x => x.UserId).Returns((Guid?)null);
+
+        var request = new UpdateOptionRequest
+        {
+            Label = "Updated Test Label"
+        };
+
+        var result = await _service!.UpdateOptionAsync(Guid.NewGuid(), request, ct);
+        _checks.OutputFailureCheck(result, "unauthorized", "UpdateOptionAsync", HttpStatusCode.Unauthorized);
+    }
+    #endregion
+
+    #region DeleteOptionAsync
+    [Fact]
+    public async Task DeleteOptionAsync_NotAuthenticated_ReturnsUnauthorized()
+    {
+        _tokenData.Setup(x => x.UserId).Returns((Guid?)null);
+
+        var result = await _service!.DeleteOptionAsync(Guid.NewGuid(), ct);
+        _checks.OutputFailureCheck(result, "unauthorized", "DeleteOptionAsync", HttpStatusCode.Unauthorized);
+    }
+    #endregion
+
+    #region ReorderOptionsAsync
+    [Fact]
+    public async Task ReorderOptionsAsync_NotAuthenticated_ReturnsUnauthorized()
+    {
+        _tokenData.Setup(x => x.UserId).Returns((Guid?)null);
+
+        var request = new OrderOptionsRequest
+        {
+            GroupId = Guid.NewGuid(),
+            OptionsIds = []
+        };
+
+        var result = await _service!.ReorderOptionsAsync(request, ct);
+        _checks.OutputFailureCheck(result, "unauthorized", "ReorderOptionsAsync", HttpStatusCode.Unauthorized);
+    }
+    #endregion
+
+    #region GetGroupRatingOptionsAsync
+    [Fact]
+    public async Task GetGroupRatingOptionsAsync_NotAuthenticated_ReturnsUnauthorized()
+    {
+        _tokenData.Setup(x => x.UserId).Returns((Guid?)null);
+
+        var result = await _service!.GetGroupRatingOptionsAsync(TestGroup1Id, ct);
+        _checks.OutputFailureCheck(result, "unauthorized", "GetGroupRatingOptionsAsync", HttpStatusCode.Unauthorized);
+    }
+    #endregion
+
+    #region GetRatingOptionAsync
+    [Fact]
+    public async Task GetRatingOptionAsync_NotAuthenticated_ReturnsUnauthorized()
+    {
+        _tokenData.Setup(x => x.UserId).Returns((Guid?)null);
+
+        var result = await _service!.GetRatingOptionAsync(Guid.NewGuid(), ct);
+        _checks.OutputFailureCheck(result, "unauthorized", "GetRatingOptionAsync", HttpStatusCode.Unauthorized);
+    }
+    #endregion
+
     public async Task DisposeAsync()
     {
         await _transaction!.RollbackAsync();
