@@ -1,0 +1,76 @@
+﻿using DAL.Data;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
+using Moq;
+using ServiceLayer.Abstractions.Generic;
+using ServiceLayer.IntegrationTests.Fixtures;
+using ServiceLayer.IntegrationTests.Helpers;
+using System.Net;
+using Utilities.Models.Requests.Options;
+using Utilities.Token;
+using static ServiceLayer.IntegrationTests.Helpers.TestConstants;
+
+namespace ServiceLayer.IntegrationTests.Infrastructure.Generic;
+
+public abstract class RatingOptionServiceIntegrationTests<TService>(DatabaseFixture fixture)
+    : IAsyncLifetime
+    where TService : class
+{
+    protected readonly DatabaseFixture _fixture = fixture;
+    protected IDbContextTransaction? _transaction;
+    protected ScranHubDbContext? _context;
+    protected FakeLogger<TService> _logger = new();
+    protected readonly Mock<ITokenData> _tokenData = new();
+    protected OutputChecks<TService> _checks = new(new FakeLogger<TService>());
+    protected IRatingOptionService? _service;
+    protected static readonly CancellationToken ct = CancellationToken.None;
+
+    protected abstract IRatingOptionService CreateService(
+        ScranHubDbContext context,
+        ITokenData tokenData,
+        FakeLogger<TService> logger);
+
+    public async Task InitializeAsync()
+    {
+        _logger = new FakeLogger<TService>();
+        _checks = new OutputChecks<TService>(_logger);
+
+        var options = new DbContextOptionsBuilder<ScranHubDbContext>()
+            .UseSqlServer(_fixture.ConnectionString)
+            .Options;
+
+        _context = new ScranHubDbContext(options);
+        _transaction = await _context!.Database.BeginTransactionAsync();
+
+        _tokenData.Setup(x => x.UserId).Returns(SeedUser2NonAdminId);
+
+        _service = CreateService(_context, _tokenData.Object, _logger);
+    }
+
+    #region SetGroupCustomOptionsAsync
+    [Fact]
+    public async Task SetGroupCustomOptionsAsync_NotAuthenticated_ReturnsUnauthorized()
+    {
+        _tokenData.Setup(x => x.UserId).Returns((Guid?)null);
+
+        var request = new SetOptionsRequest
+        {
+            GroupId = TestGroup1Id,
+            Labels =
+            [
+                "Test Label 1",
+                "Test Label 2"
+            ]
+        };
+
+        var result = await _service!.SetGroupCustomOptionsAsync(request, ct);
+        _checks.OutputFailureCheck(result, "unauthorized", "SetGroupCustomOptionsAsync", HttpStatusCode.Unauthorized);
+    }
+    #endregion
+
+    public async Task DisposeAsync()
+    {
+        await _transaction!.RollbackAsync();
+        await _context!.DisposeAsync();
+    }
+}
