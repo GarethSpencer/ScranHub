@@ -238,6 +238,12 @@ public class DatabaseFixture : IAsyncLifetime
             CostOptionId = TestCostOption5Id,
             Label = TestCostOption5Label,
             GroupId = TestGroup3Id,
+        },
+        new CostOption
+        {
+            CostOptionId = TestCostOption6Id,
+            Label = TestCostOption6Label,
+            GroupId = TestGroup2Id,
         }
         );
 
@@ -252,6 +258,12 @@ public class DatabaseFixture : IAsyncLifetime
             QualityOptionId = TestQualityOption6Id,
             Label = TestQualityOption6Label,
             GroupId = TestGroup3Id,
+        },
+        new QualityOption
+        {
+            QualityOptionId = TestQualityOption7Id,
+            Label = TestQualityOption7Label,
+            GroupId = TestGroup2Id,
         }
         );
 
@@ -265,7 +277,7 @@ public class DatabaseFixture : IAsyncLifetime
         new CostRating
         {
             CostRatingId = TestCostRating2Id,
-            CostOptionId = SeedCostOption1Id,
+            CostOptionId = SeedCostOption2Id,
             UserId = SeedUser2NonAdminId,
             GroupVenueId = TestGroupVenue1Id
         },
@@ -288,7 +300,7 @@ public class DatabaseFixture : IAsyncLifetime
         new QualityRating
         {
             QualityRatingId = TestQualityRating2Id,
-            QualityOptionId = SeedQualityOption1Id,
+            QualityOptionId = SeedQualityOption2Id,
             UserId = SeedUser2NonAdminId,
             GroupVenueId = TestGroupVenue1Id
         },

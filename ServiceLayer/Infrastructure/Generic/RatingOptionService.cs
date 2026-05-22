@@ -42,6 +42,16 @@ public abstract class RatingOptionService<TRatingRepository, TRatingOptionReposi
         }
 
         var callingUserId = _tokenData.UserId!.Value;
+        var group = await _groupRepository.GetDetailsByIdAsync(request.GroupId, ct);
+        if (group?.Active != true)
+        {
+            return new CommonResponse
+            {
+                StatusCode = HttpStatusCode.NotFound,
+                Message = "The group was not found."
+            }.WithResponseLog(_logger, callingUserId);
+        }
+
         var isUserInGroup = await _userGroupRepository.IsUserInGroupAsync(request.GroupId, callingUserId, ct);
         if (!isUserInGroup)
         {
@@ -49,16 +59,6 @@ public abstract class RatingOptionService<TRatingRepository, TRatingOptionReposi
             {
                 StatusCode = HttpStatusCode.Forbidden,
                 Message = "You do not have permission to set options for this group."
-            }.WithResponseLog(_logger, callingUserId);
-        }
-
-        var group = await _groupRepository.GetDetailsByIdAsync(request.GroupId, ct);
-        if (group?.Active != true)
-        {
-            return new CommonResponse
-            {
-                StatusCode = HttpStatusCode.BadRequest,
-                Message = "The group does not exist or is not active."
             }.WithResponseLog(_logger, callingUserId);
         }
 
@@ -110,7 +110,7 @@ public abstract class RatingOptionService<TRatingRepository, TRatingOptionReposi
 
         await _unitOfWork.SaveChangesAsync(ct);
 
-        return new SetOptionsResponse
+        return new SetOptionsResponse //TODO
         {
             StatusCode = HttpStatusCode.Created,
             Message = "Custom ratings were created and mapped successfully" + (squashNeeded ? ", but existing ratings were squashed." : "."),
@@ -131,6 +131,16 @@ public abstract class RatingOptionService<TRatingRepository, TRatingOptionReposi
         }
 
         var callingUserId = _tokenData.UserId!.Value;
+        var group = await _groupRepository.GetDetailsByIdAsync(groupId, ct);
+        if (group?.Active != true)
+        {
+            return new CommonResponse
+            {
+                StatusCode = HttpStatusCode.NotFound,
+                Message = "The group was not found."
+            }.WithResponseLog(_logger, callingUserId);
+        }
+
         var isUserInGroup = await _userGroupRepository.IsUserInGroupAsync(groupId, callingUserId, ct);
         if (!isUserInGroup)
         {
@@ -138,16 +148,6 @@ public abstract class RatingOptionService<TRatingRepository, TRatingOptionReposi
             {
                 StatusCode = HttpStatusCode.Forbidden,
                 Message = "You do not have permission to remove options for this group."
-            }.WithResponseLog(_logger, callingUserId);
-        }
-
-        var group = await _groupRepository.GetDetailsByIdAsync(groupId, ct);
-        if (group?.Active != true)
-        {
-            return new CommonResponse
-            {
-                StatusCode = HttpStatusCode.BadRequest,
-                Message = "The group does not exist or is not active."
             }.WithResponseLog(_logger, callingUserId);
         }
 
@@ -165,7 +165,7 @@ public abstract class RatingOptionService<TRatingRepository, TRatingOptionReposi
         var defaultOptions = await _ratingOptionRepository.GetDefaultsAsync(ct);
         if (ratingOptionsInUse.Count() > defaultOptions.Count())
         {
-            return new CommonResponse
+            return new CommonResponse //TODO
             {
                 StatusCode = HttpStatusCode.BadRequest,
                 Message = $"Cannot remove custom options. The group is using {ratingOptionsInUse.Count()} labels but there are only {defaultOptions.Count()} default options."
@@ -200,7 +200,7 @@ public abstract class RatingOptionService<TRatingRepository, TRatingOptionReposi
         await _ratingOptionRepository.RemoveCustomRatingsForGroupAsync(groupId, ct);
         await _unitOfWork.SaveChangesAsync(ct);
 
-        return new CommonResponse
+        return new CommonResponse //TODO
         {
             StatusCode = HttpStatusCode.OK,
             Message = "Custom ratings were removed successfully" + (squashNeeded ? ", but ratings were squashed to fit the default options." : "."),
@@ -220,6 +220,16 @@ public abstract class RatingOptionService<TRatingRepository, TRatingOptionReposi
         }
 
         var callingUserId = _tokenData.UserId!.Value;
+        var group = await _groupRepository.GetDetailsByIdAsync(request.GroupId, ct);
+        if (group?.Active != true)
+        {
+            return new CommonResponse
+            {
+                StatusCode = HttpStatusCode.NotFound,
+                Message = "The group was not found."
+            }.WithResponseLog(_logger, callingUserId);
+        }
+
         var isUserInGroup = await _userGroupRepository.IsUserInGroupAsync(request.GroupId, callingUserId, ct);
         if (!isUserInGroup)
         {
@@ -227,16 +237,6 @@ public abstract class RatingOptionService<TRatingRepository, TRatingOptionReposi
             {
                 StatusCode = HttpStatusCode.Forbidden,
                 Message = "You do not have permission to set options for this group."
-            }.WithResponseLog(_logger, callingUserId);
-        }
-
-        var group = await _groupRepository.GetDetailsByIdAsync(request.GroupId, ct);
-        if (group?.Active != true)
-        {
-            return new CommonResponse
-            {
-                StatusCode = HttpStatusCode.BadRequest,
-                Message = "The group does not exist or is not active."
             }.WithResponseLog(_logger, callingUserId);
         }
 
@@ -255,7 +255,7 @@ public abstract class RatingOptionService<TRatingRepository, TRatingOptionReposi
         {
             return new CommonResponse
             {
-                StatusCode = HttpStatusCode.BadRequest,
+                StatusCode = HttpStatusCode.Conflict,
                 Message = "An option with that label already exists for this group."
             }.WithResponseLog(_logger, callingUserId);
         }
@@ -263,7 +263,7 @@ public abstract class RatingOptionService<TRatingRepository, TRatingOptionReposi
         var optionId = await _ratingOptionRepository.AddAsync(request, ct);
         await _unitOfWork.SaveChangesAsync(ct);
 
-        return new SetOptionResponse
+        return new SetOptionResponse //TODO
         {
             StatusCode = HttpStatusCode.Created,
             Message = "New rating added successfully.",
@@ -286,37 +286,37 @@ public abstract class RatingOptionService<TRatingRepository, TRatingOptionReposi
         var option = await _ratingOptionRepository.GetByIdAsync(optionId, ct);
         if (option == null || option.GroupId == null)
         {
-            return new CommonResponse
+            return new CommonResponse //TODO default
             {
-                StatusCode = HttpStatusCode.BadRequest,
-                Message = "The option does not exist or cannot be updated."
-            }.WithResponseLog(_logger, callingUserId);
-        }
-
-        var isUserInGroup = await _userGroupRepository.IsUserInGroupAsync(option.GroupId.Value, callingUserId, ct);
-        if (!isUserInGroup)
-        {
-            return new CommonResponse
-            {
-                StatusCode = HttpStatusCode.Forbidden,
-                Message = "You do not have permission to update options for this group."
+                StatusCode = HttpStatusCode.NotFound,
+                Message = "The option was not found."
             }.WithResponseLog(_logger, callingUserId);
         }
 
         var group = await _groupRepository.GetDetailsByIdAsync(option.GroupId.Value, ct);
         if (group?.Active != true)
         {
-            return new CommonResponse
+            return new CommonResponse //TODO
             {
-                StatusCode = HttpStatusCode.BadRequest,
-                Message = "The group does not exist or is not active."
+                StatusCode = HttpStatusCode.NotFound,
+                Message = "The option was not found."
+            }.WithResponseLog(_logger, callingUserId);
+        }
+
+        var isUserInGroup = await _userGroupRepository.IsUserInGroupAsync(option.GroupId.Value, callingUserId, ct);
+        if (!isUserInGroup)
+        {
+            return new CommonResponse //TODO
+            {
+                StatusCode = HttpStatusCode.Forbidden,
+                Message = "You do not have permission to update options for this group."
             }.WithResponseLog(_logger, callingUserId);
         }
 
         var currentOptions = await _ratingOptionRepository.GetForGroupIdAsync(option.GroupId.Value, ct);
         if (currentOptions.Any(x => x.OptionId != optionId && string.Equals(x.Label, request.Label, StringComparison.OrdinalIgnoreCase)))
         {
-            return new CommonResponse
+            return new CommonResponse //TODO
             {
                 StatusCode = HttpStatusCode.BadRequest,
                 Message = "An option with that label already exists for this group."
@@ -326,7 +326,7 @@ public abstract class RatingOptionService<TRatingRepository, TRatingOptionReposi
         await _ratingOptionRepository.UpdateAsync(optionId, request.Label, ct);
         await _unitOfWork.SaveChangesAsync(ct);
 
-        return new CommonResponse
+        return new CommonResponse //TODO
         {
             StatusCode = HttpStatusCode.OK,
             Message = "Rating option updated successfully.",
@@ -348,37 +348,37 @@ public abstract class RatingOptionService<TRatingRepository, TRatingOptionReposi
         var option = await _ratingOptionRepository.GetByIdAsync(optionId, ct);
         if (option == null || option.GroupId == null)
         {
-            return new CommonResponse
+            return new CommonResponse //TODO default
             {
-                StatusCode = HttpStatusCode.BadRequest,
-                Message = "The option does not exist or cannot be deleted."
-            }.WithResponseLog(_logger, callingUserId);
-        }
-
-        var isUserInGroup = await _userGroupRepository.IsUserInGroupAsync(option.GroupId.Value, callingUserId, ct);
-        if (!isUserInGroup)
-        {
-            return new CommonResponse
-            {
-                StatusCode = HttpStatusCode.Forbidden,
-                Message = "You do not have permission to delete options for this group."
+                StatusCode = HttpStatusCode.NotFound,
+                Message = "The option was not found."
             }.WithResponseLog(_logger, callingUserId);
         }
 
         var group = await _groupRepository.GetDetailsByIdAsync(option.GroupId.Value, ct);
         if (group?.Active != true)
         {
-            return new CommonResponse
+            return new CommonResponse //TODO
             {
-                StatusCode = HttpStatusCode.BadRequest,
-                Message = "The group does not exist or is not active."
+                StatusCode = HttpStatusCode.NotFound,
+                Message = "The option was not found."
+            }.WithResponseLog(_logger, callingUserId);
+        }
+
+        var isUserInGroup = await _userGroupRepository.IsUserInGroupAsync(option.GroupId.Value, callingUserId, ct);
+        if (!isUserInGroup)
+        {
+            return new CommonResponse //TODO
+            {
+                StatusCode = HttpStatusCode.Forbidden,
+                Message = "You do not have permission to delete options for this group."
             }.WithResponseLog(_logger, callingUserId);
         }
 
         var isOptionUsed = await _ratingRepository.IsOptionBeingUsedAsync(optionId, ct);
         if (isOptionUsed)
         {
-            return new CommonResponse
+            return new CommonResponse //TODO
             {
                 StatusCode = HttpStatusCode.BadRequest,
                 Message = "Cannot delete this option because it is being used to rate a venue. Amend ratings to other options first."
@@ -389,7 +389,7 @@ public abstract class RatingOptionService<TRatingRepository, TRatingOptionReposi
         await _ratingOptionRepository.CondenseDisplayOrdersAsync(option.GroupId.Value, optionId, ct);
         await _unitOfWork.SaveChangesAsync(ct);
 
-        return new CommonResponse
+        return new CommonResponse //TODO
         {
             StatusCode = HttpStatusCode.OK,
             Message = "Rating option deleted successfully.",
@@ -408,6 +408,16 @@ public abstract class RatingOptionService<TRatingRepository, TRatingOptionReposi
         }
 
         var callingUserId = _tokenData.UserId!.Value;
+        var group = await _groupRepository.GetDetailsByIdAsync(request.GroupId, ct);
+        if (group?.Active != true)
+        {
+            return new CommonResponse
+            {
+                StatusCode = HttpStatusCode.NotFound,
+                Message = "The group was not found."
+            }.WithResponseLog(_logger, callingUserId);
+        }
+
         var isUserInGroup = await _userGroupRepository.IsUserInGroupAsync(request.GroupId, callingUserId, ct);
         if (!isUserInGroup)
         {
@@ -415,16 +425,6 @@ public abstract class RatingOptionService<TRatingRepository, TRatingOptionReposi
             {
                 StatusCode = HttpStatusCode.Forbidden,
                 Message = "You do not have permission to set options for this group."
-            }.WithResponseLog(_logger, callingUserId);
-        }
-
-        var group = await _groupRepository.GetDetailsByIdAsync(request.GroupId, ct);
-        if (group?.Active != true)
-        {
-            return new CommonResponse
-            {
-                StatusCode = HttpStatusCode.BadRequest,
-                Message = "The group does not exist or is not active."
             }.WithResponseLog(_logger, callingUserId);
         }
 
@@ -442,7 +442,7 @@ public abstract class RatingOptionService<TRatingRepository, TRatingOptionReposi
         if (currentOptions.Count() != request.OptionsIds.Length
             || currentOptions.Any(x => !request.OptionsIds.Contains(x.OptionId)))
         {
-            return new CommonResponse
+            return new CommonResponse //TODO
             {
                 StatusCode = HttpStatusCode.BadRequest,
                 Message = "The provided option IDs do not match the current options for this group."
@@ -452,7 +452,7 @@ public abstract class RatingOptionService<TRatingRepository, TRatingOptionReposi
         await _ratingOptionRepository.ReorderAsync(request.GroupId, request.OptionsIds, ct);
         await _unitOfWork.SaveChangesAsync(ct);
 
-        return new CommonResponse
+        return new CommonResponse //TODO
         {
             StatusCode = HttpStatusCode.OK,
             Message = $"Group-specific options reordered successfully."
@@ -473,6 +473,16 @@ public abstract class RatingOptionService<TRatingRepository, TRatingOptionReposi
         var callingUserId = _tokenData.UserId!.Value;
         if (groupId != null)
         {
+            var group = await _groupRepository.GetDetailsByIdAsync(groupId.Value, ct);
+            if (group?.Active != true)
+            {
+                return new CommonResponse
+                {
+                    StatusCode = HttpStatusCode.NotFound,
+                    Message = "The group wsa not found."
+                }.WithResponseLog(_logger, callingUserId);
+            }
+
             var isUserInGroup = await _userGroupRepository.IsUserInGroupAsync(groupId.Value, callingUserId, ct);
             if (!isUserInGroup)
             {
@@ -482,21 +492,11 @@ public abstract class RatingOptionService<TRatingRepository, TRatingOptionReposi
                     Message = "You do not have permission to view options for this group."
                 }.WithResponseLog(_logger, callingUserId);
             }
-
-            var group = await _groupRepository.GetDetailsByIdAsync(groupId.Value, ct);
-            if (group?.Active != true)
-            {
-                return new CommonResponse
-                {
-                    StatusCode = HttpStatusCode.BadRequest,
-                    Message = "The group does not exist or is not active."
-                }.WithResponseLog(_logger, callingUserId);
-            }
         }
 
         var options = await _ratingOptionRepository.GetForGroupIdAsync(groupId, ct);
 
-        return new GetRatingOptionsResponse
+        return new GetRatingOptionsResponse //TODO
         {
             StatusCode = HttpStatusCode.OK,
             Message = "Options retrieved successfully.",
@@ -521,14 +521,14 @@ public abstract class RatingOptionService<TRatingRepository, TRatingOptionReposi
         {
             return new CommonResponse
             {
-                StatusCode = HttpStatusCode.BadRequest,
-                Message = "The option does not exist."
+                StatusCode = HttpStatusCode.NotFound,
+                Message = "The option was not found."
             }.WithResponseLog(_logger, callingUserId);
         }
 
         if (option.GroupId == null)
         {
-            return new GetRatingOptionResponse
+            return new GetRatingOptionResponse //TODO
             {
                 StatusCode = HttpStatusCode.OK,
                 Message = "Default option retrieved successfully.",
@@ -536,27 +536,27 @@ public abstract class RatingOptionService<TRatingRepository, TRatingOptionReposi
             }.WithResponseLog(_logger, callingUserId);
         }
 
+        var group = await _groupRepository.GetDetailsByIdAsync(option.GroupId.Value, ct);
+        if (group?.Active != true)
+        {
+            return new CommonResponse //TODO
+            {
+                StatusCode = HttpStatusCode.NotFound,
+                Message = "The group was not found."
+            }.WithResponseLog(_logger, callingUserId);
+        }
+
         var isUserInGroup = await _userGroupRepository.IsUserInGroupAsync(option.GroupId.Value, callingUserId, ct);
         if (!isUserInGroup)
         {
-            return new CommonResponse
+            return new CommonResponse //TODO
             {
                 StatusCode = HttpStatusCode.Forbidden,
                 Message = "You do not have permission to view options for this group."
             }.WithResponseLog(_logger, callingUserId);
         }
 
-        var group = await _groupRepository.GetDetailsByIdAsync(option.GroupId.Value, ct);
-        if (group?.Active != true)
-        {
-            return new CommonResponse
-            {
-                StatusCode = HttpStatusCode.BadRequest,
-                Message = "The group does not exist or is not active."
-            }.WithResponseLog(_logger, callingUserId);
-        }
-
-        return new GetRatingOptionResponse
+        return new GetRatingOptionResponse //TODO
         {
             StatusCode = HttpStatusCode.OK,
             Message = "Option retrieved successfully.",

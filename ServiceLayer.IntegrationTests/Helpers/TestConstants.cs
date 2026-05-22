@@ -54,12 +54,14 @@ public class TestConstants
     public static readonly Guid SeedCostOption3Id = Guid.Parse("00000000-0000-0000-0001-000000000003");
     public static readonly Guid TestCostOption4Id = Guid.Parse("00000000-0000-0000-0001-000000000004");
     public static readonly Guid TestCostOption5Id = Guid.Parse("00000000-0000-0000-0001-000000000005");
+    public static readonly Guid TestCostOption6Id = Guid.Parse("00000000-0000-0000-0001-000000000006");
 
     public const string SeedCostOption1Label = "Cheap";
     public const string SeedCostOption2Label = "Reasonable";
     public const string SeedCostOption3Label = "Pricey";
-    public const string TestCostOption4Label = "Cost Override 1";
-    public const string TestCostOption5Label = "Cost Override 2";
+    public const string TestCostOption4Label = "Override 1";
+    public const string TestCostOption5Label = "Override 2";
+    public const string TestCostOption6Label = "Override 3";
 
     public static readonly Guid SeedQualityOption1Id = Guid.Parse("00000000-0000-0000-0002-000000000001");
     public static readonly Guid SeedQualityOption2Id = Guid.Parse("00000000-0000-0000-0002-000000000002");
@@ -67,13 +69,15 @@ public class TestConstants
     public static readonly Guid SeedQualityOption4Id = Guid.Parse("00000000-0000-0000-0002-000000000004");
     public static readonly Guid TestQualityOption5Id = Guid.Parse("00000000-0000-0000-0002-000000000005");
     public static readonly Guid TestQualityOption6Id = Guid.Parse("00000000-0000-0000-0002-000000000006");
+    public static readonly Guid TestQualityOption7Id = Guid.Parse("00000000-0000-0000-0002-000000000007");
 
     public const string SeedQualityOption1Label = "Great";
     public const string SeedQualityOption2Label = "Good";
     public const string SeedQualityOption3Label = "Average";
     public const string SeedQualityOption4Label = "Poor";
-    public const string TestQualityOption5Label = "Quality Override 1";
-    public const string TestQualityOption6Label = "Quality Override 2";
+    public const string TestQualityOption5Label = "Override 1";
+    public const string TestQualityOption6Label = "Override 2";
+    public const string TestQualityOption7Label = "Override 3";
 
     public static readonly Guid SeedFoodTypeOption1Id = Guid.Parse("00000000-0000-0000-0003-000000000001");
     public static readonly Guid SeedFoodTypeOption2Id = Guid.Parse("00000000-0000-0000-0003-000000000002");
@@ -90,8 +94,8 @@ public class TestConstants
     public const string SeedFoodTypeOption4Label = "Pizza";
     public const string SeedFoodTypeOption5Label = "Oriental";
     public const string SeedFoodTypeOption6Label = "Other";
-    public const string TestFoodTypeOption7Label = "Food Override 1";
-    public const string TestFoodTypeOption8Label = "Food Override 2";
+    public const string TestFoodTypeOption7Label = "Override 1";
+    public const string TestFoodTypeOption8Label = "Override 2";
 
     public static readonly Guid SeedVenueTypeOption1Id = Guid.Parse("00000000-0000-0000-0004-000000000001");
     public static readonly Guid SeedVenueTypeOption2Id = Guid.Parse("00000000-0000-0000-0004-000000000002");
@@ -102,8 +106,8 @@ public class TestConstants
     public const string SeedVenueTypeOption1Label = "Eat-In";
     public const string SeedVenueTypeOption2Label = "Takeaway";
     public const string SeedVenueTypeOption3Label = "Both";
-    public const string TestVenueTypeOption4Label = "Venue Override 1";
-    public const string TestVenueTypeOption5Label = "Venue Override 2";
+    public const string TestVenueTypeOption4Label = "Override 1";
+    public const string TestVenueTypeOption5Label = "Override 2";
 
     public static readonly Guid TestCostRating1Id = Guid.Parse("00000000-0000-0001-0000-000000000001");
     public static readonly Guid TestCostRating2Id = Guid.Parse("00000000-0000-0001-0000-000000000002");
