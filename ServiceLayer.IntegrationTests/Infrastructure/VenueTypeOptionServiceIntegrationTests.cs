@@ -18,21 +18,21 @@ namespace ServiceLayer.IntegrationTests.Infrastructure;
 
 [Trait("Category", "Integration")]
 [Collection("Database")]
-public class FoodTypeOptionServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifetime
+public class VenueTypeOptionServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifetime
 {
     private readonly DatabaseFixture _fixture = fixture;
     private IDbContextTransaction? _transaction;
     private ScranHubDbContext? _context;
-    private FakeLogger<FoodTypeOptionService> _logger = new();
+    private FakeLogger<VenueTypeOptionService> _logger = new();
     private readonly Mock<ITokenData> _tokenData = new();
-    private OutputChecks<FoodTypeOptionService> _checks = new(new FakeLogger<FoodTypeOptionService>());
-    private FoodTypeOptionService? _service;
+    private OutputChecks<VenueTypeOptionService> _checks = new(new FakeLogger<VenueTypeOptionService>());
+    private VenueTypeOptionService? _service;
     private static readonly CancellationToken ct = CancellationToken.None;
 
     public async Task InitializeAsync()
     {
-        _logger = new FakeLogger<FoodTypeOptionService>();
-        _checks = new OutputChecks<FoodTypeOptionService>(_logger);
+        _logger = new FakeLogger<VenueTypeOptionService>();
+        _checks = new OutputChecks<VenueTypeOptionService>(_logger);
 
         var options = new DbContextOptionsBuilder<ScranHubDbContext>()
             .UseSqlServer(_fixture.ConnectionString)
@@ -43,9 +43,9 @@ public class FoodTypeOptionServiceIntegrationTests(DatabaseFixture fixture) : IA
 
         _tokenData.Setup(x => x.UserId).Returns(SeedUser2NonAdminId);
 
-        _service = new FoodTypeOptionService(
+        _service = new VenueTypeOptionService(
             tokenData: _tokenData.Object,
-            foodTypeOptionRepository: new FoodTypeOptionRepository(_context),
+            venueTypeOptionRepository: new VenueTypeOptionRepository(_context),
             logger: _logger,
             groupRepository: new GroupRepository(_context),
             userGroupRepository: new UserGroupRepository(_context),
@@ -64,8 +64,8 @@ public class FoodTypeOptionServiceIntegrationTests(DatabaseFixture fixture) : IA
             GroupId = TestGroup1Id,
             Labels =
             [
-                "Test FoodType 1",
-                "Test FoodType 2"
+                "Test VenueType 1",
+                "Test VenueType 2"
             ]
         };
 
@@ -81,8 +81,8 @@ public class FoodTypeOptionServiceIntegrationTests(DatabaseFixture fixture) : IA
             GroupId = Guid.Empty,
             Labels =
             [
-                "Test FoodType 1",
-                "Test FoodType 2"
+                "Test VenueType 1",
+                "Test VenueType 2"
             ]
         };
 
@@ -98,8 +98,8 @@ public class FoodTypeOptionServiceIntegrationTests(DatabaseFixture fixture) : IA
             GroupId = TestGroup2Id,
             Labels =
             [
-                "Test FoodType 1",
-                "Test FoodType 2"
+                "Test VenueType 1",
+                "Test VenueType 2"
             ]
         };
 
@@ -115,8 +115,8 @@ public class FoodTypeOptionServiceIntegrationTests(DatabaseFixture fixture) : IA
             GroupId = TestGroup3Id,
             Labels =
             [
-                "Test FoodType 1",
-                "Test FoodType 2"
+                "Test VenueType 1",
+                "Test VenueType 2"
             ]
         };
 
@@ -134,8 +134,8 @@ public class FoodTypeOptionServiceIntegrationTests(DatabaseFixture fixture) : IA
             GroupId = TestGroup3Id,
             Labels =
             [
-                "Test FoodType 1",
-                "Test FoodType 2"
+                "Test VenueType 1",
+                "Test VenueType 2"
             ]
         };
 
@@ -151,8 +151,8 @@ public class FoodTypeOptionServiceIntegrationTests(DatabaseFixture fixture) : IA
             GroupId = TestGroup1Id,
             Labels =
             [
-                "Test FoodType 1",
-                "Test FoodType 2"
+                "Test VenueType 1",
+                "Test VenueType 2"
             ]
         };
 
@@ -162,14 +162,14 @@ public class FoodTypeOptionServiceIntegrationTests(DatabaseFixture fixture) : IA
         var typedResult = result.Should().BeOfType<SetOptionsResponse>().Subject;
         for (int i = 0; i < typedResult.OptionsIds!.Count(); i++)
         {
-            _context!.FoodTypeOptions.Should().Contain(x => x.FoodTypeOptionId == typedResult.OptionsIds!.Skip(i).First()
+            _context!.VenueTypeOptions.Should().Contain(x => x.VenueTypeOptionId == typedResult.OptionsIds!.Skip(i).First()
                 && x.GroupId == TestGroup1Id && x.Label == request.Labels[i]);
         }
 
         var venues = _context!.GroupVenues.Where(x => x.GroupId == TestGroup1Id).ToList();
         foreach (var venue in venues)
         {
-            venue.FoodTypeOptionId.Should().BeNull();
+            venue.VenueTypeOptionId.Should().BeNull();
         }
     }
     #endregion
@@ -219,11 +219,11 @@ public class FoodTypeOptionServiceIntegrationTests(DatabaseFixture fixture) : IA
         var result = await _service!.RemoveGroupCustomOptionsAsync(TestGroup3Id, ct);
 
         _checks.OutputSuccessCheck(result, "removed", "RemoveGroupCustomOptionsAsync", HttpStatusCode.OK);
-        _context!.FoodTypeOptions.Should().NotContain(x => x.GroupId == TestGroup3Id);
+        _context!.VenueTypeOptions.Should().NotContain(x => x.GroupId == TestGroup3Id);
 
         var venue = _context.GroupVenues.Single(x => x.GroupId == TestGroup3Id);
-        venue.FoodTypeOptionId.Should().BeNull();
-        venue.VenueTypeOptionId.Should().NotBeNull();
+        venue.VenueTypeOptionId.Should().BeNull();
+        venue.FoodTypeOptionId.Should().NotBeNull();
     }
     #endregion
 

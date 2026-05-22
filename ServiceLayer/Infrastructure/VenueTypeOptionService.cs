@@ -49,7 +49,7 @@ public class VenueTypeOptionService(ITokenData tokenData,
             return new CommonResponse
             {
                 StatusCode = HttpStatusCode.Forbidden,
-                Message = "You do not have permission to set options for this group."
+                Message = "You are not a member of this group."
             }.WithResponseLog(_logger, callingUserId);
         }
 
@@ -103,7 +103,7 @@ public class VenueTypeOptionService(ITokenData tokenData,
             return new CommonResponse
             {
                 StatusCode = HttpStatusCode.Forbidden,
-                Message = "You do not have permission to remove options for this group."
+                Message = "You are not a member of this group."
             }.WithResponseLog(_logger, callingUserId);
         }
 
