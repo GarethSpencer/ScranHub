@@ -308,6 +308,27 @@ public class GroupVenueServiceIntegrationTests(DatabaseFixture fixture) : IAsync
             && e.FoodTypeOptionId == TestFoodTypeOption7Id && e.VenueTypeOptionId == TestVenueTypeOption4Id);
         _logger.Entries.Should().ContainSingle(e => e.Message.Contains(newVenueId.ToString(), StringComparison.InvariantCultureIgnoreCase));
     }
+
+    [Fact]
+    public async Task CreateGroupVenueAsync_ValidInputNoOptions_ReturnsCreated()
+    {
+        _tokenData.Setup(x => x.UserId).Returns(SeedUser1AdminId);
+
+        var request = new CreateGroupVenueRequest
+        {
+            GroupId = TestGroup3Id,
+            VenueName = "New Test Venue"
+        };
+
+        var result = await _service!.CreateGroupVenueAsync(request, ct);
+        _checks.OutputSuccessCheck(result, "success", "CreateGroupVenueAsync", HttpStatusCode.Created);
+
+        var typedResult = result.Should().BeOfType<AddGroupVenueResponse>().Subject;
+        var newVenueId = typedResult.GroupVenueId!.Value;
+        _context!.GroupVenues.Should().ContainSingle(e => e.GroupId == TestGroup3Id && e.GroupVenueId == newVenueId && e.VenueName == "New Test Venue"
+            && e.FoodTypeOptionId == null && e.VenueTypeOptionId == null);
+        _logger.Entries.Should().ContainSingle(e => e.Message.Contains(newVenueId.ToString(), StringComparison.InvariantCultureIgnoreCase));
+    }
     #endregion
 
     #region UpdateGroupVenueAsync
@@ -412,6 +433,22 @@ public class GroupVenueServiceIntegrationTests(DatabaseFixture fixture) : IAsync
 
         _context!.GroupVenues.Should().ContainSingle(e => e.GroupId == TestGroup1Id && e.GroupVenueId == TestGroupVenue2Id && e.VenueName == "New Test Venue"
             && e.FoodTypeOptionId == SeedFoodTypeOption3Id && e.VenueTypeOptionId == SeedVenueTypeOption3Id);
+    }
+
+    [Fact]
+    public async Task UpdateGroupVenueAsync_ValidRequestNoOptions_ReturnsOK()
+    {
+        var request = new UpdateGroupVenueRequest
+        {
+            VenueName = "New Test Venue",
+            Visited = true
+        };
+
+        var result = await _service!.UpdateGroupVenueAsync(TestGroupVenue2Id, request, ct);
+        _checks.OutputSuccessCheck(result, "success", "UpdateGroupVenueAsync", HttpStatusCode.OK);
+
+        _context!.GroupVenues.Should().ContainSingle(e => e.GroupId == TestGroup1Id && e.GroupVenueId == TestGroupVenue2Id && e.VenueName == "New Test Venue"
+            && e.FoodTypeOptionId == null && e.VenueTypeOptionId == null);
     }
     #endregion
 

@@ -127,7 +127,19 @@ public class GroupServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifet
     }
 
     [Fact]
-    public async Task GetGroupAsync_ValidDetails_ReturnsOk()
+    public async Task GetGroupAsync_AdminNotMember_ReturnsOK()
+    {
+        _tokenData.Setup(x => x.UserId).Returns(TestUser3AdminId);
+
+        var result = await _service!.GetGroupAsync(TestGroup2Id, ct);
+        _checks.OutputSuccessCheck(result, "success", "GetGroupAsync", HttpStatusCode.OK);
+
+        var typedResult = result.Should().BeOfType<GetGroupResponse>().Subject;
+        typedResult.Group!.GroupId.Should().Be(TestGroup2Id);
+    }
+
+    [Fact]
+    public async Task GetGroupAsync_MemberNotAdmin_ReturnsOk()
     {
         var result = await _service!.GetGroupAsync(TestGroup1Id, ct);
         _checks.OutputSuccessCheck(result, "success", "GetGroupAsync", HttpStatusCode.OK);

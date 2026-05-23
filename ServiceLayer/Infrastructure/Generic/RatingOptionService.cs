@@ -309,7 +309,7 @@ public abstract class RatingOptionService<TRatingRepository, TRatingOptionReposi
         }
 
         var group = await _groupRepository.GetDetailsByIdAsync(option.GroupId.Value, ct);
-        if (group?.Active != true)
+        if (group!.Active != true)
         {
             return new CommonResponse
             {
@@ -363,7 +363,7 @@ public abstract class RatingOptionService<TRatingRepository, TRatingOptionReposi
         var option = await _ratingOptionRepository.GetByIdAsync(optionId, ct);
         if (option == null || option.GroupId == null)
         {
-            return new CommonResponse //TODO default
+            return new CommonResponse
             {
                 StatusCode = HttpStatusCode.NotFound,
                 Message = "The option was not found."
@@ -371,9 +371,9 @@ public abstract class RatingOptionService<TRatingRepository, TRatingOptionReposi
         }
 
         var group = await _groupRepository.GetDetailsByIdAsync(option.GroupId.Value, ct);
-        if (group?.Active != true)
+        if (group!.Active != true)
         {
-            return new CommonResponse //TODO
+            return new CommonResponse
             {
                 StatusCode = HttpStatusCode.NotFound,
                 Message = "The option was not found."
@@ -383,7 +383,7 @@ public abstract class RatingOptionService<TRatingRepository, TRatingOptionReposi
         var isUserInGroup = await _userGroupRepository.IsUserInGroupAsync(option.GroupId.Value, callingUserId, ct);
         if (!isUserInGroup)
         {
-            return new CommonResponse //TODO
+            return new CommonResponse
             {
                 StatusCode = HttpStatusCode.Forbidden,
                 Message = "You do not have permission to delete options for this group."
@@ -393,7 +393,7 @@ public abstract class RatingOptionService<TRatingRepository, TRatingOptionReposi
         var isOptionUsed = await _ratingRepository.IsOptionBeingUsedAsync(optionId, ct);
         if (isOptionUsed)
         {
-            return new CommonResponse //TODO
+            return new CommonResponse
             {
                 StatusCode = HttpStatusCode.BadRequest,
                 Message = "Cannot delete this option because it is being used to rate a venue. Amend ratings to other options first."
@@ -404,7 +404,7 @@ public abstract class RatingOptionService<TRatingRepository, TRatingOptionReposi
         await _ratingOptionRepository.CondenseDisplayOrdersAsync(option.GroupId.Value, optionId, ct);
         await _unitOfWork.SaveChangesAsync(ct);
 
-        return new CommonResponse //TODO
+        return new CommonResponse
         {
             StatusCode = HttpStatusCode.OK,
             Message = "Rating option deleted successfully.",
@@ -457,7 +457,7 @@ public abstract class RatingOptionService<TRatingRepository, TRatingOptionReposi
         if (currentOptions.Count() != request.OptionsIds.Length
             || currentOptions.Any(x => !request.OptionsIds.Contains(x.OptionId)))
         {
-            return new CommonResponse //TODO
+            return new CommonResponse
             {
                 StatusCode = HttpStatusCode.BadRequest,
                 Message = "The provided option IDs do not match the current options for this group."
@@ -467,7 +467,7 @@ public abstract class RatingOptionService<TRatingRepository, TRatingOptionReposi
         await _ratingOptionRepository.ReorderAsync(request.GroupId, request.OptionsIds, ct);
         await _unitOfWork.SaveChangesAsync(ct);
 
-        return new CommonResponse //TODO
+        return new CommonResponse
         {
             StatusCode = HttpStatusCode.OK,
             Message = $"Group-specific options reordered successfully."
@@ -511,7 +511,7 @@ public abstract class RatingOptionService<TRatingRepository, TRatingOptionReposi
 
         var options = await _ratingOptionRepository.GetForGroupIdAsync(groupId, ct);
 
-        return new GetRatingOptionsResponse //TODO
+        return new GetRatingOptionsResponse
         {
             StatusCode = HttpStatusCode.OK,
             Message = "Options retrieved successfully.",
@@ -543,7 +543,7 @@ public abstract class RatingOptionService<TRatingRepository, TRatingOptionReposi
 
         if (option.GroupId == null)
         {
-            return new GetRatingOptionResponse //TODO
+            return new GetRatingOptionResponse
             {
                 StatusCode = HttpStatusCode.OK,
                 Message = "Default option retrieved successfully.",
@@ -552,9 +552,9 @@ public abstract class RatingOptionService<TRatingRepository, TRatingOptionReposi
         }
 
         var group = await _groupRepository.GetDetailsByIdAsync(option.GroupId.Value, ct);
-        if (group?.Active != true)
+        if (group!.Active != true)
         {
-            return new CommonResponse //TODO
+            return new CommonResponse
             {
                 StatusCode = HttpStatusCode.NotFound,
                 Message = "The group was not found."
@@ -564,14 +564,14 @@ public abstract class RatingOptionService<TRatingRepository, TRatingOptionReposi
         var isUserInGroup = await _userGroupRepository.IsUserInGroupAsync(option.GroupId.Value, callingUserId, ct);
         if (!isUserInGroup)
         {
-            return new CommonResponse //TODO
+            return new CommonResponse
             {
                 StatusCode = HttpStatusCode.Forbidden,
                 Message = "You do not have permission to view options for this group."
             }.WithResponseLog(_logger, callingUserId);
         }
 
-        return new GetRatingOptionResponse //TODO
+        return new GetRatingOptionResponse
         {
             StatusCode = HttpStatusCode.OK,
             Message = "Option retrieved successfully.",

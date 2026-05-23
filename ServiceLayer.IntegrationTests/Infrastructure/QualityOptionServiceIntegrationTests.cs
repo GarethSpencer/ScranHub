@@ -576,22 +576,202 @@ public class QualityOptionServiceIntegrationTests(DatabaseFixture fixture)
 
         var result = await _service!.UpdateOptionAsync(TestQualityOption5Id, request, ct);
         _checks.OutputSuccessCheck(result, "success", "UpdateOptionAsync", HttpStatusCode.OK);
+        var option = _context!.QualityOptions.Where(x => x.QualityOptionId == TestQualityOption5Id).Single();
+        option.Label.Should().Be(newLabel);
     }
     #endregion
 
     #region DeleteOptionAsync
+    [Fact]
+    public async Task DeleteOptionAsync_DefaultOptionId_ReturnsNotFound()
+    {
+        var result = await _service!.DeleteOptionAsync(SeedQualityOption1Id, ct);
+        _checks.OutputFailureCheck(result, "not found", "DeleteOptionAsync", HttpStatusCode.NotFound);
+    }
 
+    [Fact]
+    public async Task DeleteOptionAsync_InactiveGroup_ReturnsNotFound()
+    {
+        var result = await _service!.DeleteOptionAsync(TestQualityOption7Id, ct);
+        _checks.OutputFailureCheck(result, "not found", "DeleteOptionAsync", HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    public async Task DeleteOptionAsync_UserNotInGroup_ReturnsForbidden()
+    {
+        var result = await _service!.DeleteOptionAsync(TestQualityOption5Id, ct);
+        _checks.OutputFailureCheck(result, "permission", "DeleteOptionAsync", HttpStatusCode.Forbidden);
+    }
+
+    [Fact]
+    public async Task DeleteOptionAsync_OptionBeingUsed_ReturnsBadRequest()
+    {
+        _context!.QualityRatings.Add(new QualityRating
+        {
+            QualityRatingId = TestQualityRating4Id,
+            UserId = SeedUser1AdminId,
+            QualityOptionId = TestQualityOption5Id,
+            GroupVenueId = TestGroupVenue5Id
+        });
+
+        await _context.SaveChangesAsync(ct);
+
+        _tokenData.Setup(x => x.UserId).Returns(SeedUser1AdminId);
+
+        var result = await _service!.DeleteOptionAsync(TestQualityOption5Id, ct);
+        _checks.OutputFailureCheck(result, "being used", "DeleteOptionAsync", HttpStatusCode.BadRequest);
+    }
+
+    [Fact]
+    public async Task DeleteOptionAsync_ValidUnusedOption_ReturnsOK()
+    {
+        _tokenData.Setup(x => x.UserId).Returns(SeedUser1AdminId);
+
+        var result = await _service!.DeleteOptionAsync(TestQualityOption5Id, ct);
+        _checks.OutputSuccessCheck(result, "success", "DeleteOptionAsync", HttpStatusCode.OK);
+
+        _context!.QualityOptions.Where(x => x.QualityOptionId == TestQualityOption5Id).Count().Should().Be(0);
+    }
     #endregion
 
     #region ReorderOptionsAsync
+    [Fact]
+    public async Task ReorderOptionsAsync_NoOptionsIds_ReturnsBadRequest()
+    {
+        _tokenData.Setup(x => x.UserId).Returns(SeedUser1AdminId);
 
+        var request = new OrderOptionsRequest
+        {
+            GroupId = TestGroup3Id,
+            OptionsIds = []
+        };
+
+        var result = await _service!.ReorderOptionsAsync(request, ct);
+        _checks.OutputFailureCheck(result, "do not match", "ReorderOptionsAsync", HttpStatusCode.BadRequest);
+    }
+
+    [Fact]
+    public async Task ReorderOptionsAsync_WrongOptionsIds_ReturnsBadRequest()
+    {
+        _tokenData.Setup(x => x.UserId).Returns(SeedUser1AdminId);
+
+        var request = new OrderOptionsRequest
+        {
+            GroupId = TestGroup3Id,
+            OptionsIds = [TestQualityOption5Id, TestQualityOption6Id, TestQualityOption8Id, TestQualityOption7Id]
+        };
+
+        var result = await _service!.ReorderOptionsAsync(request, ct);
+        _checks.OutputFailureCheck(result, "do not match", "ReorderOptionsAsync", HttpStatusCode.BadRequest);
+    }
+
+    [Fact]
+    public async Task ReorderOptionsAsync_DuplicateOptionsIds_ReturnsBadRequest()
+    {
+        _tokenData.Setup(x => x.UserId).Returns(SeedUser1AdminId);
+
+        var request = new OrderOptionsRequest
+        {
+            GroupId = TestGroup3Id,
+            OptionsIds = [TestQualityOption5Id, TestQualityOption5Id, TestQualityOption5Id, TestQualityOption5Id]
+        };
+
+        var result = await _service!.ReorderOptionsAsync(request, ct);
+        _checks.OutputFailureCheck(result, "do not match", "ReorderOptionsAsync", HttpStatusCode.BadRequest);
+    }
+
+    [Fact]
+    public async Task ReorderOptionsAsync_ValidOptionsIds_ReturnsOK()
+    {
+        _tokenData.Setup(x => x.UserId).Returns(SeedUser1AdminId);
+
+        var request = new OrderOptionsRequest
+        {
+            GroupId = TestGroup3Id,
+            OptionsIds = [TestQualityOption9Id, TestQualityOption5Id, TestQualityOption6Id, TestQualityOption8Id]
+        };
+
+        var result = await _service!.ReorderOptionsAsync(request, ct);
+        _checks.OutputSuccessCheck(result, "success", "ReorderOptionsAsync", HttpStatusCode.OK);
+
+        var options = _context!.QualityOptions.Where(x => x.GroupId == TestGroup3Id).ToList();
+        options.Count.Should().Be(4);
+        options.Should().Contain(x => x.QualityOptionId == TestQualityOption9Id && x.DisplayOrder == 1);
+        options.Should().Contain(x => x.QualityOptionId == TestQualityOption5Id && x.DisplayOrder == 2);
+        options.Should().Contain(x => x.QualityOptionId == TestQualityOption6Id && x.DisplayOrder == 3);
+        options.Should().Contain(x => x.QualityOptionId == TestQualityOption8Id && x.DisplayOrder == 4);
+    }
     #endregion
 
     #region GetGroupRatingOptionsAsync
+    [Fact]
+    public async Task GetGroupRatingOptionsAsync_NullGroupId_ReturnsOK()
+    {
+        var result = await _service!.GetGroupRatingOptionsAsync(null, ct);
+        _checks.OutputSuccessCheck(result, "success", "GetGroupRatingOptionsAsync", HttpStatusCode.OK);
 
+        var typedResult = result.Should().BeOfType<GetRatingOptionsResponse>().Subject;
+        typedResult.Options!.Count().Should().Be(4);
+        typedResult.Options.Should().Contain(x => x.GroupId == null && x.OptionId == SeedQualityOption1Id);
+        typedResult.Options.Should().Contain(x => x.GroupId == null && x.OptionId == SeedQualityOption2Id);
+        typedResult.Options.Should().Contain(x => x.GroupId == null && x.OptionId == SeedQualityOption3Id);
+        typedResult.Options.Should().Contain(x => x.GroupId == null && x.OptionId == SeedQualityOption4Id);
+    }
+
+    [Fact]
+    public async Task GetGroupRatingOptionsAsync_ValidGroupId_ReturnsOK()
+    {
+        _tokenData.Setup(x => x.UserId).Returns(SeedUser1AdminId);
+
+        var result = await _service!.GetGroupRatingOptionsAsync(TestGroup3Id, ct);
+        _checks.OutputSuccessCheck(result, "success", "GetGroupRatingOptionsAsync", HttpStatusCode.OK);
+
+        var typedResult = result.Should().BeOfType<GetRatingOptionsResponse>().Subject;
+        typedResult.Options!.Count().Should().Be(4);
+        typedResult.Options.Should().Contain(x => x.GroupId == TestGroup3Id && x.OptionId == TestQualityOption5Id);
+        typedResult.Options.Should().Contain(x => x.GroupId == TestGroup3Id && x.OptionId == TestQualityOption6Id);
+        typedResult.Options.Should().Contain(x => x.GroupId == TestGroup3Id && x.OptionId == TestQualityOption8Id);
+        typedResult.Options.Should().Contain(x => x.GroupId == TestGroup3Id && x.OptionId == TestQualityOption9Id);
+    }
     #endregion
 
     #region GetRatingOptionAsync
+    [Fact]
+    public async Task GetRatingOptionAsync_DefaultOptionId_ReturnsOK()
+    {
+        var result = await _service!.GetRatingOptionAsync(SeedQualityOption1Id, ct);
+        _checks.OutputSuccessCheck(result, "success", "GetRatingOptionAsync", HttpStatusCode.OK);
 
+        _logger.Entries.Should().Contain(e => e.Message.Contains("default", StringComparison.InvariantCultureIgnoreCase));
+        var typedResult = result.Should().BeOfType<GetRatingOptionResponse>().Subject;
+        typedResult.Option!.Label.Should().Be(SeedQualityOption1Label);
+    }
+
+    [Fact]
+    public async Task GetRatingOptionAsync_GroupIsInactive_ReturnsNotFound()
+    {
+        var result = await _service!.GetRatingOptionAsync(TestQualityOption7Id, ct);
+        _checks.OutputFailureCheck(result, "not found", "GetRatingOptionAsync", HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    public async Task GetRatingOptionAsync_UserNotInGroup_ReturnsForbidden()
+    {
+        var result = await _service!.GetRatingOptionAsync(TestQualityOption5Id, ct);
+        _checks.OutputFailureCheck(result, "permission", "GetRatingOptionAsync", HttpStatusCode.Forbidden);
+    }
+
+    [Fact]
+    public async Task GetRatingOptionAsync_ValidOptionId_ReturnsOK()
+    {
+        _tokenData.Setup(x => x.UserId).Returns(SeedUser1AdminId);
+
+        var result = await _service!.GetRatingOptionAsync(TestQualityOption5Id, ct);
+        _checks.OutputSuccessCheck(result, "success", "GetRatingOptionAsync", HttpStatusCode.OK);
+
+        _logger.Entries.Should().NotContain(e => e.Message.Contains("default", StringComparison.InvariantCultureIgnoreCase));
+        var typedResult = result.Should().BeOfType<GetRatingOptionResponse>().Subject;
+        typedResult.Option!.Label.Should().Be(TestQualityOption5Label);
+    }
     #endregion
 }

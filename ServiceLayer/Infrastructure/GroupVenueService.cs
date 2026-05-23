@@ -149,7 +149,7 @@ public class GroupVenueService(ITokenData tokenData,
         }
 
         var validFoodTypes = await _foodTypeOptionRepository.GetForGroupIdAsync(request.GroupId, ct);
-        if (request.FoodTypeOptionId != null && !validFoodTypes.Any(fto => fto.OptionId == request.FoodTypeOptionId))
+        if (request.FoodTypeOptionId != null && !validFoodTypes.Any(fto => fto.OptionId == request.FoodTypeOptionId.Value))
         {
             return new CommonResponse
             {
@@ -159,7 +159,7 @@ public class GroupVenueService(ITokenData tokenData,
         }
 
         var validVenueTypes = await _venueTypeOptionRepository.GetForGroupIdAsync(request.GroupId, ct);
-        if (request.VenueTypeOptionId != null && !validVenueTypes.Any(vto => vto.OptionId == request.VenueTypeOptionId))
+        if (request.VenueTypeOptionId != null && !validVenueTypes.Any(vto => vto.OptionId == request.VenueTypeOptionId.Value))
         {
             return new CommonResponse
             {
@@ -223,7 +223,7 @@ public class GroupVenueService(ITokenData tokenData,
         }
 
         var validFoodTypes = await _foodTypeOptionRepository.GetForGroupIdAsync(groupVenue.GroupId, ct);
-        if (request.FoodTypeOptionId != null && !validFoodTypes.Any(fto => fto.OptionId == request.FoodTypeOptionId))
+        if (request.FoodTypeOptionId != null && !validFoodTypes.Any(fto => fto.OptionId == request.FoodTypeOptionId.Value))
         {
             return new AddGroupVenueResponse
             {
@@ -233,7 +233,7 @@ public class GroupVenueService(ITokenData tokenData,
         }
 
         var validVenueTypes = await _venueTypeOptionRepository.GetForGroupIdAsync(groupVenue.GroupId, ct);
-        if (request.VenueTypeOptionId != null && !validVenueTypes.Any(vto => vto.OptionId == request.VenueTypeOptionId))
+        if (request.VenueTypeOptionId != null && !validVenueTypes.Any(vto => vto.OptionId == request.VenueTypeOptionId.Value))
         {
             return new AddGroupVenueResponse
             {
