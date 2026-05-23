@@ -203,13 +203,13 @@ public class DatabaseFixture : IAsyncLifetime
         {
             FoodTypeOptionId = TestFoodTypeOption7Id,
             Label = TestFoodTypeOption7Label,
-            GroupId = TestGroup3Id,
+            GroupId = TestGroup3Id
         },
         new FoodTypeOption
         {
             FoodTypeOptionId = TestFoodTypeOption8Id,
             Label = TestFoodTypeOption8Label,
-            GroupId = TestGroup3Id,
+            GroupId = TestGroup3Id
         }
         );
 
@@ -217,13 +217,13 @@ public class DatabaseFixture : IAsyncLifetime
         {
             VenueTypeOptionId = TestVenueTypeOption4Id,
             Label = TestVenueTypeOption4Label,
-            GroupId = TestGroup3Id,
+            GroupId = TestGroup3Id
         },
         new VenueTypeOption
         {
             VenueTypeOptionId = TestVenueTypeOption5Id,
             Label = TestVenueTypeOption5Label,
-            GroupId = TestGroup3Id,
+            GroupId = TestGroup3Id
         }
         );
 
@@ -232,18 +232,21 @@ public class DatabaseFixture : IAsyncLifetime
             CostOptionId = TestCostOption4Id,
             Label = TestCostOption4Label,
             GroupId = TestGroup3Id,
+            DisplayOrder = 1
         },
         new CostOption
         {
             CostOptionId = TestCostOption5Id,
             Label = TestCostOption5Label,
             GroupId = TestGroup3Id,
+            DisplayOrder = 2
         },
         new CostOption
         {
             CostOptionId = TestCostOption6Id,
             Label = TestCostOption6Label,
             GroupId = TestGroup2Id,
+            DisplayOrder = 1
         }
         );
 
@@ -252,18 +255,21 @@ public class DatabaseFixture : IAsyncLifetime
             QualityOptionId = TestQualityOption5Id,
             Label = TestQualityOption5Label,
             GroupId = TestGroup3Id,
+            DisplayOrder = 1
         },
         new QualityOption
         {
             QualityOptionId = TestQualityOption6Id,
             Label = TestQualityOption6Label,
             GroupId = TestGroup3Id,
+            DisplayOrder = 2
         },
         new QualityOption
         {
             QualityOptionId = TestQualityOption7Id,
             Label = TestQualityOption7Label,
             GroupId = TestGroup2Id,
+            DisplayOrder = 1
         }
         );
 
