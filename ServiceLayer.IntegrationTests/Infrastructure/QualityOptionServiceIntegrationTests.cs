@@ -485,11 +485,98 @@ public class QualityOptionServiceIntegrationTests(DatabaseFixture fixture)
     #endregion
 
     #region AddOptionAsync
+    [Fact]
+    public async Task AddOptionAsync_ValidInput_ReturnsCreated()
+    {
+        _tokenData.Setup(x => x.UserId).Returns(SeedUser1AdminId);
 
+        var request = new SetOptionRequest
+        {
+            GroupId = TestGroup3Id,
+            Label = "New Option"
+        };
+
+        var result = await _service!.AddOptionAsync(request, ct);
+        _checks.OutputSuccessCheck(result, "success", "AddOptionAsync", HttpStatusCode.Created);
+
+        var typedResult = result.Should().BeOfType<SetOptionResponse>().Subject;
+        var qualityOptions = _context!.QualityOptions.Where(x => x.GroupId == TestGroup3Id).OrderByDescending(x => x.DisplayOrder).ToList();
+        qualityOptions.Count.Should().Be(5);
+        var newOption = qualityOptions.First();
+        newOption.QualityOptionId.Should().Be(typedResult.OptionsId!.Value);
+        newOption.Label.Should().Be("New Option");
+        newOption.DisplayOrder.Should().Be(5);
+    }
     #endregion
 
     #region UpdateOptionAsync
+    [Fact]
+    public async Task UpdateOptionAsync_DefaultOptionId_ReturnsNotFound()
+    {
+        var request = new UpdateOptionRequest
+        {
+            Label = "Updated Test Label"
+        };
 
+        var result = await _service!.UpdateOptionAsync(SeedQualityOption1Id, request, ct);
+        _checks.OutputFailureCheck(result, "not found", "UpdateOptionAsync", HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    public async Task UpdateOptionAsync_InactiveGroup_ReturnsNotFound()
+    {
+        var request = new UpdateOptionRequest
+        {
+            Label = "Updated Test Label"
+        };
+
+        var result = await _service!.UpdateOptionAsync(TestQualityOption7Id, request, ct);
+        _checks.OutputFailureCheck(result, "not found", "UpdateOptionAsync", HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    public async Task UpdateOptionAsync_UserNotInGroup_ReturnsForbidden()
+    {
+        var request = new UpdateOptionRequest
+        {
+            Label = "Updated Test Label"
+        };
+
+        var result = await _service!.UpdateOptionAsync(TestQualityOption5Id, request, ct);
+        _checks.OutputFailureCheck(result, "permission", "UpdateOptionAsync", HttpStatusCode.Forbidden);
+    }
+
+    [Fact]
+    public async Task UpdateOptionAsync_LabelAlreadyUsed_ReturnsConflict()
+    {
+        _tokenData.Setup(x => x.UserId).Returns(SeedUser1AdminId);
+
+        var request = new UpdateOptionRequest
+        {
+            Label = TestQualityOption6Label
+        };
+
+        var result = await _service!.UpdateOptionAsync(TestQualityOption5Id, request, ct);
+        _checks.OutputFailureCheck(result, "label", "UpdateOptionAsync", HttpStatusCode.Conflict);
+    }
+
+    [Theory]
+    [InlineData("Override 1")]
+    [InlineData("override 1")]
+    [InlineData("OVERRIDE 1")]
+    [InlineData("Something New")]
+    public async Task UpdateOptionAsync_ValidRequest_ReturnsOK(string newLabel)
+    {
+        _tokenData.Setup(x => x.UserId).Returns(SeedUser1AdminId);
+
+        var request = new UpdateOptionRequest
+        {
+            Label = newLabel
+        };
+
+        var result = await _service!.UpdateOptionAsync(TestQualityOption5Id, request, ct);
+        _checks.OutputSuccessCheck(result, "success", "UpdateOptionAsync", HttpStatusCode.OK);
+    }
     #endregion
 
     #region DeleteOptionAsync

@@ -186,7 +186,7 @@ public abstract class RatingOptionService<TRatingRepository, TRatingOptionReposi
         await _unitOfWork.SaveChangesAsync(ct);
 
         var squashed = remapStrategyUsed == RemapStrategy.SquashOrder;
-        return new CommonResponse //TODO
+        return new CommonResponse
         {
             StatusCode = HttpStatusCode.OK,
             Message = "Custom ratings were removed successfully" + (squashed ? ", but ratings were squashed to fit the default options." : "."),
@@ -278,7 +278,7 @@ public abstract class RatingOptionService<TRatingRepository, TRatingOptionReposi
         var optionId = await _ratingOptionRepository.AddAsync(request, ct);
         await _unitOfWork.SaveChangesAsync(ct);
 
-        return new SetOptionResponse //TODO
+        return new SetOptionResponse
         {
             StatusCode = HttpStatusCode.Created,
             Message = "New rating added successfully.",
@@ -301,7 +301,7 @@ public abstract class RatingOptionService<TRatingRepository, TRatingOptionReposi
         var option = await _ratingOptionRepository.GetByIdAsync(optionId, ct);
         if (option == null || option.GroupId == null)
         {
-            return new CommonResponse //TODO default
+            return new CommonResponse
             {
                 StatusCode = HttpStatusCode.NotFound,
                 Message = "The option was not found."
@@ -311,7 +311,7 @@ public abstract class RatingOptionService<TRatingRepository, TRatingOptionReposi
         var group = await _groupRepository.GetDetailsByIdAsync(option.GroupId.Value, ct);
         if (group?.Active != true)
         {
-            return new CommonResponse //TODO
+            return new CommonResponse
             {
                 StatusCode = HttpStatusCode.NotFound,
                 Message = "The option was not found."
@@ -321,7 +321,7 @@ public abstract class RatingOptionService<TRatingRepository, TRatingOptionReposi
         var isUserInGroup = await _userGroupRepository.IsUserInGroupAsync(option.GroupId.Value, callingUserId, ct);
         if (!isUserInGroup)
         {
-            return new CommonResponse //TODO
+            return new CommonResponse
             {
                 StatusCode = HttpStatusCode.Forbidden,
                 Message = "You do not have permission to update options for this group."
@@ -331,9 +331,9 @@ public abstract class RatingOptionService<TRatingRepository, TRatingOptionReposi
         var currentOptions = await _ratingOptionRepository.GetForGroupIdAsync(option.GroupId.Value, ct);
         if (currentOptions.Any(x => x.OptionId != optionId && string.Equals(x.Label, request.Label, StringComparison.OrdinalIgnoreCase)))
         {
-            return new CommonResponse //TODO
+            return new CommonResponse
             {
-                StatusCode = HttpStatusCode.BadRequest,
+                StatusCode = HttpStatusCode.Conflict,
                 Message = "An option with that label already exists for this group."
             }.WithResponseLog(_logger, callingUserId);
         }
@@ -341,7 +341,7 @@ public abstract class RatingOptionService<TRatingRepository, TRatingOptionReposi
         await _ratingOptionRepository.UpdateAsync(optionId, request.Label, ct);
         await _unitOfWork.SaveChangesAsync(ct);
 
-        return new CommonResponse //TODO
+        return new CommonResponse
         {
             StatusCode = HttpStatusCode.OK,
             Message = "Rating option updated successfully.",
