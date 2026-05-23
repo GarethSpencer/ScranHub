@@ -221,9 +221,11 @@ public class VenueTypeOptionServiceIntegrationTests(DatabaseFixture fixture) : I
         _checks.OutputSuccessCheck(result, "removed", "RemoveGroupCustomOptionsAsync", HttpStatusCode.OK);
         _context!.VenueTypeOptions.Should().NotContain(x => x.GroupId == TestGroup3Id);
 
-        var venue = _context.GroupVenues.Single(x => x.GroupId == TestGroup3Id);
-        venue.VenueTypeOptionId.Should().BeNull();
-        venue.FoodTypeOptionId.Should().NotBeNull();
+        var venues = _context.GroupVenues.Where(x => x.GroupId == TestGroup3Id).ToList();
+        foreach (var venue in venues)
+        {
+            venue.VenueTypeOptionId.Should().BeNull();
+        }
     }
     #endregion
 

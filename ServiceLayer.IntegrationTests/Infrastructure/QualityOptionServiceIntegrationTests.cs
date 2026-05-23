@@ -1,4 +1,5 @@
 ﻿using DAL.Data;
+using DAL.Entities;
 using FluentAssertions;
 using RepositoryLayer.Infrastructure;
 using RepositoryLayer.Infrastructure.Generic;
@@ -112,7 +113,7 @@ public class QualityOptionServiceIntegrationTests(DatabaseFixture fixture)
     }
 
     [Fact]
-    public async Task SetGroupCustomOptionsAsync_MoreOverridesThanHighestCurrentlyUsed_ReturnsCreated()
+    public async Task SetGroupCustomOptionsAsync_MoreOverridesThanCurrentHighestUsed_ReturnsCreated()
     {
         var request = new SetOptionsRequest
         {
@@ -194,7 +195,293 @@ public class QualityOptionServiceIntegrationTests(DatabaseFixture fixture)
     #endregion
 
     #region RemoveGroupCustomOptionsAsync
+    [Fact]
+    public async Task RemoveGroupCustomOptionsAsync_UsingMoreThanDefaultsHas_ReturnsBadRequest()
+    {
+        _context!.QualityOptions.Add(new QualityOption
+        {
+            QualityOptionId = TestQualityOption10Id,
+            Label = TestQualityOption10Label,
+            GroupId = TestGroup3Id,
+            DisplayOrder = 5
+        });
 
+        _context.QualityRatings.AddRange(new QualityRating
+        {
+            QualityRatingId = TestQualityRating4Id,
+            UserId = SeedUser1AdminId,
+            QualityOptionId = TestQualityOption5Id,
+            GroupVenueId = TestGroupVenue5Id
+        },
+        new QualityRating
+        {
+            QualityRatingId = TestQualityRating5Id,
+            UserId = SeedUser1AdminId,
+            QualityOptionId = TestQualityOption6Id,
+            GroupVenueId = TestGroupVenue6Id
+        },
+        new QualityRating
+        {
+            QualityRatingId = TestQualityRating6Id,
+            UserId = SeedUser1AdminId,
+            QualityOptionId = TestQualityOption8Id,
+            GroupVenueId = TestGroupVenue7Id
+        },
+        new QualityRating
+        {
+            QualityRatingId = TestQualityRating7Id,
+            UserId = SeedUser1AdminId,
+            QualityOptionId = TestQualityOption9Id,
+            GroupVenueId = TestGroupVenue8Id
+        },
+        new QualityRating
+        {
+            QualityRatingId = TestQualityRating8Id,
+            UserId = SeedUser1AdminId,
+            QualityOptionId = TestQualityOption10Id,
+            GroupVenueId = TestGroupVenue9Id
+        }
+        );
+
+        await _context.SaveChangesAsync(ct);
+
+        _tokenData.Setup(x => x.UserId).Returns(SeedUser1AdminId);
+
+        var result = await _service!.RemoveGroupCustomOptionsAsync(TestGroup3Id, ct);
+        _checks.OutputFailureCheck(result, "there are only", "RemoveGroupCustomOptionsAsync", HttpStatusCode.BadRequest);
+    }
+
+    [Fact]
+    public async Task RemoveGroupCustomOptionsAsync_SameNumberOfCustomAndDefaultLabels_ReturnsOK()
+    {
+        _context!.QualityRatings.AddRange(new QualityRating
+        {
+            QualityRatingId = TestQualityRating4Id,
+            UserId = SeedUser1AdminId,
+            QualityOptionId = TestQualityOption5Id,
+            GroupVenueId = TestGroupVenue5Id
+        },
+        new QualityRating
+        {
+            QualityRatingId = TestQualityRating5Id,
+            UserId = SeedUser1AdminId,
+            QualityOptionId = TestQualityOption6Id,
+            GroupVenueId = TestGroupVenue6Id
+        },
+        new QualityRating
+        {
+            QualityRatingId = TestQualityRating6Id,
+            UserId = SeedUser1AdminId,
+            QualityOptionId = TestQualityOption9Id,
+            GroupVenueId = TestGroupVenue7Id
+        },
+        new QualityRating
+        {
+            QualityRatingId = TestQualityRating7Id,
+            UserId = SeedUser1AdminId,
+            QualityOptionId = TestQualityOption9Id,
+            GroupVenueId = TestGroupVenue8Id
+        }
+        );
+
+        await _context.SaveChangesAsync(ct);
+
+        _tokenData.Setup(x => x.UserId).Returns(SeedUser1AdminId);
+
+        var result = await _service!.RemoveGroupCustomOptionsAsync(TestGroup3Id, ct);
+        _checks.OutputSuccessCheck(result, "success", "RemoveGroupCustomOptionsAsync", HttpStatusCode.OK);
+        _logger.Entries.Should().NotContain(e => e.Message.Contains("squashed", StringComparison.InvariantCultureIgnoreCase));
+
+        _context.QualityOptions.Where(x => x.GroupId == TestGroup1Id).Count().Should().Be(0);
+
+        var venues = _context.GroupVenues.Where(x => x.GroupId == TestGroup3Id).OrderBy(x => x.GroupVenueId).ToArray();
+        venues.Length.Should().Be(5);
+        venues[0].QualityRatings.Single().QualityOptionId.Should().Be(SeedQualityOption1Id);
+        venues[1].QualityRatings.Single().QualityOptionId.Should().Be(SeedQualityOption2Id);
+        venues[2].QualityRatings.Single().QualityOptionId.Should().Be(SeedQualityOption4Id);
+        venues[3].QualityRatings.Single().QualityOptionId.Should().Be(SeedQualityOption4Id);
+        venues[4].QualityRatings.Count.Should().Be(0);
+    }
+
+    [Fact]
+    public async Task RemoveGroupCustomOptionsAsync_SameNumberOfUsedAndDefaultLabels_ReturnsOK()
+    {
+        _context!.QualityOptions.Add(new QualityOption
+        {
+            QualityOptionId = TestQualityOption10Id,
+            Label = TestQualityOption10Label,
+            GroupId = TestGroup3Id,
+            DisplayOrder = 5
+        });
+
+        _context!.QualityRatings.AddRange(new QualityRating
+        {
+            QualityRatingId = TestQualityRating4Id,
+            UserId = SeedUser1AdminId,
+            QualityOptionId = TestQualityOption5Id,
+            GroupVenueId = TestGroupVenue5Id
+        },
+        new QualityRating
+        {
+            QualityRatingId = TestQualityRating5Id,
+            UserId = SeedUser1AdminId,
+            QualityOptionId = TestQualityOption6Id,
+            GroupVenueId = TestGroupVenue6Id
+        },
+        new QualityRating
+        {
+            QualityRatingId = TestQualityRating6Id,
+            UserId = SeedUser1AdminId,
+            QualityOptionId = TestQualityOption8Id,
+            GroupVenueId = TestGroupVenue7Id
+        },
+        new QualityRating
+        {
+            QualityRatingId = TestQualityRating7Id,
+            UserId = SeedUser1AdminId,
+            QualityOptionId = TestQualityOption10Id,
+            GroupVenueId = TestGroupVenue8Id
+        }
+        );
+
+        await _context.SaveChangesAsync(ct);
+
+        _tokenData.Setup(x => x.UserId).Returns(SeedUser1AdminId);
+
+        var result = await _service!.RemoveGroupCustomOptionsAsync(TestGroup3Id, ct);
+        _checks.OutputSuccessCheck(result, "success", "RemoveGroupCustomOptionsAsync", HttpStatusCode.OK);
+        _logger.Entries.Should().Contain(e => e.Message.Contains("squashed", StringComparison.InvariantCultureIgnoreCase));
+
+        _context.QualityOptions.Where(x => x.GroupId == TestGroup1Id).Count().Should().Be(0);
+
+        var venues = _context.GroupVenues.Where(x => x.GroupId == TestGroup3Id).OrderBy(x => x.GroupVenueId).ToArray();
+        venues.Length.Should().Be(5);
+        venues[0].QualityRatings.Single().QualityOptionId.Should().Be(SeedQualityOption1Id);
+        venues[1].QualityRatings.Single().QualityOptionId.Should().Be(SeedQualityOption2Id);
+        venues[2].QualityRatings.Single().QualityOptionId.Should().Be(SeedQualityOption3Id);
+        venues[3].QualityRatings.Single().QualityOptionId.Should().Be(SeedQualityOption4Id);
+        venues[4].QualityRatings.Count.Should().Be(0);
+    }
+
+    [Fact]
+    public async Task RemoveGroupCustomOptionsAsync_MoreDefaultsThanCurrentHighestUsed_ReturnsOK()
+    {
+        _context!.QualityOptions.Add(new QualityOption
+        {
+            QualityOptionId = TestQualityOption10Id,
+            Label = TestQualityOption10Label,
+            GroupId = TestGroup3Id,
+            DisplayOrder = 5
+        });
+
+        _context!.QualityRatings.AddRange(new QualityRating
+        {
+            QualityRatingId = TestQualityRating4Id,
+            UserId = SeedUser1AdminId,
+            QualityOptionId = TestQualityOption5Id,
+            GroupVenueId = TestGroupVenue5Id
+        },
+        new QualityRating
+        {
+            QualityRatingId = TestQualityRating5Id,
+            UserId = SeedUser1AdminId,
+            QualityOptionId = TestQualityOption5Id,
+            GroupVenueId = TestGroupVenue6Id
+        },
+        new QualityRating
+        {
+            QualityRatingId = TestQualityRating6Id,
+            UserId = SeedUser1AdminId,
+            QualityOptionId = TestQualityOption8Id,
+            GroupVenueId = TestGroupVenue7Id
+        },
+        new QualityRating
+        {
+            QualityRatingId = TestQualityRating7Id,
+            UserId = SeedUser1AdminId,
+            QualityOptionId = TestQualityOption8Id,
+            GroupVenueId = TestGroupVenue8Id
+        }
+        );
+
+        await _context.SaveChangesAsync(ct);
+
+        _tokenData.Setup(x => x.UserId).Returns(SeedUser1AdminId);
+
+        var result = await _service!.RemoveGroupCustomOptionsAsync(TestGroup3Id, ct);
+        _checks.OutputSuccessCheck(result, "success", "RemoveGroupCustomOptionsAsync", HttpStatusCode.OK);
+        _logger.Entries.Should().NotContain(e => e.Message.Contains("squashed", StringComparison.InvariantCultureIgnoreCase));
+
+        _context.QualityOptions.Where(x => x.GroupId == TestGroup1Id).Count().Should().Be(0);
+
+        var venues = _context.GroupVenues.Where(x => x.GroupId == TestGroup3Id).OrderBy(x => x.GroupVenueId).ToArray();
+        venues.Length.Should().Be(5);
+        venues[0].QualityRatings.Single().QualityOptionId.Should().Be(SeedQualityOption1Id);
+        venues[1].QualityRatings.Single().QualityOptionId.Should().Be(SeedQualityOption1Id);
+        venues[2].QualityRatings.Single().QualityOptionId.Should().Be(SeedQualityOption3Id);
+        venues[3].QualityRatings.Single().QualityOptionId.Should().Be(SeedQualityOption3Id);
+        venues[4].QualityRatings.Count.Should().Be(0);
+    }
+
+    [Fact]
+    public async Task RemoveGroupCustomOptionsAsync_NeedToSquash_ReturnsOK()
+    {
+        _context!.QualityOptions.Add(new QualityOption
+        {
+            QualityOptionId = TestQualityOption10Id,
+            Label = TestQualityOption10Label,
+            GroupId = TestGroup3Id,
+            DisplayOrder = 5
+        });
+
+        _context!.QualityRatings.AddRange(new QualityRating
+        {
+            QualityRatingId = TestQualityRating4Id,
+            UserId = SeedUser1AdminId,
+            QualityOptionId = TestQualityOption5Id,
+            GroupVenueId = TestGroupVenue5Id
+        },
+        new QualityRating
+        {
+            QualityRatingId = TestQualityRating5Id,
+            UserId = SeedUser1AdminId,
+            QualityOptionId = TestQualityOption5Id,
+            GroupVenueId = TestGroupVenue6Id
+        },
+        new QualityRating
+        {
+            QualityRatingId = TestQualityRating6Id,
+            UserId = SeedUser1AdminId,
+            QualityOptionId = TestQualityOption10Id,
+            GroupVenueId = TestGroupVenue7Id
+        },
+        new QualityRating
+        {
+            QualityRatingId = TestQualityRating7Id,
+            UserId = SeedUser1AdminId,
+            QualityOptionId = TestQualityOption10Id,
+            GroupVenueId = TestGroupVenue8Id
+        }
+        );
+
+        await _context.SaveChangesAsync(ct);
+
+        _tokenData.Setup(x => x.UserId).Returns(SeedUser1AdminId);
+
+        var result = await _service!.RemoveGroupCustomOptionsAsync(TestGroup3Id, ct);
+        _checks.OutputSuccessCheck(result, "success", "RemoveGroupCustomOptionsAsync", HttpStatusCode.OK);
+        _logger.Entries.Should().Contain(e => e.Message.Contains("squashed", StringComparison.InvariantCultureIgnoreCase));
+
+        _context.QualityOptions.Where(x => x.GroupId == TestGroup1Id).Count().Should().Be(0);
+
+        var venues = _context.GroupVenues.Where(x => x.GroupId == TestGroup3Id).OrderBy(x => x.GroupVenueId).ToArray();
+        venues.Length.Should().Be(5);
+        venues[0].QualityRatings.Single().QualityOptionId.Should().Be(SeedQualityOption1Id);
+        venues[1].QualityRatings.Single().QualityOptionId.Should().Be(SeedQualityOption1Id);
+        venues[2].QualityRatings.Single().QualityOptionId.Should().Be(SeedQualityOption2Id);
+        venues[3].QualityRatings.Single().QualityOptionId.Should().Be(SeedQualityOption2Id);
+        venues[4].QualityRatings.Count.Should().Be(0);
+    }
     #endregion
 
     #region AddOptionAsync

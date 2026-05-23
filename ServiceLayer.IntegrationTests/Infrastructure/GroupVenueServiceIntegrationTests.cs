@@ -176,7 +176,7 @@ public class GroupVenueServiceIntegrationTests(DatabaseFixture fixture) : IAsync
 
         var request = new SearchGroupVenueRequest
         {
-            PageNumber = 1,
+            PageNumber = 2,
             PageSize = 3,
             SearchText = "Test"
         };
@@ -185,9 +185,10 @@ public class GroupVenueServiceIntegrationTests(DatabaseFixture fixture) : IAsync
         _checks.OutputSuccessCheck(result, "success", "SearchGroupVenuesAsync", HttpStatusCode.OK);
 
         var typedResult = result.Should().BeOfType<GetGroupVenuesResponse>().Subject;
-        typedResult.TotalCount.Should().Be(1);
-        typedResult.GroupVenues!.Count().Should().Be(1);
-        typedResult.GroupVenues.Should().Contain(x => x.GroupVenueId == TestGroupVenue5Id);
+        typedResult.TotalCount.Should().Be(5);
+        typedResult.GroupVenues!.Count().Should().Be(2);
+        typedResult.GroupVenues.Should().Contain(x => x.GroupVenueId == TestGroupVenue8Id);
+        typedResult.GroupVenues.Should().Contain(x => x.GroupVenueId == TestGroupVenue9Id);
     }
     #endregion
 

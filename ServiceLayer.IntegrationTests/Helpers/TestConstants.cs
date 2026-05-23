@@ -42,12 +42,20 @@ public class TestConstants
     public static readonly Guid TestGroupVenue3Id = Guid.Parse("00000000-0003-0000-0000-000000000000");
     public static readonly Guid TestGroupVenue4Id = Guid.Parse("00000000-0004-0000-0000-000000000000");
     public static readonly Guid TestGroupVenue5Id = Guid.Parse("00000000-0005-0000-0000-000000000000");
+    public static readonly Guid TestGroupVenue6Id = Guid.Parse("00000000-0006-0000-0000-000000000000");
+    public static readonly Guid TestGroupVenue7Id = Guid.Parse("00000000-0007-0000-0000-000000000000");
+    public static readonly Guid TestGroupVenue8Id = Guid.Parse("00000000-0008-0000-0000-000000000000");
+    public static readonly Guid TestGroupVenue9Id = Guid.Parse("00000000-0009-0000-0000-000000000000");
 
     public const string TestGroupVenue1Name = "Test Venue 1";
     public const string TestGroupVenue2Name = "Test Venue 2";
     public const string TestGroupVenue3Name = "Test Venue 3";
     public const string TestGroupVenue4Name = "Test Venue 4";
     public const string TestGroupVenue5Name = "Test Venue 5";
+    public const string TestGroupVenue6Name = "Test Venue 6";
+    public const string TestGroupVenue7Name = "Test Venue 7";
+    public const string TestGroupVenue8Name = "Test Venue 8";
+    public const string TestGroupVenue9Name = "Test Venue 9";
 
     public static readonly Guid SeedCostOption1Id = Guid.Parse("00000000-0000-0000-0001-000000000001");
     public static readonly Guid SeedCostOption2Id = Guid.Parse("00000000-0000-0000-0001-000000000002");
@@ -70,6 +78,9 @@ public class TestConstants
     public static readonly Guid TestQualityOption5Id = Guid.Parse("00000000-0000-0000-0002-000000000005");
     public static readonly Guid TestQualityOption6Id = Guid.Parse("00000000-0000-0000-0002-000000000006");
     public static readonly Guid TestQualityOption7Id = Guid.Parse("00000000-0000-0000-0002-000000000007");
+    public static readonly Guid TestQualityOption8Id = Guid.Parse("00000000-0000-0000-0002-000000000008");
+    public static readonly Guid TestQualityOption9Id = Guid.Parse("00000000-0000-0000-0002-000000000009");
+    public static readonly Guid TestQualityOption10Id = Guid.Parse("00000000-0000-0000-0002-000000000010");
 
     public const string SeedQualityOption1Label = "Great";
     public const string SeedQualityOption2Label = "Good";
@@ -78,6 +89,9 @@ public class TestConstants
     public const string TestQualityOption5Label = "Override 1";
     public const string TestQualityOption6Label = "Override 2";
     public const string TestQualityOption7Label = "Override 3";
+    public const string TestQualityOption8Label = "Override 4";
+    public const string TestQualityOption9Label = "Override 5";
+    public const string TestQualityOption10Label = "Override 6";
 
     public static readonly Guid SeedFoodTypeOption1Id = Guid.Parse("00000000-0000-0000-0003-000000000001");
     public static readonly Guid SeedFoodTypeOption2Id = Guid.Parse("00000000-0000-0000-0003-000000000002");
@@ -116,4 +130,9 @@ public class TestConstants
     public static readonly Guid TestQualityRating1Id = Guid.Parse("00000000-0000-0002-0000-000000000001");
     public static readonly Guid TestQualityRating2Id = Guid.Parse("00000000-0000-0002-0000-000000000002");
     public static readonly Guid TestQualityRating3Id = Guid.Parse("00000000-0000-0002-0000-000000000003");
+    public static readonly Guid TestQualityRating4Id = Guid.Parse("00000000-0000-0002-0000-000000000004");
+    public static readonly Guid TestQualityRating5Id = Guid.Parse("00000000-0000-0002-0000-000000000005");
+    public static readonly Guid TestQualityRating6Id = Guid.Parse("00000000-0000-0002-0000-000000000006");
+    public static readonly Guid TestQualityRating7Id = Guid.Parse("00000000-0000-0002-0000-000000000007");
+    public static readonly Guid TestQualityRating8Id = Guid.Parse("00000000-0000-0002-0000-000000000008");
 }
