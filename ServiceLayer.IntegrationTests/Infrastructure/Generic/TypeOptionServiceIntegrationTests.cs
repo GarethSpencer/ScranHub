@@ -62,6 +62,75 @@ public abstract class TypeOptionServiceIntegrationTests<TService>(DatabaseFixtur
         var result = await _service!.AddOptionAsync(request, ct);
         _checks.OutputFailureCheck(result, "unauthorized", "AddOptionAsync", HttpStatusCode.Unauthorized);
     }
+
+    [Fact]
+    public async Task AddOptionAsync_InvalidGroupId_ReturnsNotFound()
+    {
+        var request = new SetOptionRequest
+        {
+            GroupId = Guid.Empty,
+            Label = "New Label"
+        };
+
+        var result = await _service!.AddOptionAsync(request, ct);
+        _checks.OutputFailureCheck(result, "not found", "AddOptionAsync", HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    public async Task AddOptionAsync_InactiveGroupId_ReturnsNotFound()
+    {
+        var request = new SetOptionRequest
+        {
+            GroupId = TestGroup2Id,
+            Label = "New Label"
+        };
+
+        var result = await _service!.AddOptionAsync(request, ct);
+        _checks.OutputFailureCheck(result, "not found", "AddOptionAsync", HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    public async Task AddOptionAsync_UserNotInGroup_ReturnsForbidden()
+    {
+        var request = new SetOptionRequest
+        {
+            GroupId = TestGroup3Id,
+            Label = "New Label"
+        };
+
+        var result = await _service!.AddOptionAsync(request, ct);
+        _checks.OutputFailureCheck(result, "permission", "AddOptionAsync", HttpStatusCode.Forbidden);
+    }
+
+    [Fact]
+    public async Task AddOptionAsync_GroupUsingDefaults_ReturnsBadRequest()
+    {
+        _tokenData.Setup(x => x.UserId).Returns(SeedUser1AdminId);
+
+        var request = new SetOptionRequest
+        {
+            GroupId = TestGroup1Id,
+            Label = "New Label"
+        };
+
+        var result = await _service!.AddOptionAsync(request, ct);
+        _checks.OutputFailureCheck(result, "custom options", "AddOptionAsync", HttpStatusCode.BadRequest);
+    }
+
+    [Fact]
+    public async Task AddOptionAsync_LabelAlreadyUsed_ReturnsConflict()
+    {
+        _tokenData.Setup(x => x.UserId).Returns(SeedUser1AdminId);
+
+        var request = new SetOptionRequest
+        {
+            GroupId = TestGroup3Id,
+            Label = "Override 1"
+        };
+
+        var result = await _service!.AddOptionAsync(request, ct);
+        _checks.OutputFailureCheck(result, "label", "AddOptionAsync", HttpStatusCode.Conflict);
+    }
     #endregion
 
     #region UpdateOptionAsync
@@ -78,6 +147,18 @@ public abstract class TypeOptionServiceIntegrationTests<TService>(DatabaseFixtur
         var result = await _service!.UpdateOptionAsync(TestFoodTypeOption7Id, request, ct);
         _checks.OutputFailureCheck(result, "unauthorized", "UpdateOptionAsync", HttpStatusCode.Unauthorized);
     }
+
+    [Fact]
+    public async Task UpdateOptionAsync_InvalidOption_ReturnsNotFound()
+    {
+        var request = new UpdateOptionRequest
+        {
+            Label = "New Label"
+        };
+
+        var result = await _service!.UpdateOptionAsync(Guid.Empty, request, ct);
+        _checks.OutputFailureCheck(result, "not found", "UpdateOptionAsync", HttpStatusCode.NotFound);
+    }
     #endregion
 
     #region DeleteOptionAsync
@@ -88,6 +169,13 @@ public abstract class TypeOptionServiceIntegrationTests<TService>(DatabaseFixtur
 
         var result = await _service!.DeleteOptionAsync(TestFoodTypeOption7Id, ct);
         _checks.OutputFailureCheck(result, "unauthorized", "DeleteOptionAsync", HttpStatusCode.Unauthorized);
+    }
+
+    [Fact]
+    public async Task DeleteOptionAsync_InvalidOption_ReturnsNotFound()
+    {
+        var result = await _service!.DeleteOptionAsync(Guid.Empty, ct);
+        _checks.OutputFailureCheck(result, "not found", "DeleteOptionAsync", HttpStatusCode.NotFound);
     }
     #endregion
 
@@ -100,6 +188,27 @@ public abstract class TypeOptionServiceIntegrationTests<TService>(DatabaseFixtur
         var result = await _service!.GetGroupTypeOptionsAsync(TestGroup3Id, ct);
         _checks.OutputFailureCheck(result, "unauthorized", "GetGroupTypeOptionsAsync", HttpStatusCode.Unauthorized);
     }
+
+    [Fact]
+    public async Task GetGroupTypeOptionsAsync_InvalidGroupId_ReturnsNotFound()
+    {
+        var result = await _service!.GetGroupTypeOptionsAsync(Guid.Empty, ct);
+        _checks.OutputFailureCheck(result, "not found", "GetGroupTypeOptionsAsync", HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    public async Task GetGroupTypeOptionsAsync_InactiveGroupId_ReturnsNotFound()
+    {
+        var result = await _service!.GetGroupTypeOptionsAsync(TestGroup2Id, ct);
+        _checks.OutputFailureCheck(result, "not found", "GetGroupTypeOptionsAsync", HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    public async Task GetGroupTypeOptionsAsync_UserNotInGroup_ReturnsForbidden()
+    {
+        var result = await _service!.GetGroupTypeOptionsAsync(TestGroup3Id, ct);
+        _checks.OutputFailureCheck(result, "permission", "GetGroupTypeOptionsAsync", HttpStatusCode.Forbidden);
+    }
     #endregion
 
     #region GetTypeOptionAsync
@@ -110,6 +219,13 @@ public abstract class TypeOptionServiceIntegrationTests<TService>(DatabaseFixtur
 
         var result = await _service!.GetTypeOptionAsync(TestFoodTypeOption7Id, ct);
         _checks.OutputFailureCheck(result, "unauthorized", "GetTypeOptionAsync", HttpStatusCode.Unauthorized);
+    }
+
+    [Fact]
+    public async Task GetTypeOptionAsync_InvalidOption_ReturnsNotFound()
+    {
+        var result = await _service!.GetTypeOptionAsync(Guid.Empty, ct);
+        _checks.OutputFailureCheck(result, "not found", "GetTypeOptionAsync", HttpStatusCode.NotFound);
     }
     #endregion
 
