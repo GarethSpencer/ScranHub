@@ -68,7 +68,7 @@ public abstract class RatingService<TRatingRepository, TRatingOptionRepository>(
         var options = await _ratingOptionRepository.GetForGroupIdAsync(groupVenue.GroupId, ct);
         if (!options.Any(qo => qo.OptionId == request.OptionId))
         {
-            return new CommonResponse //TODO invalid non-empty optionId
+            return new CommonResponse
             {
                 StatusCode = HttpStatusCode.BadRequest,
                 Message = "Invalid option provided."
@@ -78,7 +78,7 @@ public abstract class RatingService<TRatingRepository, TRatingOptionRepository>(
         var isRatedAlready = await _ratingRepository.ExistsAsync(request.GroupVenueId, callingUserId, ct);
         if (isRatedAlready)
         {
-            return new CommonResponse //TODO
+            return new CommonResponse
             {
                 StatusCode = HttpStatusCode.BadRequest,
                 Message = "You have already rated this venue."
@@ -88,7 +88,7 @@ public abstract class RatingService<TRatingRepository, TRatingOptionRepository>(
         var ratingId = await _ratingRepository.CreateAsync(callingUserId, request, ct);
         await _unitOfWork.SaveChangesAsync(ct);
 
-        return new AddRatingResponse //TODO
+        return new AddRatingResponse
         {
             StatusCode = HttpStatusCode.Created,
             Message = "Rating posted successfully.",
@@ -111,7 +111,7 @@ public abstract class RatingService<TRatingRepository, TRatingOptionRepository>(
         var currentRating = await _ratingRepository.GetDetailsByIdAsync(ratingId, ct);
         if (currentRating == null || currentRating.UserId != callingUserId)
         {
-            return new CommonResponse //TODO wrong userId
+            return new CommonResponse
             {
                 StatusCode = HttpStatusCode.NotFound,
                 Message = "Rating was not found."
@@ -119,7 +119,7 @@ public abstract class RatingService<TRatingRepository, TRatingOptionRepository>(
         }
 
         var groupVenue = await _groupVenueRepository.GetByIdAsync(currentRating.GroupVenueId, ct);
-        if (groupVenue == null) //TODO
+        if (groupVenue == null)
         {
             return new CommonResponse
             {
@@ -131,7 +131,7 @@ public abstract class RatingService<TRatingRepository, TRatingOptionRepository>(
         var options = await _ratingOptionRepository.GetForGroupIdAsync(groupVenue.GroupId, ct);
         if (!options.Any(qo => qo.OptionId == request.OptionId))
         {
-            return new CommonResponse //TODO
+            return new CommonResponse
             {
                 StatusCode = HttpStatusCode.BadRequest,
                 Message = "Invalid option provided."
@@ -141,7 +141,7 @@ public abstract class RatingService<TRatingRepository, TRatingOptionRepository>(
         await _ratingRepository.UpdateAsync(ratingId, request, ct);
         await _unitOfWork.SaveChangesAsync(ct);
 
-        return new CommonResponse //TODO
+        return new CommonResponse
         {
             StatusCode = HttpStatusCode.OK,
             Message = "Rating updated successfully."

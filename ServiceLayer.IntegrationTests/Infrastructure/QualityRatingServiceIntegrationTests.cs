@@ -1,5 +1,7 @@
 ﻿using DAL.Data;
+using DAL.Entities;
 using FluentAssertions;
+using Microsoft.Extensions.Options;
 using RepositoryLayer.Infrastructure;
 using RepositoryLayer.Infrastructure.Generic;
 using ServiceLayer.Abstractions.Generic;
@@ -8,6 +10,8 @@ using ServiceLayer.IntegrationTests.Fixtures;
 using ServiceLayer.IntegrationTests.Helpers;
 using ServiceLayer.IntegrationTests.Infrastructure.Generic;
 using System.Net;
+using Utilities.Models.Requests.Ratings;
+using Utilities.Models.Responses.Groups;
 using Utilities.Models.Responses.Ratings;
 using Utilities.Token;
 using static ServiceLayer.IntegrationTests.Helpers.TestConstants;
@@ -73,12 +77,113 @@ public class QualityRatingServiceIntegrationTests(DatabaseFixture fixture)
     }
     #endregion
 
+    // RatingService generic methods
     #region CreateRatingAsync
+    [Fact]
+    public async Task CreateRatingAsync_InvalidOptionId_ReturnsBadRequest()
+    {
+        var request = new CreateRatingRequest
+        {
+            GroupVenueId = TestGroupVenue1Id,
+            OptionId = TestQualityOption5Id
+        };
 
+        var result = await _service!.CreateRatingAsync(request, ct);
+        _checks.OutputFailureCheck(result, "invalid option", "CreateRatingAsync", HttpStatusCode.BadRequest);
+    }
+
+    [Fact]
+    public async Task CreateRatingAsync_AlreadyRatedVenue_ReturnsBadRequest()
+    {
+        var request = new CreateRatingRequest
+        {
+            GroupVenueId = TestGroupVenue1Id,
+            OptionId = SeedQualityOption2Id
+        };
+
+        var result = await _service!.CreateRatingAsync(request, ct);
+        _checks.OutputFailureCheck(result, "already", "CreateRatingAsync", HttpStatusCode.BadRequest);
+    }
+
+    [Fact]
+    public async Task CreateRatingAsync_ValidRequest_ReturnsCreated()
+    {
+        var request = new CreateRatingRequest
+        {
+            GroupVenueId = TestGroupVenue3Id,
+            OptionId = SeedQualityOption1Id
+        };
+
+        var result = await _service!.CreateRatingAsync(request, ct);
+        _checks.OutputSuccessCheck(result, "success", "CreateRatingAsync", HttpStatusCode.Created);
+
+        var typedResult = result.Should().BeOfType<AddRatingResponse>().Subject;
+        _context!.QualityRatings.Should().ContainSingle(e => e.UserId == SeedUser2NonAdminId && e.GroupVenueId == TestGroupVenue3Id
+            && e.QualityOptionId == SeedQualityOption1Id && e.QualityRatingId == typedResult!.RatingId!.Value);
+    }
     #endregion
 
     #region UpdateRatingAsync
+    [Fact]
+    public async Task UpdateRatingAsync_AnotherUsersRatingId_ReturnsNotFound()
+    {
+        var request = new UpdateRatingRequest
+        {
+            OptionId = SeedQualityOption1Id
+        };
 
+        var result = await _service!.UpdateRatingAsync(TestQualityRating1Id, request, ct);
+        _checks.OutputFailureCheck(result, "not found", "UpdateRatingAsync", HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    public async Task UpdateRatingAsync_InactiveGroup_ReturnsNotFound()
+    {
+        _context!.QualityRatings.Add(new QualityRating
+        {
+            QualityRatingId = TestQualityRating4Id,
+            QualityOptionId = TestQualityOption7Id,
+            UserId = SeedUser2NonAdminId,
+            GroupVenueId = TestGroupVenue10Id
+        }
+        );
+        _context.SaveChanges();
+
+        var request = new UpdateRatingRequest
+        {
+            OptionId = TestQualityOption7Id
+        };
+
+        var result = await _service!.UpdateRatingAsync(TestQualityRating4Id, request, ct);
+        _checks.OutputFailureCheck(result, "not found", "UpdateRatingAsync", HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    public async Task UpdateRatingAsync_InvalidOptionId_ReturnsBadRequest()
+    {
+        var request = new UpdateRatingRequest
+        {
+            OptionId = TestQualityOption5Id
+        };
+
+        var result = await _service!.UpdateRatingAsync(TestQualityRating2Id, request, ct);
+        _checks.OutputFailureCheck(result, "invalid option", "UpdateRatingAsync", HttpStatusCode.BadRequest);
+    }
+
+    [Fact]
+    public async Task UpdateRatingAsync_ValidRequest_ReturnsOK()
+    {
+        var request = new UpdateRatingRequest
+        {
+            OptionId = SeedQualityOption1Id
+        };
+
+        var result = await _service!.UpdateRatingAsync(TestQualityRating2Id, request, ct);
+        _checks.OutputSuccessCheck(result, "success", "UpdateRatingAsync", HttpStatusCode.OK);
+
+        _context!.QualityRatings.Should().ContainSingle(e => e.UserId == SeedUser2NonAdminId && e.GroupVenueId == TestGroupVenue1Id
+            && e.QualityOptionId == SeedQualityOption1Id && e.QualityRatingId == TestQualityRating2Id);
+    }
     #endregion
 
     #region DeleteRatingAsync

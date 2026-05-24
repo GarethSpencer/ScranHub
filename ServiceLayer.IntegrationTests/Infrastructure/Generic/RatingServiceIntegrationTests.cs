@@ -90,7 +90,7 @@ public abstract class RatingServiceIntegrationTests<TService>(DatabaseFixture fi
     }
 
     [Fact]
-    public async Task CreateRatingAsync_InvalidOptionId_ReturnsBadRequest()
+    public async Task CreateRatingAsync_EmptyOptionId_ReturnsBadRequest()
     {
         var request = new CreateRatingRequest
         {
