@@ -68,7 +68,7 @@ public abstract class RatingService<TRatingRepository, TRatingOptionRepository>(
         var options = await _ratingOptionRepository.GetForGroupIdAsync(groupVenue.GroupId, ct);
         if (!options.Any(qo => qo.OptionId == request.OptionId))
         {
-            return new CommonResponse
+            return new CommonResponse //TODO invalid non-empty optionId
             {
                 StatusCode = HttpStatusCode.BadRequest,
                 Message = "Invalid option provided."
@@ -78,7 +78,7 @@ public abstract class RatingService<TRatingRepository, TRatingOptionRepository>(
         var isRatedAlready = await _ratingRepository.ExistsAsync(request.GroupVenueId, callingUserId, ct);
         if (isRatedAlready)
         {
-            return new CommonResponse
+            return new CommonResponse //TODO
             {
                 StatusCode = HttpStatusCode.BadRequest,
                 Message = "You have already rated this venue."
@@ -88,7 +88,7 @@ public abstract class RatingService<TRatingRepository, TRatingOptionRepository>(
         var ratingId = await _ratingRepository.CreateAsync(callingUserId, request, ct);
         await _unitOfWork.SaveChangesAsync(ct);
 
-        return new AddRatingResponse
+        return new AddRatingResponse //TODO
         {
             StatusCode = HttpStatusCode.Created,
             Message = "Rating posted successfully.",
@@ -111,7 +111,7 @@ public abstract class RatingService<TRatingRepository, TRatingOptionRepository>(
         var currentRating = await _ratingRepository.GetDetailsByIdAsync(ratingId, ct);
         if (currentRating == null || currentRating.UserId != callingUserId)
         {
-            return new CommonResponse
+            return new CommonResponse //TODO wrong userId
             {
                 StatusCode = HttpStatusCode.NotFound,
                 Message = "Rating was not found."
@@ -119,7 +119,7 @@ public abstract class RatingService<TRatingRepository, TRatingOptionRepository>(
         }
 
         var groupVenue = await _groupVenueRepository.GetByIdAsync(currentRating.GroupVenueId, ct);
-        if (groupVenue == null)
+        if (groupVenue == null) //TODO
         {
             return new CommonResponse
             {
@@ -131,7 +131,7 @@ public abstract class RatingService<TRatingRepository, TRatingOptionRepository>(
         var options = await _ratingOptionRepository.GetForGroupIdAsync(groupVenue.GroupId, ct);
         if (!options.Any(qo => qo.OptionId == request.OptionId))
         {
-            return new AddRatingResponse
+            return new CommonResponse //TODO
             {
                 StatusCode = HttpStatusCode.BadRequest,
                 Message = "Invalid option provided."
@@ -141,7 +141,7 @@ public abstract class RatingService<TRatingRepository, TRatingOptionRepository>(
         await _ratingRepository.UpdateAsync(ratingId, request, ct);
         await _unitOfWork.SaveChangesAsync(ct);
 
-        return new CommonResponse
+        return new CommonResponse //TODO
         {
             StatusCode = HttpStatusCode.OK,
             Message = "Rating updated successfully."
@@ -163,7 +163,7 @@ public abstract class RatingService<TRatingRepository, TRatingOptionRepository>(
         var currentRating = await _ratingRepository.GetDetailsByIdAsync(ratingId, ct);
         if (currentRating == null || currentRating.UserId != callingUserId)
         {
-            return new CommonResponse
+            return new CommonResponse //TODO wrong userId
             {
                 StatusCode = HttpStatusCode.NotFound,
                 Message = "Rating was not found."
@@ -173,7 +173,7 @@ public abstract class RatingService<TRatingRepository, TRatingOptionRepository>(
         await _ratingRepository.DeleteAsync(ratingId, ct);
         await _unitOfWork.SaveChangesAsync(ct);
 
-        return new CommonResponse
+        return new CommonResponse //TODO
         {
             StatusCode = HttpStatusCode.OK,
             Message = "Rating deleted successfully."
@@ -195,14 +195,14 @@ public abstract class RatingService<TRatingRepository, TRatingOptionRepository>(
         var rating = await _ratingRepository.GetDetailsByIdAsync(ratingId, ct);
         if (rating == null || rating.UserId != callingUserId)
         {
-            return new CommonResponse
+            return new CommonResponse //TODO wrong userId
             {
                 StatusCode = HttpStatusCode.NotFound,
                 Message = "Rating was not found."
             }.WithResponseLog(_logger, callingUserId);
         }
 
-        return new GetRatingResponse
+        return new GetRatingResponse //TODO
         {
             StatusCode = HttpStatusCode.OK,
             Message = "Rating retrieved successfully.",
@@ -228,7 +228,7 @@ public abstract class RatingService<TRatingRepository, TRatingOptionRepository>(
             return new CommonResponse
             {
                 StatusCode = HttpStatusCode.NotFound,
-                Message = "Venue not found."
+                Message = "Venue was not found."
             }.WithResponseLog(_logger, callingUserId);
         }
 
@@ -238,13 +238,13 @@ public abstract class RatingService<TRatingRepository, TRatingOptionRepository>(
             return new CommonResponse
             {
                 StatusCode = HttpStatusCode.Forbidden,
-                Message = "You do not have permission to rate this venue."
+                Message = "You do not have permission to get ratings for this venue."
             }.WithResponseLog(_logger, callingUserId);
         }
 
         var ratings = await _ratingRepository.GetDetailsByGroupVenueIdAsync(groupVenueId, ct);
 
-        return new GetRatingsResponse
+        return new GetRatingsResponse //TODO
         {
             StatusCode = HttpStatusCode.OK,
             Message = "Ratings retrieved successfully.",
@@ -276,7 +276,7 @@ public abstract class RatingService<TRatingRepository, TRatingOptionRepository>(
 
         var ratings = await _ratingRepository.GetUserDetailsForGroupAsync(callingUserId, groupId, ct);
 
-        return new GetRatingsResponse
+        return new GetRatingsResponse //TODO
         {
             StatusCode = HttpStatusCode.OK,
             Message = "Ratings retrieved successfully.",

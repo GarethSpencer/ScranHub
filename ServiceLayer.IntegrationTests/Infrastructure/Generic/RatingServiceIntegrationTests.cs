@@ -62,6 +62,45 @@ public abstract class RatingServiceIntegrationTests<TService>(DatabaseFixture fi
         var result = await _service!.CreateRatingAsync(request, ct);
         _checks.OutputFailureCheck(result, "unauthorized", "CreateRatingAsync", HttpStatusCode.Unauthorized);
     }
+
+    [Fact]
+    public async Task CreateRatingAsync_InvalidVenue_ReturnsNotFound()
+    {
+        var request = new CreateRatingRequest
+        {
+            GroupVenueId = Guid.Empty,
+            OptionId = Guid.Empty
+        };
+
+        var result = await _service!.CreateRatingAsync(request, ct);
+        _checks.OutputFailureCheck(result, "not found", "CreateRatingAsync", HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    public async Task CreateRatingAsync_UserNotInGroup_ReturnsForbidden()
+    {
+        var request = new CreateRatingRequest
+        {
+            GroupVenueId = TestGroupVenue5Id,
+            OptionId = Guid.Empty
+        };
+
+        var result = await _service!.CreateRatingAsync(request, ct);
+        _checks.OutputFailureCheck(result, "permission", "CreateRatingAsync", HttpStatusCode.Forbidden);
+    }
+
+    [Fact]
+    public async Task CreateRatingAsync_InvalidOptionId_ReturnsBadRequest()
+    {
+        var request = new CreateRatingRequest
+        {
+            GroupVenueId = TestGroupVenue1Id,
+            OptionId = Guid.Empty
+        };
+
+        var result = await _service!.CreateRatingAsync(request, ct);
+        _checks.OutputFailureCheck(result, "invalid option", "CreateRatingAsync", HttpStatusCode.BadRequest);
+    }
     #endregion
 
     #region UpdateRatingAsync
@@ -78,6 +117,18 @@ public abstract class RatingServiceIntegrationTests<TService>(DatabaseFixture fi
         var result = await _service!.UpdateRatingAsync(Guid.Empty, request, ct);
         _checks.OutputFailureCheck(result, "unauthorized", "UpdateRatingAsync", HttpStatusCode.Unauthorized);
     }
+
+    [Fact]
+    public async Task UpdateRatingAsync_InvalidRatingId_ReturnsNotFound()
+    {
+        var request = new UpdateRatingRequest
+        {
+            OptionId = Guid.Empty
+        };
+
+        var result = await _service!.UpdateRatingAsync(Guid.Empty, request, ct);
+        _checks.OutputFailureCheck(result, "not found", "UpdateRatingAsync", HttpStatusCode.NotFound);
+    }
     #endregion
 
     #region DeleteRatingAsync
@@ -88,6 +139,13 @@ public abstract class RatingServiceIntegrationTests<TService>(DatabaseFixture fi
 
         var result = await _service!.DeleteRatingAsync(Guid.Empty, ct);
         _checks.OutputFailureCheck(result, "unauthorized", "DeleteRatingAsync", HttpStatusCode.Unauthorized);
+    }
+
+    [Fact]
+    public async Task DeleteRatingAsync_InvalidRatingId_ReturnsNotFound()
+    {
+        var result = await _service!.DeleteRatingAsync(Guid.Empty, ct);
+        _checks.OutputFailureCheck(result, "not found", "DeleteRatingAsync", HttpStatusCode.NotFound);
     }
     #endregion
 
@@ -100,6 +158,13 @@ public abstract class RatingServiceIntegrationTests<TService>(DatabaseFixture fi
         var result = await _service!.GetRatingAsync(Guid.Empty, ct);
         _checks.OutputFailureCheck(result, "unauthorized", "GetRatingAsync", HttpStatusCode.Unauthorized);
     }
+
+    [Fact]
+    public async Task GetRatingAsync_InvalidRatingId_ReturnsNotFound()
+    {
+        var result = await _service!.GetRatingAsync(Guid.Empty, ct);
+        _checks.OutputFailureCheck(result, "not found", "GetRatingAsync", HttpStatusCode.NotFound);
+    }
     #endregion
 
     #region GetRatingsForGroupVenueAsync
@@ -111,6 +176,20 @@ public abstract class RatingServiceIntegrationTests<TService>(DatabaseFixture fi
         var result = await _service!.GetRatingsForGroupVenueAsync(TestGroupVenue1Id, ct);
         _checks.OutputFailureCheck(result, "unauthorized", "GetRatingsForGroupVenueAsync", HttpStatusCode.Unauthorized);
     }
+
+    [Fact]
+    public async Task GetRatingsForGroupVenueAsync_InvalidGroupVenue_ReturnsNotFound()
+    {
+        var result = await _service!.GetRatingsForGroupVenueAsync(Guid.Empty, ct);
+        _checks.OutputFailureCheck(result, "not found", "GetRatingsForGroupVenueAsync", HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    public async Task GetRatingsForGroupVenueAsync_UserNotInGroup_ReturnsForbidden()
+    {
+        var result = await _service!.GetRatingsForGroupVenueAsync(TestGroupVenue5Id, ct);
+        _checks.OutputFailureCheck(result, "permission", "GetRatingsForGroupVenueAsync", HttpStatusCode.Forbidden);
+    }
     #endregion
 
     #region GetUserRatingsForGroupAsync
@@ -121,6 +200,20 @@ public abstract class RatingServiceIntegrationTests<TService>(DatabaseFixture fi
 
         var result = await _service!.GetUserRatingsForGroupAsync(TestGroup1Id, ct);
         _checks.OutputFailureCheck(result, "unauthorized", "GetUserRatingsForGroupAsync", HttpStatusCode.Unauthorized);
+    }
+
+    [Fact]
+    public async Task GetUserRatingsForGroupAsync_InvalidGroupId_ReturnsForbidden()
+    {
+        var result = await _service!.GetUserRatingsForGroupAsync(Guid.Empty, ct);
+        _checks.OutputFailureCheck(result, "permission", "GetUserRatingsForGroupAsync", HttpStatusCode.Forbidden);
+    }
+
+    [Fact]
+    public async Task GetUserRatingsForGroupAsync_UserNotInGroup_ReturnsForbidden()
+    {
+        var result = await _service!.GetUserRatingsForGroupAsync(TestGroup3Id, ct);
+        _checks.OutputFailureCheck(result, "permission", "GetUserRatingsForGroupAsync", HttpStatusCode.Forbidden);
     }
     #endregion
 
