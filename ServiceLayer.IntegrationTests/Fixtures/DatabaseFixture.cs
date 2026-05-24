@@ -224,6 +224,15 @@ public class DatabaseFixture : IAsyncLifetime
             Visited = false,
             GroupId = TestGroup3Id,
             VenueName = TestGroupVenue9Name
+        },
+        new GroupVenue
+        {
+            GroupVenueId = TestGroupVenue10Id,
+            Visited = false,
+            GroupId = TestGroup2Id,
+            VenueName = TestGroupVenue10Name,
+            FoodTypeOptionId = TestFoodTypeOption9Id,
+            VenueTypeOptionId = TestVenueTypeOption6Id
         }
         );
 
@@ -238,6 +247,12 @@ public class DatabaseFixture : IAsyncLifetime
             FoodTypeOptionId = TestFoodTypeOption8Id,
             Label = TestFoodTypeOption8Label,
             GroupId = TestGroup3Id
+        },
+        new FoodTypeOption
+        {
+            FoodTypeOptionId = TestFoodTypeOption9Id,
+            Label = TestFoodTypeOption9Label,
+            GroupId = TestGroup2Id
         }
         );
 
@@ -252,6 +267,12 @@ public class DatabaseFixture : IAsyncLifetime
             VenueTypeOptionId = TestVenueTypeOption5Id,
             Label = TestVenueTypeOption5Label,
             GroupId = TestGroup3Id
+        },
+        new VenueTypeOption
+        {
+            VenueTypeOptionId = TestVenueTypeOption6Id,
+            Label = TestVenueTypeOption6Label,
+            GroupId = TestGroup2Id
         }
         );
 

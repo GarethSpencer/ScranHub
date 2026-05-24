@@ -208,4 +208,6 @@ public class VenueTypeOptionServiceIntegrationTests(DatabaseFixture fixture)
         }
     }
     #endregion
+
+    //OptionId-specific tests covered in FoodTypeOptionServiceIntegrationTests to avoid duplication
 }

@@ -86,7 +86,7 @@ public abstract class TypeOptionService<TTypeOptionRepository>(ITokenData tokenD
         var optionId = await _typeOptionRepository.AddAsync(request, ct);
         await _unitOfWork.SaveChangesAsync(ct);
 
-        return new SetOptionResponse //TODO
+        return new SetOptionResponse
         {
             StatusCode = HttpStatusCode.Created,
             Message = "New type option added successfully.",
@@ -109,7 +109,7 @@ public abstract class TypeOptionService<TTypeOptionRepository>(ITokenData tokenD
         var option = await _typeOptionRepository.GetByIdAsync(optionId, ct);
         if (option == null || option.GroupId == null)
         {
-            return new CommonResponse //TODO default
+            return new CommonResponse
             {
                 StatusCode = HttpStatusCode.NotFound,
                 Message = "The option was not found."
@@ -119,7 +119,7 @@ public abstract class TypeOptionService<TTypeOptionRepository>(ITokenData tokenD
         var group = await _groupRepository.GetDetailsByIdAsync(option.GroupId.Value, ct);
         if (group!.Active != true)
         {
-            return new CommonResponse //TODO
+            return new CommonResponse
             {
                 StatusCode = HttpStatusCode.NotFound,
                 Message = "The group was not found."
@@ -129,7 +129,7 @@ public abstract class TypeOptionService<TTypeOptionRepository>(ITokenData tokenD
         var isUserInGroup = await _userGroupRepository.IsUserInGroupAsync(option.GroupId.Value, callingUserId, ct);
         if (!isUserInGroup)
         {
-            return new CommonResponse //TODO
+            return new CommonResponse
             {
                 StatusCode = HttpStatusCode.Forbidden,
                 Message = "You do not have permission to update options for this group."
@@ -139,7 +139,7 @@ public abstract class TypeOptionService<TTypeOptionRepository>(ITokenData tokenD
         var currentOptions = await _typeOptionRepository.GetForGroupIdAsync(option.GroupId.Value, ct);
         if (currentOptions.Any(x => x.OptionId != optionId && string.Equals(x.Label, request.Label, StringComparison.OrdinalIgnoreCase)))
         {
-            return new CommonResponse //TODO
+            return new CommonResponse
             {
                 StatusCode = HttpStatusCode.Conflict,
                 Message = "An option with that label already exists for this group."
@@ -149,9 +149,9 @@ public abstract class TypeOptionService<TTypeOptionRepository>(ITokenData tokenD
         await _typeOptionRepository.UpdateAsync(optionId, request.Label, ct);
         await _unitOfWork.SaveChangesAsync(ct);
 
-        return new CommonResponse //TODO
+        return new CommonResponse
         {
-            StatusCode = HttpStatusCode.Created,
+            StatusCode = HttpStatusCode.OK,
             Message = "Type option updated successfully.",
         }.WithResponseLog(_logger, callingUserId, $"Type option [{optionId}] updated successfully.");
     }
@@ -171,7 +171,7 @@ public abstract class TypeOptionService<TTypeOptionRepository>(ITokenData tokenD
         var option = await _typeOptionRepository.GetByIdAsync(optionId, ct);
         if (option == null || option.GroupId == null)
         {
-            return new CommonResponse //TODO default
+            return new CommonResponse
             {
                 StatusCode = HttpStatusCode.NotFound,
                 Message = "The option was not found."
@@ -181,7 +181,7 @@ public abstract class TypeOptionService<TTypeOptionRepository>(ITokenData tokenD
         var group = await _groupRepository.GetDetailsByIdAsync(option.GroupId.Value, ct);
         if (group!.Active != true)
         {
-            return new CommonResponse //TODO
+            return new CommonResponse
             {
                 StatusCode = HttpStatusCode.NotFound,
                 Message = "The group was not found."
@@ -191,7 +191,7 @@ public abstract class TypeOptionService<TTypeOptionRepository>(ITokenData tokenD
         var isUserInGroup = await _userGroupRepository.IsUserInGroupAsync(option.GroupId.Value, callingUserId, ct);
         if (!isUserInGroup)
         {
-            return new CommonResponse //TODO
+            return new CommonResponse
             {
                 StatusCode = HttpStatusCode.Forbidden,
                 Message = "You do not have permission to delete options for this group."
@@ -201,7 +201,7 @@ public abstract class TypeOptionService<TTypeOptionRepository>(ITokenData tokenD
         var isOptionUsed = await _groupRepository.AreAnyVenuesUsingOptionIdAsync(option.GroupId.Value, optionId, ct);
         if (isOptionUsed)
         {
-            return new CommonResponse //TODO
+            return new CommonResponse
             {
                 StatusCode = HttpStatusCode.BadRequest,
                 Message = "Cannot delete this option because it is applied to a venue. Amend venues to other types first."
@@ -211,7 +211,7 @@ public abstract class TypeOptionService<TTypeOptionRepository>(ITokenData tokenD
         await _typeOptionRepository.DeleteAsync(optionId, ct);
         await _unitOfWork.SaveChangesAsync(ct);
 
-        return new CommonResponse //TODO
+        return new CommonResponse
         {
             StatusCode = HttpStatusCode.OK,
             Message = "Type option deleted successfully.",
@@ -255,7 +255,7 @@ public abstract class TypeOptionService<TTypeOptionRepository>(ITokenData tokenD
 
         var options = await _typeOptionRepository.GetForGroupIdAsync(groupId, ct);
 
-        return new GetTypeOptionsResponse //TODO
+        return new GetTypeOptionsResponse
         {
             StatusCode = HttpStatusCode.OK,
             Message = "Type options retrieved successfully.",
@@ -287,10 +287,10 @@ public abstract class TypeOptionService<TTypeOptionRepository>(ITokenData tokenD
 
         if (option.GroupId == null)
         {
-            return new GetTypeOptionResponse //TODO
+            return new GetTypeOptionResponse
             {
                 StatusCode = HttpStatusCode.OK,
-                Message = "Option retrieved successfully.",
+                Message = "Default option retrieved successfully.",
                 Option = option
             }.WithResponseLog(_logger, callingUserId);
         }
@@ -298,7 +298,7 @@ public abstract class TypeOptionService<TTypeOptionRepository>(ITokenData tokenD
         var group = await _groupRepository.GetDetailsByIdAsync(option.GroupId.Value, ct);
         if (group!.Active != true)
         {
-            return new CommonResponse //TODO
+            return new CommonResponse
             {
                 StatusCode = HttpStatusCode.NotFound,
                 Message = "The group was not found."
@@ -308,14 +308,14 @@ public abstract class TypeOptionService<TTypeOptionRepository>(ITokenData tokenD
         var isUserInGroup = await _userGroupRepository.IsUserInGroupAsync(option.GroupId.Value, callingUserId, ct);
         if (!isUserInGroup)
         {
-            return new CommonResponse //TODO
+            return new CommonResponse
             {
                 StatusCode = HttpStatusCode.Forbidden,
                 Message = "You do not have permission to view options for this group."
             }.WithResponseLog(_logger, callingUserId);
         }
 
-        return new GetTypeOptionResponse //TODO
+        return new GetTypeOptionResponse
         {
             StatusCode = HttpStatusCode.OK,
             Message = "Option retrieved successfully.",
