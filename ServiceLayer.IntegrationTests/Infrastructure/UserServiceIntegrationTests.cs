@@ -83,7 +83,7 @@ public class UserServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
 
         var typedResult = result.Should().BeOfType<UserFriendsResponse>().Subject;
         typedResult.UserId.Should().Be(SeedUser1AdminId);
-        typedResult.Friends?.Count().Should().Be(3);
+        typedResult.Friends!.Count().Should().Be(3);
         typedResult.FriendCount.Should().Be(1);
     }
 
@@ -97,7 +97,7 @@ public class UserServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
 
         var typedResult = result.Should().BeOfType<UserFriendsResponse>().Subject;
         typedResult.UserId.Should().Be(SeedUser2NonAdminId);
-        typedResult.Friends?.Count().Should().Be(1);
+        typedResult.Friends!.Count().Should().Be(1);
         typedResult.FriendCount.Should().Be(1);
     }
 
@@ -111,7 +111,7 @@ public class UserServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
 
         var typedResult = result.Should().BeOfType<UserFriendsResponse>().Subject;
         typedResult.UserId.Should().Be(TestUser3AdminId);
-        typedResult.Friends?.Count().Should().Be(1);
+        typedResult.Friends!.Count().Should().Be(1);
         typedResult.FriendCount.Should().Be(0);
     }
 
@@ -125,7 +125,7 @@ public class UserServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
 
         var typedResult = result.Should().BeOfType<UserFriendsResponse>().Subject;
         typedResult.UserId.Should().Be(TestUser4NonAdminId);
-        typedResult.Friends?.Count().Should().Be(1);
+        typedResult.Friends!.Count().Should().Be(1);
         typedResult.FriendCount.Should().Be(0);
     }
 
@@ -139,7 +139,7 @@ public class UserServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
 
         var typedResult = result.Should().BeOfType<UserFriendsResponse>().Subject;
         typedResult.UserId.Should().Be(TestUser5NonAdminId);
-        typedResult.Friends?.Count().Should().Be(1);
+        typedResult.Friends!.Count().Should().Be(1);
         typedResult.FriendCount.Should().Be(1);
     }
     #endregion

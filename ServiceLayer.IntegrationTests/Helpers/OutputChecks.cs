@@ -12,7 +12,7 @@ public class OutputChecks<T>(FakeLogger<T> logger) where T : class
     internal void OutputFailureCheck(CommonResponse result, string errorText, string methodName, HttpStatusCode code)
     {
         result.StatusCode.Should().Be(code);
-        result.Message?.ToLowerInvariant().Should().Contain(errorText.ToLowerInvariant());
+        result.Message!.ToLowerInvariant().Should().Contain(errorText.ToLowerInvariant());
 
         _logger.Entries.Should().ContainSingle(e =>
             e.Level == LogLevel.Warning &&
@@ -22,7 +22,7 @@ public class OutputChecks<T>(FakeLogger<T> logger) where T : class
     internal void OutputSuccessCheck(CommonResponse result, string successText, string methodName, HttpStatusCode code)
     {
         result.StatusCode.Should().Be(code);
-        result.Message?.ToLowerInvariant().Should().Contain(successText.ToLowerInvariant());
+        result.Message!.ToLowerInvariant().Should().Contain(successText.ToLowerInvariant());
 
         _logger.Entries.Should().ContainSingle(e =>
             e.Level == LogLevel.Information &&
