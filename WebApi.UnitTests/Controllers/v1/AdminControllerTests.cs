@@ -65,7 +65,7 @@ public class AdminControllerTests
     }
 
     [Fact]
-    public async Task GetAllUsers_ServiceReturnsNonOkStatus_MapsStatusCodeCorrectly()
+    public async Task GetAllUsers_ValidRequest_ReturnsCorrectResult()
     {
         SetupValidatorPass();
         var request = new PaginationBaseRequest { PageNumber = 1, PageSize = 10 };
@@ -78,19 +78,6 @@ public class AdminControllerTests
         var statusCodeResult = Assert.IsType<ObjectResult>(result);
         Assert.Equal(StatusCodes.Status200OK, statusCodeResult.StatusCode);
         Assert.Equal(expectedResponse, statusCodeResult.Value);
-    }
-
-    [Fact]
-    public async Task GetAllUsers_ValidRequest_PassesRequestToService()
-    {
-        SetupValidatorPass();
-        var request = new PaginationBaseRequest { PageNumber = 1, PageSize = 10 };
-        var expectedResponse = new GetUsersDetailedResponse { StatusCode = HttpStatusCode.OK };
-        _userServiceMock.Setup(s => s.GetAllUsersAsync(It.IsAny<PaginationBaseRequest>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(expectedResponse);
-
-        await _sut.GetAllUsers(request, ct);
-
         _userServiceMock.Verify(s => s.GetAllUsersAsync(request, It.IsAny<CancellationToken>()), Times.Once);
     }
 
@@ -116,7 +103,7 @@ public class AdminControllerTests
     }
 
     [Fact]
-    public async Task GetAllGroups_ValidRequest_ReturnsServiceStatusCodeAndBody()
+    public async Task GetAllGroups_ValidRequest_ReturnsCorrectResult()
     {
         SetupValidatorPass();
         var request = new PaginationBaseRequest { PageNumber = 1, PageSize = 10 };
@@ -129,19 +116,6 @@ public class AdminControllerTests
         var statusCodeResult = Assert.IsType<ObjectResult>(result);
         Assert.Equal(StatusCodes.Status200OK, statusCodeResult.StatusCode);
         Assert.Equal(expectedResponse, statusCodeResult.Value);
-    }
-
-    [Fact]
-    public async Task GetAllGroups_ValidRequest_PassesRequestToService()
-    {
-        SetupValidatorPass();
-        var request = new PaginationBaseRequest { PageNumber = 1, PageSize = 10 };
-        var expectedResponse = new GetUsersDetailedResponse { StatusCode = HttpStatusCode.OK };
-        _groupServiceMock.Setup(s => s.GetAllGroupsAsync(It.IsAny<PaginationBaseRequest>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(expectedResponse);
-
-        await _sut.GetAllGroups(request, ct);
-
         _groupServiceMock.Verify(s => s.GetAllGroupsAsync(request, It.IsAny<CancellationToken>()), Times.Once);
     }
 }
