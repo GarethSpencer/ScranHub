@@ -3,6 +3,7 @@ using RepositoryLayer.Abstractions;
 using RepositoryLayer.Abstractions.Generic;
 using ServiceLayer.Abstractions.Generic;
 using System.Net;
+using Utilities.Helpers;
 using Utilities.Models.Requests.Ratings;
 using Utilities.Models.Responses.Generic;
 using Utilities.Models.Responses.Ratings;
@@ -36,237 +37,209 @@ public abstract class RatingService<TRatingRepository, TRatingOptionRepository>(
     {
         if (!_tokenData.UserId.HasValue)
         {
-            _logger.LogWarning("CreateRatingAsync called with no authenticated user.");
             return new CommonResponse
             {
                 StatusCode = HttpStatusCode.Unauthorized,
                 Message = "Unauthorized."
-            };
+            }.WithResponseLog(_logger);
         }
 
-        var userId = _tokenData.UserId!.Value;
+        var callingUserId = _tokenData.UserId!.Value;
         var groupVenue = await _groupVenueRepository.GetByIdAsync(request.GroupVenueId, ct);
-
         if (groupVenue == null)
         {
-            _logger.LogWarning("Group venue {GroupVenueId} not found for user {UserId}.", request.GroupVenueId, userId);
             return new CommonResponse
             {
                 StatusCode = HttpStatusCode.NotFound,
-                Message = "Venue not found."
-            };
+                Message = "Venue was not found."
+            }.WithResponseLog(_logger, callingUserId);
         }
 
-        var isUserInGroup = await _userGroupRepository.IsUserInGroupAsync(groupVenue.GroupId, userId, ct);
+        var isUserInGroup = await _userGroupRepository.IsUserInGroupAsync(groupVenue.GroupId, callingUserId, ct);
         if (!isUserInGroup)
         {
-            _logger.LogWarning("User {UserId} is not a member of group {GroupId}.", userId, groupVenue.GroupId);
             return new CommonResponse
             {
                 StatusCode = HttpStatusCode.Forbidden,
                 Message = "You do not have permission to rate this venue."
-            };
+            }.WithResponseLog(_logger, callingUserId);
         }
 
         var options = await _ratingOptionRepository.GetForGroupIdAsync(groupVenue.GroupId, ct);
         if (!options.Any(qo => qo.OptionId == request.OptionId))
         {
-            _logger.LogWarning("Invalid quality option ID {QualityOptionId} provided for group {GroupId}.", request.OptionId, groupVenue.GroupId);
             return new CommonResponse
             {
                 StatusCode = HttpStatusCode.BadRequest,
-                Message = "Invalid quality option provided."
-            };
+                Message = "Invalid option provided."
+            }.WithResponseLog(_logger, callingUserId);
         }
 
-        var isRatedAlready = await _ratingRepository.ExistsAsync(request.GroupVenueId, userId, ct);
+        var isRatedAlready = await _ratingRepository.ExistsAsync(request.GroupVenueId, callingUserId, ct);
         if (isRatedAlready)
         {
-            _logger.LogWarning("Quality rating for venue {GroupVenueId} already exists for user {UserId}.", request.GroupVenueId, userId);
             return new CommonResponse
             {
                 StatusCode = HttpStatusCode.BadRequest,
-                Message = "You have already rated the quality of this venue."
-            };
+                Message = "You have already rated this venue."
+            }.WithResponseLog(_logger, callingUserId);
         }
 
-        var ratingId = await _ratingRepository.CreateAsync(userId, request, ct);
-
+        var ratingId = await _ratingRepository.CreateAsync(callingUserId, request, ct);
         await _unitOfWork.SaveChangesAsync(ct);
-        _logger.LogInformation("Quality rating {QualityRatingId} created successfully for user {UserId}.", ratingId, userId);
 
         return new AddRatingResponse
         {
             StatusCode = HttpStatusCode.Created,
-            Message = $"Quality rating created successfully.",
+            Message = "Rating posted successfully.",
             RatingId = ratingId
-        };
+        }.WithResponseLog(_logger, callingUserId, $"Rating [{ratingId}] posted successfully.");
     }
 
     public async Task<CommonResponse> UpdateRatingAsync(Guid ratingId, UpdateRatingRequest request, CancellationToken ct)
     {
         if (!_tokenData.UserId.HasValue)
         {
-            _logger.LogWarning("UpdateRatingAsync called with no authenticated user.");
             return new CommonResponse
             {
                 StatusCode = HttpStatusCode.Unauthorized,
                 Message = "Unauthorized."
-            };
+            }.WithResponseLog(_logger);
         }
 
-        var userId = _tokenData.UserId!.Value;
-
+        var callingUserId = _tokenData.UserId!.Value;
         var currentRating = await _ratingRepository.GetDetailsByIdAsync(ratingId, ct);
-        if (currentRating == null || currentRating.UserId != userId)
+        if (currentRating == null || currentRating.UserId != callingUserId)
         {
-            _logger.LogWarning("Quality rating {QualityRatingId} not found for user {UserId}.", ratingId, userId);
             return new CommonResponse
             {
                 StatusCode = HttpStatusCode.NotFound,
-                Message = "Rating not found."
-            };
+                Message = "Rating was not found."
+            }.WithResponseLog(_logger, callingUserId);
         }
 
         var groupVenue = await _groupVenueRepository.GetByIdAsync(currentRating.GroupVenueId, ct);
         if (groupVenue == null)
         {
-            _logger.LogWarning("Active group venue {GroupVenueId} not found for quality rating {QualityRatingId}.", currentRating.GroupVenueId, ratingId);
             return new CommonResponse
             {
                 StatusCode = HttpStatusCode.NotFound,
                 Message = "Associated venue not found for this rating."
-            };
+            }.WithResponseLog(_logger, callingUserId);
         }
 
         var options = await _ratingOptionRepository.GetForGroupIdAsync(groupVenue.GroupId, ct);
         if (!options.Any(qo => qo.OptionId == request.OptionId))
         {
-            _logger.LogWarning("Invalid quality option ID {QualityOptionId} provided for group {GroupId}.", request.OptionId, groupVenue.GroupId);
             return new AddRatingResponse
             {
                 StatusCode = HttpStatusCode.BadRequest,
-                Message = "Invalid quality option provided."
-            };
+                Message = "Invalid option provided."
+            }.WithResponseLog(_logger, callingUserId);
         }
 
         await _ratingRepository.UpdateAsync(ratingId, request, ct);
-
         await _unitOfWork.SaveChangesAsync(ct);
-        _logger.LogInformation("Quality rating {QualityRatingId} updated successfully for user {UserId}.", ratingId, userId);
 
         return new CommonResponse
         {
             StatusCode = HttpStatusCode.OK,
-            Message = "Quality rating updated successfully."
-        };
+            Message = "Rating updated successfully."
+        }.WithResponseLog(_logger, callingUserId, $"Rating [{ratingId}] updated successfully.");
     }
 
     public async Task<CommonResponse> DeleteRatingAsync(Guid ratingId, CancellationToken ct)
     {
         if (!_tokenData.UserId.HasValue)
         {
-            _logger.LogWarning("DeleteRatingAsync called with no authenticated user.");
             return new CommonResponse
             {
                 StatusCode = HttpStatusCode.Unauthorized,
                 Message = "Unauthorized."
-            };
+            }.WithResponseLog(_logger);
         }
 
-        var userId = _tokenData.UserId!.Value;
-
+        var callingUserId = _tokenData.UserId!.Value;
         var currentRating = await _ratingRepository.GetDetailsByIdAsync(ratingId, ct);
-
-        if (currentRating == null || currentRating.UserId != userId)
+        if (currentRating == null || currentRating.UserId != callingUserId)
         {
-            _logger.LogWarning("Quality rating {QualityRatingId} not found for user {UserId}.", ratingId, userId);
             return new CommonResponse
             {
                 StatusCode = HttpStatusCode.NotFound,
-                Message = "Rating not found."
-            };
+                Message = "Rating was not found."
+            }.WithResponseLog(_logger, callingUserId);
         }
 
         await _ratingRepository.DeleteAsync(ratingId, ct);
-
         await _unitOfWork.SaveChangesAsync(ct);
-        _logger.LogInformation("Quality rating {QualityRatingId} deleted successfully for user {UserId}.", ratingId, userId);
 
         return new CommonResponse
         {
             StatusCode = HttpStatusCode.OK,
-            Message = "Quality rating deleted successfully."
-        };
+            Message = "Rating deleted successfully."
+        }.WithResponseLog(_logger, callingUserId);
     }
 
     public async Task<CommonResponse> GetRatingAsync(Guid ratingId, CancellationToken ct)
     {
         if (!_tokenData.UserId.HasValue)
         {
-            _logger.LogWarning("GetRatingAsync called with no authenticated user.");
             return new CommonResponse
             {
                 StatusCode = HttpStatusCode.Unauthorized,
                 Message = "Unauthorized."
-            };
+            }.WithResponseLog(_logger);
         }
 
-        var userId = _tokenData.UserId!.Value;
-
+        var callingUserId = _tokenData.UserId!.Value;
         var rating = await _ratingRepository.GetDetailsByIdAsync(ratingId, ct);
-        if (rating == null || rating.UserId != userId)
+        if (rating == null || rating.UserId != callingUserId)
         {
-            _logger.LogWarning("Quality rating {QualityRatingId} not found for user {UserId}.", ratingId, userId);
             return new CommonResponse
             {
                 StatusCode = HttpStatusCode.NotFound,
-                Message = "Rating not found."
-            };
+                Message = "Rating was not found."
+            }.WithResponseLog(_logger, callingUserId);
         }
 
         return new GetRatingResponse
         {
             StatusCode = HttpStatusCode.OK,
-            Message = "Quality rating retrieved successfully.",
+            Message = "Rating retrieved successfully.",
             Rating = rating
-        };
+        }.WithResponseLog(_logger, callingUserId);
     }
 
     public async Task<CommonResponse> GetRatingsForGroupVenueAsync(Guid groupVenueId, CancellationToken ct)
     {
         if (!_tokenData.UserId.HasValue)
         {
-            _logger.LogWarning("GetRatingsForGroupVenueAsync called with no authenticated user.");
             return new CommonResponse
             {
                 StatusCode = HttpStatusCode.Unauthorized,
                 Message = "Unauthorized."
-            };
+            }.WithResponseLog(_logger);
         }
 
-        var userId = _tokenData.UserId!.Value;
-
+        var callingUserId = _tokenData.UserId!.Value;
         var groupVenue = await _groupVenueRepository.GetByIdAsync(groupVenueId, ct);
         if (groupVenue == null)
         {
-            _logger.LogWarning("Group venue {GroupVenueId} not found for user {UserId}.", groupVenueId, userId);
             return new CommonResponse
             {
                 StatusCode = HttpStatusCode.NotFound,
                 Message = "Venue not found."
-            };
+            }.WithResponseLog(_logger, callingUserId);
         }
 
-        var isUserInGroup = await _userGroupRepository.IsUserInGroupAsync(groupVenue.GroupId, userId, ct);
+        var isUserInGroup = await _userGroupRepository.IsUserInGroupAsync(groupVenue.GroupId, callingUserId, ct);
         if (!isUserInGroup)
         {
-            _logger.LogWarning("User {UserId} is not a member of group {GroupId}.", userId, groupVenue.GroupId);
             return new CommonResponse
             {
                 StatusCode = HttpStatusCode.Forbidden,
                 Message = "You do not have permission to rate this venue."
-            };
+            }.WithResponseLog(_logger, callingUserId);
         }
 
         var ratings = await _ratingRepository.GetDetailsByGroupVenueIdAsync(groupVenueId, ct);
@@ -274,43 +247,41 @@ public abstract class RatingService<TRatingRepository, TRatingOptionRepository>(
         return new GetRatingsResponse
         {
             StatusCode = HttpStatusCode.OK,
-            Message = "Quality ratings retrieved successfully.",
+            Message = "Ratings retrieved successfully.",
             Ratings = ratings
-        };
+        }.WithResponseLog(_logger, callingUserId);
     }
 
     public async Task<CommonResponse> GetUserRatingsForGroupAsync(Guid groupId, CancellationToken ct)
     {
         if (!_tokenData.UserId.HasValue)
         {
-            _logger.LogWarning("GetUserRatingsForGroupAsync called with no authenticated user.");
             return new CommonResponse
             {
                 StatusCode = HttpStatusCode.Unauthorized,
                 Message = "Unauthorized."
-            };
+            }.WithResponseLog(_logger);
         }
 
-        var userId = _tokenData.UserId!.Value;
-        var isUserInGroup = await _userGroupRepository.IsUserInGroupAsync(groupId, userId, ct);
+        var callingUserId = _tokenData.UserId!.Value;
+        var isUserInGroup = await _userGroupRepository.IsUserInGroupAsync(groupId, callingUserId, ct);
         if (!isUserInGroup)
         {
-            _logger.LogWarning("User {UserId} is not a member of group {GroupId}.", userId, groupId);
             return new CommonResponse
             {
                 StatusCode = HttpStatusCode.Forbidden,
                 Message = "You do not have permission to see ratings for this group."
-            };
+            }.WithResponseLog(_logger, callingUserId);
         }
 
-        var ratings = await _ratingRepository.GetUserDetailsForGroupAsync(userId, groupId, ct);
+        var ratings = await _ratingRepository.GetUserDetailsForGroupAsync(callingUserId, groupId, ct);
 
         return new GetRatingsResponse
         {
             StatusCode = HttpStatusCode.OK,
-            Message = "Quality ratings retrieved successfully.",
+            Message = "Ratings retrieved successfully.",
             Ratings = ratings
-        };
+        }.WithResponseLog(_logger, callingUserId);
     }
 
     public abstract Task<CommonResponse> GetRatingsForGroupAsync(Guid groupId, CancellationToken ct);

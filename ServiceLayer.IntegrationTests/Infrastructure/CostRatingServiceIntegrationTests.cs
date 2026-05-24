@@ -1,13 +1,12 @@
 ﻿using DAL.Data;
 using FluentAssertions;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage;
-using Moq;
 using RepositoryLayer.Infrastructure;
 using RepositoryLayer.Infrastructure.Generic;
+using ServiceLayer.Abstractions.Generic;
 using ServiceLayer.Infrastructure;
 using ServiceLayer.IntegrationTests.Fixtures;
 using ServiceLayer.IntegrationTests.Helpers;
+using ServiceLayer.IntegrationTests.Infrastructure.Generic;
 using System.Net;
 using Utilities.Models.Responses.Ratings;
 using Utilities.Token;
@@ -17,42 +16,23 @@ namespace ServiceLayer.IntegrationTests.Infrastructure;
 
 [Trait("Category", "Integration")]
 [Collection("Database")]
-public class CostRatingServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifetime
+public class CostRatingServiceIntegrationTests(DatabaseFixture fixture)
+    : RatingServiceIntegrationTests<CostRatingService>(fixture)
 {
-    private readonly DatabaseFixture _fixture = fixture;
-    private IDbContextTransaction? _transaction;
-    private ScranHubDbContext? _context;
-    private FakeLogger<CostRatingService> _logger = new();
-    private readonly Mock<ITokenData> _tokenData = new();
-    private OutputChecks<CostRatingService> _checks = new(new FakeLogger<CostRatingService>());
-    private CostRatingService? _service;
-    private static readonly CancellationToken ct = CancellationToken.None;
-
-    public async Task InitializeAsync()
-    {
-        _logger = new FakeLogger<CostRatingService>();
-        _checks = new OutputChecks<CostRatingService>(_logger);
-
-        var options = new DbContextOptionsBuilder<ScranHubDbContext>()
-            .UseSqlServer(_fixture.ConnectionString)
-            .Options;
-
-        _context = new ScranHubDbContext(options);
-        _transaction = await _context!.Database.BeginTransactionAsync();
-
-        _tokenData.Setup(x => x.UserId).Returns(SeedUser2NonAdminId);
-
-        _service = new CostRatingService(
-            tokenData: _tokenData.Object,
-            logger: _logger,
-            costRatingRepository: new CostRatingRepository(_context),
-            costOptionRepository: new CostOptionRepository(_context),
-            groupRepository: new GroupRepository(_context),
-            userGroupRepository: new UserGroupRepository(_context),
-            groupVenueRepository: new GroupVenueRepository(_context),
-            unitOfWork: new UnitOfWork(_context, _tokenData.Object)
-        );
-    }
+    protected override IRatingService CreateService(
+    ScranHubDbContext context,
+    ITokenData tokenData,
+    FakeLogger<CostRatingService> logger)
+    => new CostRatingService(
+        tokenData: tokenData,
+        logger: logger,
+        costRatingRepository: new CostRatingRepository(context),
+        costOptionRepository: new CostOptionRepository(context),
+        groupRepository: new GroupRepository(context),
+        userGroupRepository: new UserGroupRepository(context),
+        groupVenueRepository: new GroupVenueRepository(context),
+        unitOfWork: new UnitOfWork(context, tokenData)
+    );
 
     #region GetRatingsForGroupAsync
     [Fact]
@@ -93,9 +73,5 @@ public class CostRatingServiceIntegrationTests(DatabaseFixture fixture) : IAsync
     }
     #endregion
 
-    public async Task DisposeAsync()
-    {
-        await _transaction!.RollbackAsync();
-        await _context!.DisposeAsync();
-    }
+    //OptionId-specific tests covered in QualityRatingServiceIntegrationTests to avoid duplication
 }

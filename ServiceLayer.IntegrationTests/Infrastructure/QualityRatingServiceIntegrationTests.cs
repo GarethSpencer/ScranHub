@@ -1,13 +1,12 @@
 ﻿using DAL.Data;
 using FluentAssertions;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage;
-using Moq;
 using RepositoryLayer.Infrastructure;
 using RepositoryLayer.Infrastructure.Generic;
+using ServiceLayer.Abstractions.Generic;
 using ServiceLayer.Infrastructure;
 using ServiceLayer.IntegrationTests.Fixtures;
 using ServiceLayer.IntegrationTests.Helpers;
+using ServiceLayer.IntegrationTests.Infrastructure.Generic;
 using System.Net;
 using Utilities.Models.Responses.Ratings;
 using Utilities.Token;
@@ -17,42 +16,23 @@ namespace ServiceLayer.IntegrationTests.Infrastructure;
 
 [Trait("Category", "Integration")]
 [Collection("Database")]
-public class QualityRatingServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifetime
+public class QualityRatingServiceIntegrationTests(DatabaseFixture fixture)
+    : RatingServiceIntegrationTests<QualityRatingService>(fixture)
 {
-    private readonly DatabaseFixture _fixture = fixture;
-    private IDbContextTransaction? _transaction;
-    private ScranHubDbContext? _context;
-    private FakeLogger<QualityRatingService> _logger = new();
-    private readonly Mock<ITokenData> _tokenData = new();
-    private OutputChecks<QualityRatingService> _checks = new(new FakeLogger<QualityRatingService>());
-    private QualityRatingService? _service;
-    private static readonly CancellationToken ct = CancellationToken.None;
-
-    public async Task InitializeAsync()
-    {
-        _logger = new FakeLogger<QualityRatingService>();
-        _checks = new OutputChecks<QualityRatingService>(_logger);
-
-        var options = new DbContextOptionsBuilder<ScranHubDbContext>()
-            .UseSqlServer(_fixture.ConnectionString)
-            .Options;
-
-        _context = new ScranHubDbContext(options);
-        _transaction = await _context!.Database.BeginTransactionAsync();
-
-        _tokenData.Setup(x => x.UserId).Returns(SeedUser2NonAdminId);
-
-        _service = new QualityRatingService(
-            tokenData: _tokenData.Object,
-            logger: _logger,
-            qualityRatingRepository: new QualityRatingRepository(_context),
-            qualityOptionRepository: new QualityOptionRepository(_context),
-            groupRepository: new GroupRepository(_context),
-            userGroupRepository: new UserGroupRepository(_context),
-            groupVenueRepository: new GroupVenueRepository(_context),
-            unitOfWork: new UnitOfWork(_context, _tokenData.Object)
-        );
-    }
+    protected override IRatingService CreateService(
+    ScranHubDbContext context,
+    ITokenData tokenData,
+    FakeLogger<QualityRatingService> logger)
+    => new QualityRatingService(
+        tokenData: tokenData,
+        logger: logger,
+        qualityRatingRepository: new QualityRatingRepository(context),
+        qualityOptionRepository: new QualityOptionRepository(context),
+        groupRepository: new GroupRepository(context),
+        userGroupRepository: new UserGroupRepository(context),
+        groupVenueRepository: new GroupVenueRepository(context),
+        unitOfWork: new UnitOfWork(context, tokenData)
+    );
 
     #region GetRatingsForGroupAsync
     [Fact]
@@ -93,9 +73,27 @@ public class QualityRatingServiceIntegrationTests(DatabaseFixture fixture) : IAs
     }
     #endregion
 
-    public async Task DisposeAsync()
-    {
-        await _transaction!.RollbackAsync();
-        await _context!.DisposeAsync();
-    }
+    #region CreateRatingAsync
+
+    #endregion
+
+    #region UpdateRatingAsync
+
+    #endregion
+
+    #region DeleteRatingAsync
+
+    #endregion
+
+    #region GetRatingAsync
+
+    #endregion
+
+    #region GetRatingsForGroupVenueAsync
+
+    #endregion
+
+    #region GetUserRatingsForGroupAsync
+
+    #endregion
 }
