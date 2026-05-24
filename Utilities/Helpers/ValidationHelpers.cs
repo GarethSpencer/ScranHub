@@ -6,6 +6,6 @@ public static class ValidationHelpers
     {
         var filter = new ProfanityFilter.ProfanityFilter();
         var detected = filter.DetectAllProfanities(groupName);
-        return detected == null || detected.Count == 0;
+        return detected.Count == 0;
     }
 }
