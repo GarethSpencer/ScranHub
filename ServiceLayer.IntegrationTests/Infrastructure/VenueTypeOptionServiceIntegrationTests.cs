@@ -1,13 +1,12 @@
 ﻿using DAL.Data;
 using FluentAssertions;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage;
-using Moq;
 using RepositoryLayer.Infrastructure;
 using RepositoryLayer.Infrastructure.Generic;
+using ServiceLayer.Abstractions.Generic;
 using ServiceLayer.Infrastructure;
 using ServiceLayer.IntegrationTests.Fixtures;
 using ServiceLayer.IntegrationTests.Helpers;
+using ServiceLayer.IntegrationTests.Infrastructure.Generic;
 using System.Net;
 using Utilities.Models.Requests.Options;
 using Utilities.Models.Responses.Options;
@@ -18,40 +17,21 @@ namespace ServiceLayer.IntegrationTests.Infrastructure;
 
 [Trait("Category", "Integration")]
 [Collection("Database")]
-public class VenueTypeOptionServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifetime
+public class VenueTypeOptionServiceIntegrationTests(DatabaseFixture fixture)
+    : TypeOptionServiceIntegrationTests<VenueTypeOptionService>(fixture)
 {
-    private readonly DatabaseFixture _fixture = fixture;
-    private IDbContextTransaction? _transaction;
-    private ScranHubDbContext? _context;
-    private FakeLogger<VenueTypeOptionService> _logger = new();
-    private readonly Mock<ITokenData> _tokenData = new();
-    private OutputChecks<VenueTypeOptionService> _checks = new(new FakeLogger<VenueTypeOptionService>());
-    private VenueTypeOptionService? _service;
-    private static readonly CancellationToken ct = CancellationToken.None;
-
-    public async Task InitializeAsync()
-    {
-        _logger = new FakeLogger<VenueTypeOptionService>();
-        _checks = new OutputChecks<VenueTypeOptionService>(_logger);
-
-        var options = new DbContextOptionsBuilder<ScranHubDbContext>()
-            .UseSqlServer(_fixture.ConnectionString)
-            .Options;
-
-        _context = new ScranHubDbContext(options);
-        _transaction = await _context!.Database.BeginTransactionAsync();
-
-        _tokenData.Setup(x => x.UserId).Returns(SeedUser2NonAdminId);
-
-        _service = new VenueTypeOptionService(
-            tokenData: _tokenData.Object,
-            venueTypeOptionRepository: new VenueTypeOptionRepository(_context),
-            logger: _logger,
-            groupRepository: new GroupRepository(_context),
-            userGroupRepository: new UserGroupRepository(_context),
-            unitOfWork: new UnitOfWork(_context, _tokenData.Object)
-        );
-    }
+    protected override ITypeOptionService CreateService(
+    ScranHubDbContext context,
+    ITokenData tokenData,
+    FakeLogger<VenueTypeOptionService> logger)
+    => new VenueTypeOptionService(
+        tokenData: tokenData,
+        venueTypeOptionRepository: new VenueTypeOptionRepository(context),
+        logger: logger,
+        userGroupRepository: new UserGroupRepository(context),
+        groupRepository: new GroupRepository(context),
+        unitOfWork: new UnitOfWork(context, tokenData)
+    );
 
     #region SetGroupCustomOptionsAsync
     [Fact]
@@ -228,10 +208,4 @@ public class VenueTypeOptionServiceIntegrationTests(DatabaseFixture fixture) : I
         }
     }
     #endregion
-
-    public async Task DisposeAsync()
-    {
-        await _transaction!.RollbackAsync();
-        await _context!.DisposeAsync();
-    }
 }
