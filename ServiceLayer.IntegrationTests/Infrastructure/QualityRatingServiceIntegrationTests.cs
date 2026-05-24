@@ -187,18 +187,79 @@ public class QualityRatingServiceIntegrationTests(DatabaseFixture fixture)
     #endregion
 
     #region DeleteRatingAsync
+    [Fact]
+    public async Task DeleteRatingAsync_AnotherUsersRatingId_ReturnsNotFound()
+    {
+        var result = await _service!.DeleteRatingAsync(TestQualityRating1Id, ct);
+        _checks.OutputFailureCheck(result, "not found", "DeleteRatingAsync", HttpStatusCode.NotFound);
+    }
 
+    [Fact]
+    public async Task DeleteRatingAsync_ValidRatingId_ReturnsOK()
+    {
+        var result = await _service!.DeleteRatingAsync(TestQualityRating2Id, ct);
+        _checks.OutputSuccessCheck(result, "success", "DeleteRatingAsync", HttpStatusCode.OK);
+
+        _context!.QualityRatings.Where(e => e.QualityRatingId == TestQualityRating2Id).Count().Should().Be(0);
+    }
     #endregion
 
     #region GetRatingAsync
+    [Fact]
+    public async Task GetRatingAsync_AnotherUsersRatingId_ReturnsNotFound()
+    {
+        var result = await _service!.GetRatingAsync(TestQualityRating1Id, ct);
+        _checks.OutputFailureCheck(result, "not found", "GetRatingAsync", HttpStatusCode.NotFound);
+    }
 
+    [Fact]
+    public async Task GetRatingAsync_ValidRatingId_ReturnsOK()
+    {
+        var result = await _service!.GetRatingAsync(TestQualityRating2Id, ct);
+        _checks.OutputSuccessCheck(result, "success", "GetRatingAsync", HttpStatusCode.OK);
+
+        var typedResult = result.Should().BeOfType<GetRatingResponse>().Subject;
+        typedResult!.Rating!.RatingId.Should().Be(TestQualityRating2Id);
+        typedResult!.Rating!.UserId.Should().Be(SeedUser2NonAdminId);
+        typedResult!.Rating!.GroupVenueId.Should().Be(TestGroupVenue1Id);
+        typedResult!.Rating!.GroupId.Should().Be(TestGroup1Id);
+        typedResult!.Rating!.OptionId.Should().Be(SeedQualityOption2Id);
+        typedResult!.Rating!.Label.Should().Be(SeedQualityOption2Label);
+        typedResult!.Rating!.VenueName.Should().Be(TestGroupVenue1Name);
+    }
     #endregion
 
     #region GetRatingsForGroupVenueAsync
+    [Fact]
+    public async Task GetRatingsForGroupVenueAsync_ValidVenueId_ReturnsOK()
+    {
+        var result = await _service!.GetRatingsForGroupVenueAsync(TestGroupVenue1Id, ct);
+        _checks.OutputSuccessCheck(result, "success", "GetRatingsForGroupVenueAsync", HttpStatusCode.OK);
 
+        var typedResult = result.Should().BeOfType<GetRatingsResponse>().Subject;
+        typedResult.Ratings!.Count().Should().Be(2);
+        typedResult.Ratings!.Should().Contain(x => x.UserId == SeedUser1AdminId && x.GroupVenueId == TestGroupVenue1Id
+            && x.GroupId == TestGroup1Id && x.OptionId == SeedQualityOption1Id && x.RatingId == TestQualityRating1Id);
+        typedResult.Ratings!.Should().Contain(x => x.UserId == SeedUser2NonAdminId && x.GroupVenueId == TestGroupVenue1Id
+            && x.GroupId == TestGroup1Id && x.OptionId == SeedQualityOption2Id && x.RatingId == TestQualityRating2Id);
+    }
     #endregion
 
     #region GetUserRatingsForGroupAsync
+    [Fact]
+    public async Task GetUserRatingsForGroupAsync_ValidGroupId_ReturnsOK()
+    {
+        _tokenData.Setup(x => x.UserId).Returns(SeedUser1AdminId);
 
+        var result = await _service!.GetUserRatingsForGroupAsync(TestGroup1Id, ct);
+        _checks.OutputSuccessCheck(result, "success", "GetUserRatingsForGroupAsync", HttpStatusCode.OK);
+
+        var typedResult = result.Should().BeOfType<GetRatingsResponse>().Subject;
+        typedResult.Ratings!.Count().Should().Be(2);
+        typedResult.Ratings!.Should().Contain(x => x.UserId == SeedUser1AdminId && x.GroupVenueId == TestGroupVenue1Id
+            && x.GroupId == TestGroup1Id && x.OptionId == SeedQualityOption1Id && x.RatingId == TestQualityRating1Id);
+        typedResult.Ratings!.Should().Contain(x => x.UserId == SeedUser1AdminId && x.GroupVenueId == TestGroupVenue2Id
+            && x.GroupId == TestGroup1Id && x.OptionId == SeedQualityOption1Id && x.RatingId == TestQualityRating3Id);
+    }
     #endregion
 }

@@ -30,7 +30,9 @@ public sealed class CostRatingRepository(ScranHubDbContext dbContext)
         var costRatings = await _dbSet
             .Include(c => c.GroupVenue)
             .Include(c => c.CostOption)
-            .Where(c => c.GroupVenueId == groupVenueId).ToListAsync(ct);
+            .Where(c => c.GroupVenueId == groupVenueId)
+            .OrderBy(c => c.User!.DisplayName)
+            .ToListAsync(ct);
 
         if (costRatings.Count == 0)
         {
@@ -45,7 +47,9 @@ public sealed class CostRatingRepository(ScranHubDbContext dbContext)
         var costRatings = await _dbSet
             .Include(c => c.GroupVenue)
             .Include(c => c.CostOption)
-            .Where(c => c.UserId == userId && c.GroupVenue!.GroupId == groupId).ToListAsync(ct);
+            .Where(c => c.UserId == userId && c.GroupVenue!.GroupId == groupId)
+            .OrderBy(c => c.GroupVenue!.VenueName)
+            .ToListAsync(ct);
 
         if (costRatings.Count == 0)
         {

@@ -30,7 +30,9 @@ public sealed class QualityRatingRepository(ScranHubDbContext dbContext)
         var qualityRatings = await _dbSet
             .Include(q => q.GroupVenue)
             .Include(q => q.QualityOption)
-            .Where(q => q.GroupVenueId == groupVenueId).ToListAsync(ct);
+            .Where(q => q.GroupVenueId == groupVenueId)
+            .OrderBy(q => q.User!.DisplayName)
+            .ToListAsync(ct);
 
         if (qualityRatings.Count == 0)
         {
@@ -45,7 +47,9 @@ public sealed class QualityRatingRepository(ScranHubDbContext dbContext)
         var qualityRatings = await _dbSet
             .Include(q => q.GroupVenue)
             .Include(q => q.QualityOption)
-            .Where(q => q.UserId == userId && q.GroupVenue!.GroupId == groupId).ToListAsync(ct);
+            .Where(q => q.UserId == userId && q.GroupVenue!.GroupId == groupId)
+            .OrderBy(q => q.GroupVenue!.VenueName)
+            .ToListAsync(ct);
 
         if (qualityRatings.Count == 0)
         {

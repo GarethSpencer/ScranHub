@@ -163,7 +163,7 @@ public abstract class RatingService<TRatingRepository, TRatingOptionRepository>(
         var currentRating = await _ratingRepository.GetDetailsByIdAsync(ratingId, ct);
         if (currentRating == null || currentRating.UserId != callingUserId)
         {
-            return new CommonResponse //TODO wrong userId
+            return new CommonResponse
             {
                 StatusCode = HttpStatusCode.NotFound,
                 Message = "Rating was not found."
@@ -173,7 +173,7 @@ public abstract class RatingService<TRatingRepository, TRatingOptionRepository>(
         await _ratingRepository.DeleteAsync(ratingId, ct);
         await _unitOfWork.SaveChangesAsync(ct);
 
-        return new CommonResponse //TODO
+        return new CommonResponse
         {
             StatusCode = HttpStatusCode.OK,
             Message = "Rating deleted successfully."
@@ -195,14 +195,14 @@ public abstract class RatingService<TRatingRepository, TRatingOptionRepository>(
         var rating = await _ratingRepository.GetDetailsByIdAsync(ratingId, ct);
         if (rating == null || rating.UserId != callingUserId)
         {
-            return new CommonResponse //TODO wrong userId
+            return new CommonResponse
             {
                 StatusCode = HttpStatusCode.NotFound,
                 Message = "Rating was not found."
             }.WithResponseLog(_logger, callingUserId);
         }
 
-        return new GetRatingResponse //TODO
+        return new GetRatingResponse
         {
             StatusCode = HttpStatusCode.OK,
             Message = "Rating retrieved successfully.",
@@ -244,7 +244,7 @@ public abstract class RatingService<TRatingRepository, TRatingOptionRepository>(
 
         var ratings = await _ratingRepository.GetDetailsByGroupVenueIdAsync(groupVenueId, ct);
 
-        return new GetRatingsResponse //TODO
+        return new GetRatingsResponse
         {
             StatusCode = HttpStatusCode.OK,
             Message = "Ratings retrieved successfully.",
@@ -276,7 +276,7 @@ public abstract class RatingService<TRatingRepository, TRatingOptionRepository>(
 
         var ratings = await _ratingRepository.GetUserDetailsForGroupAsync(callingUserId, groupId, ct);
 
-        return new GetRatingsResponse //TODO
+        return new GetRatingsResponse
         {
             StatusCode = HttpStatusCode.OK,
             Message = "Ratings retrieved successfully.",
