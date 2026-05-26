@@ -10,7 +10,8 @@ var builder = WebApplication.CreateBuilder(args);
 // From ServiceExtensions
 builder.Services.ConfigureApiBehavior();
 builder.Services.ConfigureApiVersioning();
-builder.Services.ConfigureSwagger();
+builder.Services.ConfigureMiddleware();
+builder.Services.ConfigureSwagger(builder.Configuration);
 builder.Services.ConfigureScalar();
 builder.Services.ConfigureCors();
 builder.Services.ConfigureAuthentication(builder.Configuration);
@@ -31,7 +32,7 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     SelfLog.Enable(Console.Error);
-    app.ConfigureSwagger();
+    app.ConfigureSwagger(builder.Configuration);
     app.ConfigureScalar();
 }
 
@@ -41,6 +42,7 @@ app.UseCors(app.Environment.IsDevelopment() ? "DevelopmentCorsPolicy" : "Product
 app.UseSerilogRequestLogging();
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseMiddleware<UserResolutionMiddleware>();
 app.MapControllers();
 app.MapHealthChecks("/health").AllowAnonymous();
 

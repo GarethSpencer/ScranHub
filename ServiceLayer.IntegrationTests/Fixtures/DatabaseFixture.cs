@@ -34,6 +34,22 @@ public class DatabaseFixture : IAsyncLifetime
     {
         context!.Users.AddRange(new User
         {
+            UserId = TestUser1AdminId,
+            DisplayName = TestUser1AdminName,
+            Email = TestUser1AdminEmail,
+            Active = true,
+            Admin = true
+        },
+        new User
+        {
+            UserId = TestUser2NonAdminId,
+            DisplayName = TestUser2NonAdminName,
+            Email = TestUser2NonAdminEmail,
+            Active = true,
+            Admin = false
+        },
+        new User
+        {
             UserId = TestUser3AdminId,
             DisplayName = TestUser3AdminName,
             Email = TestUser3AdminEmail,
@@ -60,25 +76,25 @@ public class DatabaseFixture : IAsyncLifetime
 
         context.UserFriends.AddRange(new UserFriend
         {
-            UserId = SeedUser1AdminId,
-            FriendId = SeedUser2NonAdminId,
+            UserId = TestUser1AdminId,
+            FriendId = TestUser2NonAdminId,
             Status = FriendshipStatus.Accepted
         },
         new UserFriend
         {
             UserId = TestUser3AdminId,
-            FriendId = SeedUser1AdminId,
+            FriendId = TestUser1AdminId,
             Status = FriendshipStatus.Pending
         },
         new UserFriend
         {
-            UserId = SeedUser1AdminId,
+            UserId = TestUser1AdminId,
             FriendId = TestUser4NonAdminId,
             Status = FriendshipStatus.Declined
         },
         new UserFriend
         {
-            UserId = SeedUser1AdminId,
+            UserId = TestUser1AdminId,
             FriendId = TestUser5NonAdminId,
             Status = FriendshipStatus.Accepted
         }
@@ -108,13 +124,13 @@ public class DatabaseFixture : IAsyncLifetime
         {
             UserGroupId = TestGroup1User1Id,
             GroupId = TestGroup1Id,
-            UserId = SeedUser1AdminId,
+            UserId = TestUser1AdminId,
         },
         new UserGroup
         {
             UserGroupId = TestGroup1User2Id,
             GroupId = TestGroup1Id,
-            UserId = SeedUser2NonAdminId,
+            UserId = TestUser2NonAdminId,
         },
         new UserGroup
         {
@@ -138,19 +154,19 @@ public class DatabaseFixture : IAsyncLifetime
         {
             UserGroupId = TestGroup2User1Id,
             GroupId = TestGroup2Id,
-            UserId = SeedUser1AdminId,
+            UserId = TestUser1AdminId,
         },
         new UserGroup
         {
             UserGroupId = TestGroup2User2Id,
             GroupId = TestGroup2Id,
-            UserId = SeedUser2NonAdminId,
+            UserId = TestUser2NonAdminId,
         },
         new UserGroup
         {
             UserGroupId = TestGroup3User1Id,
             GroupId = TestGroup3Id,
-            UserId = SeedUser1AdminId,
+            UserId = TestUser1AdminId,
         }
         );
 
@@ -340,21 +356,21 @@ public class DatabaseFixture : IAsyncLifetime
         {
             CostRatingId = TestCostRating1Id,
             CostOptionId = SeedCostOption1Id,
-            UserId = SeedUser1AdminId,
+            UserId = TestUser1AdminId,
             GroupVenueId = TestGroupVenue1Id
         },
         new CostRating
         {
             CostRatingId = TestCostRating2Id,
             CostOptionId = SeedCostOption2Id,
-            UserId = SeedUser2NonAdminId,
+            UserId = TestUser2NonAdminId,
             GroupVenueId = TestGroupVenue1Id
         },
         new CostRating
         {
             CostRatingId = TestCostRating3Id,
             CostOptionId = SeedCostOption1Id,
-            UserId = SeedUser1AdminId,
+            UserId = TestUser1AdminId,
             GroupVenueId = TestGroupVenue2Id
         }
         );
@@ -363,21 +379,21 @@ public class DatabaseFixture : IAsyncLifetime
         {
             QualityRatingId = TestQualityRating1Id,
             QualityOptionId = SeedQualityOption1Id,
-            UserId = SeedUser1AdminId,
+            UserId = TestUser1AdminId,
             GroupVenueId = TestGroupVenue1Id
         },
         new QualityRating
         {
             QualityRatingId = TestQualityRating2Id,
             QualityOptionId = SeedQualityOption2Id,
-            UserId = SeedUser2NonAdminId,
+            UserId = TestUser2NonAdminId,
             GroupVenueId = TestGroupVenue1Id
         },
         new QualityRating
         {
             QualityRatingId = TestQualityRating3Id,
             QualityOptionId = SeedQualityOption1Id,
-            UserId = SeedUser1AdminId,
+            UserId = TestUser1AdminId,
             GroupVenueId = TestGroupVenue2Id
         }
         );

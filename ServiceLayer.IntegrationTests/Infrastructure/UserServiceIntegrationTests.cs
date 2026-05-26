@@ -43,7 +43,7 @@ public class UserServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
         _context = new ScranHubDbContext(options);
         _transaction = await _context!.Database.BeginTransactionAsync();
 
-        _tokenData.Setup(x => x.UserId).Returns(SeedUser2NonAdminId);
+        _tokenData.Setup(x => x.UserId).Returns(TestUser2NonAdminId);
 
         _service = new UserService(
             tokenData: _tokenData.Object,
@@ -76,13 +76,13 @@ public class UserServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
     [Fact]
     public async Task GetFriendsForUserAsync_User1ValidFriends_ReturnsOK()
     {
-        _tokenData.Setup(x => x.UserId).Returns(SeedUser1AdminId);
+        _tokenData.Setup(x => x.UserId).Returns(TestUser1AdminId);
 
         var result = await _service!.GetFriendsForUserAsync(ct);
         _checks.OutputSuccessCheck(result, "success", "GetFriendsForUserAsync", HttpStatusCode.OK);
 
         var typedResult = result.Should().BeOfType<UserFriendsResponse>().Subject;
-        typedResult.UserId.Should().Be(SeedUser1AdminId);
+        typedResult.UserId.Should().Be(TestUser1AdminId);
         typedResult.Friends!.Count().Should().Be(3);
         typedResult.FriendCount.Should().Be(1);
     }
@@ -90,13 +90,13 @@ public class UserServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
     [Fact]
     public async Task GetFriendsForUserAsync_User2ValidFriends_ReturnsOK()
     {
-        _tokenData.Setup(x => x.UserId).Returns(SeedUser2NonAdminId);
+        _tokenData.Setup(x => x.UserId).Returns(TestUser2NonAdminId);
 
         var result = await _service!.GetFriendsForUserAsync(ct);
         _checks.OutputSuccessCheck(result, "success", "GetFriendsForUserAsync", HttpStatusCode.OK);
 
         var typedResult = result.Should().BeOfType<UserFriendsResponse>().Subject;
-        typedResult.UserId.Should().Be(SeedUser2NonAdminId);
+        typedResult.UserId.Should().Be(TestUser2NonAdminId);
         typedResult.Friends!.Count().Should().Be(1);
         typedResult.FriendCount.Should().Be(1);
     }
@@ -230,7 +230,7 @@ public class UserServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
     [Fact]
     public async Task CreateUserAsync_ValidAdminRequest_ReturnsCreated()
     {
-        _tokenData.Setup(x => x.UserId).Returns(SeedUser1AdminId);
+        _tokenData.Setup(x => x.UserId).Returns(TestUser1AdminId);
 
         var request = new CreateUserRequest
         {
@@ -356,7 +356,7 @@ public class UserServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
             Active = true
         };
 
-        var result = await _service!.UpdateUserAsync(SeedUser2NonAdminId, request, ct);
+        var result = await _service!.UpdateUserAsync(TestUser2NonAdminId, request, ct);
         _checks.OutputFailureCheck(result, "unauthorized", "UpdateUserAsync", HttpStatusCode.Unauthorized);
     }
 
@@ -384,14 +384,14 @@ public class UserServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
             Active = true
         };
 
-        var result = await _service!.UpdateUserAsync(SeedUser2NonAdminId, request, ct);
+        var result = await _service!.UpdateUserAsync(TestUser2NonAdminId, request, ct);
         _checks.OutputFailureCheck(result, "make yourself an admin", "UpdateUserAsync", HttpStatusCode.Unauthorized);
     }
 
     [Fact]
     public async Task UpdateUserAsync_UpdatingInvalidUser_ReturnsNotFound()
     {
-        _tokenData.Setup(x => x.UserId).Returns(SeedUser1AdminId);
+        _tokenData.Setup(x => x.UserId).Returns(TestUser1AdminId);
 
         var request = new UpdateUserRequest
         {
@@ -407,7 +407,7 @@ public class UserServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
     [Fact]
     public async Task UpdateUserAsync_AdminUpdatingAnotherAdmin_ReturnsUnauthorized()
     {
-        _tokenData.Setup(x => x.UserId).Returns(SeedUser1AdminId);
+        _tokenData.Setup(x => x.UserId).Returns(TestUser1AdminId);
 
         var request = new UpdateUserRequest
         {
@@ -430,15 +430,15 @@ public class UserServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
             Active = true
         };
 
-        var result = await _service!.UpdateUserAsync(SeedUser2NonAdminId, request, ct);
+        var result = await _service!.UpdateUserAsync(TestUser2NonAdminId, request, ct);
         _checks.OutputSuccessCheck(result, "success", "UpdateUserAsync", HttpStatusCode.OK);
-        _context!.Users.Should().ContainSingle(e => e.UserId == SeedUser2NonAdminId && e.DisplayName == "New Test User" && e.Admin == false && e.Active == true);
+        _context!.Users.Should().ContainSingle(e => e.UserId == TestUser2NonAdminId && e.DisplayName == "New Test User" && e.Admin == false && e.Active == true);
     }
 
     [Fact]
     public async Task UpdateUserAsync_AdminUpdatingNonAdmin_ReturnsOK()
     {
-        _tokenData.Setup(x => x.UserId).Returns(SeedUser1AdminId);
+        _tokenData.Setup(x => x.UserId).Returns(TestUser1AdminId);
 
         var request = new UpdateUserRequest
         {
@@ -447,9 +447,9 @@ public class UserServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
             Active = true
         };
 
-        var result = await _service!.UpdateUserAsync(SeedUser2NonAdminId, request, ct);
+        var result = await _service!.UpdateUserAsync(TestUser2NonAdminId, request, ct);
         _checks.OutputSuccessCheck(result, "success", "UpdateUserAsync", HttpStatusCode.OK);
-        _context!.Users.Should().ContainSingle(e => e.UserId == SeedUser2NonAdminId && e.DisplayName == "New Test User" && e.Admin == true && e.Active == true);
+        _context!.Users.Should().ContainSingle(e => e.UserId == TestUser2NonAdminId && e.DisplayName == "New Test User" && e.Admin == true && e.Active == true);
     }
     #endregion
 
@@ -459,7 +459,7 @@ public class UserServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
     {
         _tokenData.Setup(x => x.UserId).Returns((Guid?)null);
 
-        var result = await _service!.GetUserAsync(SeedUser2NonAdminId, ct);
+        var result = await _service!.GetUserAsync(TestUser2NonAdminId, ct);
         _checks.OutputFailureCheck(result, "unauthorized", "GetUserAsync", HttpStatusCode.Unauthorized);
     }
 
@@ -480,11 +480,11 @@ public class UserServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
     [Fact]
     public async Task GetUserAsync_NonAdminSearchingForFriend_ReturnsOK()
     {
-        var result = await _service!.GetUserAsync(SeedUser1AdminId, ct);
+        var result = await _service!.GetUserAsync(TestUser1AdminId, ct);
         _checks.OutputSuccessCheck(result, "success", "GetUserAsync", HttpStatusCode.OK);
 
         var typedResult = result.Should().BeOfType<GetUserResponse>().Subject;
-        typedResult.User!.UserId.Should().Be(SeedUser1AdminId);
+        typedResult.User!.UserId.Should().Be(TestUser1AdminId);
     }
 
     [Fact]
@@ -492,11 +492,11 @@ public class UserServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
     {
         _tokenData.Setup(x => x.UserId).Returns(TestUser3AdminId);
 
-        var result = await _service!.GetUserAsync(SeedUser2NonAdminId, ct);
+        var result = await _service!.GetUserAsync(TestUser2NonAdminId, ct);
         _checks.OutputSuccessCheck(result, "success", "GetUserAsync", HttpStatusCode.OK);
 
         var typedResult = result.Should().BeOfType<GetUserResponse>().Subject;
-        typedResult.User!.UserId.Should().Be(SeedUser2NonAdminId);
+        typedResult.User!.UserId.Should().Be(TestUser2NonAdminId);
     }
     #endregion
 
@@ -513,7 +513,7 @@ public class UserServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
     [Fact]
     public async Task AddUserFriendAsync_AddSelf_ReturnsBadRequest()
     {
-        var result = await _service!.AddUserFriendAsync(SeedUser2NonAdminId, ct);
+        var result = await _service!.AddUserFriendAsync(TestUser2NonAdminId, ct);
         _checks.OutputFailureCheck(result, "add yourself", "AddUserFriendAsync", HttpStatusCode.BadRequest);
     }
 
@@ -527,7 +527,7 @@ public class UserServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
     [Fact]
     public async Task AddUserFriendAsync_AddExistingAcceptedUserFriend_ReturnsBadRequest()
     {
-        var result = await _service!.AddUserFriendAsync(SeedUser1AdminId, ct);
+        var result = await _service!.AddUserFriendAsync(TestUser1AdminId, ct);
         _checks.OutputFailureCheck(result, "already requested", "AddUserFriendAsync", HttpStatusCode.BadRequest);
     }
 
@@ -536,7 +536,7 @@ public class UserServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
     {
         _tokenData.Setup(x => x.UserId).Returns(TestUser4NonAdminId);
 
-        var result = await _service!.AddUserFriendAsync(SeedUser1AdminId, ct);
+        var result = await _service!.AddUserFriendAsync(TestUser1AdminId, ct);
         _checks.OutputFailureCheck(result, "already requested", "AddUserFriendAsync", HttpStatusCode.BadRequest);
     }
 
@@ -555,7 +555,7 @@ public class UserServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
     {
         _tokenData.Setup(x => x.UserId).Returns(TestUser3AdminId);
 
-        var result = await _service!.AddUserFriendAsync(SeedUser2NonAdminId, ct);
+        var result = await _service!.AddUserFriendAsync(TestUser2NonAdminId, ct);
         _checks.OutputSuccessCheck(result, "success", "AddUserFriendAsync", HttpStatusCode.Created);
 
         var typedResult = result.Should().BeOfType<AddUserFriendResponse>().Subject;
@@ -574,7 +574,7 @@ public class UserServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
             Status = FriendshipStatus.Accepted
         };
 
-        var result = await _service!.UpdateUserFriendAsync(SeedUser1AdminId, request, ct);
+        var result = await _service!.UpdateUserFriendAsync(TestUser1AdminId, request, ct);
         _checks.OutputFailureCheck(result, "unauthorized", "UpdateUserFriendAsync", HttpStatusCode.Unauthorized);
     }
 
@@ -586,7 +586,7 @@ public class UserServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
             Status = FriendshipStatus.Accepted
         };
 
-        var result = await _service!.UpdateUserFriendAsync(SeedUser2NonAdminId, request, ct);
+        var result = await _service!.UpdateUserFriendAsync(TestUser2NonAdminId, request, ct);
         _checks.OutputFailureCheck(result, "yourself", "UpdateUserFriendAsync", HttpStatusCode.BadRequest);
     }
 
@@ -605,14 +605,14 @@ public class UserServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
     [Fact]
     public async Task UpdateUserFriendAsync_UpdateAsTheCaller_ReturnsForbidden()
     {
-        _tokenData.Setup(x => x.UserId).Returns(SeedUser1AdminId);
+        _tokenData.Setup(x => x.UserId).Returns(TestUser1AdminId);
 
         var request = new UpdateUserFriendRequest
         {
             Status = FriendshipStatus.Accepted
         };
 
-        var result = await _service!.UpdateUserFriendAsync(SeedUser2NonAdminId, request, ct);
+        var result = await _service!.UpdateUserFriendAsync(TestUser2NonAdminId, request, ct);
         _checks.OutputFailureCheck(result, "requested user", "UpdateUserFriendAsync", HttpStatusCode.Forbidden);
     }
 
@@ -627,9 +627,9 @@ public class UserServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
             Status = status
         };
 
-        var result = await _service!.UpdateUserFriendAsync(SeedUser1AdminId, request, ct);
+        var result = await _service!.UpdateUserFriendAsync(TestUser1AdminId, request, ct);
         _checks.OutputSuccessCheck(result, "success", "UpdateUserFriendAsync", HttpStatusCode.OK);
-        _context!.UserFriends.Should().Contain(x => x.UserId == SeedUser1AdminId && x.FriendId == SeedUser2NonAdminId && x.Status == status);
+        _context!.UserFriends.Should().Contain(x => x.UserId == TestUser1AdminId && x.FriendId == TestUser2NonAdminId && x.Status == status);
     }
     #endregion
 
@@ -639,7 +639,7 @@ public class UserServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
     {
         _tokenData.Setup(x => x.UserId).Returns((Guid?)null);
 
-        var result = await _service!.DeleteUserAsync(SeedUser2NonAdminId, ct);
+        var result = await _service!.DeleteUserAsync(TestUser2NonAdminId, ct);
         _checks.OutputFailureCheck(result, "unauthorized", "DeleteUserAsync", HttpStatusCode.Unauthorized);
     }
 
@@ -660,7 +660,7 @@ public class UserServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
     [Fact]
     public async Task DeleteUserAsync_AdminDeletingOtherAdmin_ReturnsForbidden()
     {
-        _tokenData.Setup(x => x.UserId).Returns(SeedUser1AdminId);
+        _tokenData.Setup(x => x.UserId).Returns(TestUser1AdminId);
 
         var result = await _service!.DeleteUserAsync(TestUser3AdminId, ct);
         _checks.OutputFailureCheck(result, "not delete other admins", "DeleteUserAsync", HttpStatusCode.Forbidden);
@@ -669,7 +669,7 @@ public class UserServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
     [Fact]
     public async Task DeleteUserAsync_AdminDeletingOtherUser_ReturnsOK()
     {
-        _tokenData.Setup(x => x.UserId).Returns(SeedUser1AdminId);
+        _tokenData.Setup(x => x.UserId).Returns(TestUser1AdminId);
 
         var result = await _service!.DeleteUserAsync(TestUser4NonAdminId, ct);
         _checks.OutputSuccessCheck(result, "success", "DeleteUserAsync", HttpStatusCode.OK);
@@ -695,7 +695,7 @@ public class UserServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
 
         var request = new AddFriendRequest
         {
-            Email = SeedUser2NonAdminEmail
+            Email = TestUser2NonAdminEmail
         };
 
         var result = await _service!.AddUserFriendByEmailAsync(request, ct);
@@ -722,7 +722,7 @@ public class UserServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
     {
         var request = new AddFriendRequest
         {
-            Email = SeedUser2NonAdminEmail
+            Email = TestUser2NonAdminEmail
         };
 
         var result = await _service!.AddUserFriendByEmailAsync(request, ct);
@@ -737,7 +737,7 @@ public class UserServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
     {
         var request = new AddFriendRequest
         {
-            Email = SeedUser1AdminEmail
+            Email = TestUser1AdminEmail
         };
 
         var result = await _service!.AddUserFriendByEmailAsync(request, ct);
@@ -759,7 +759,7 @@ public class UserServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
         _checks.OutputSuccessCheck(result, "If a user with this email exists, a friend request will be sent to them.",
             "AddUserFriendByEmailAsync", HttpStatusCode.OK);
         _logger.Entries.Should().ContainSingle(e => e.Message.Contains("requested successfully via email.", StringComparison.InvariantCultureIgnoreCase));
-        _context!.UserFriends.Should().ContainSingle(x => x.UserId == SeedUser2NonAdminId && x.FriendId == TestUser3AdminId && x.Status == FriendshipStatus.Pending);
+        _context!.UserFriends.Should().ContainSingle(x => x.UserId == TestUser2NonAdminId && x.FriendId == TestUser3AdminId && x.Status == FriendshipStatus.Pending);
     }
     #endregion
 
@@ -795,7 +795,7 @@ public class UserServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
     [Fact]
     public async Task GetAllUsersAsync_Admin_ReturnsOK()
     {
-        _tokenData.Setup(x => x.UserId).Returns(SeedUser1AdminId);
+        _tokenData.Setup(x => x.UserId).Returns(TestUser1AdminId);
 
         var request = new PaginationBaseRequest
         {
@@ -809,7 +809,7 @@ public class UserServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
         var typedResult = result.Should().BeOfType<GetUsersDetailedResponse>().Subject;
         typedResult.TotalCount.Should().Be(5);
         typedResult.Users!.Count().Should().Be(4); //ordered by name
-        typedResult.Users.Should().Contain(e => e.UserId == SeedUser1AdminId);
+        typedResult.Users.Should().Contain(e => e.UserId == TestUser1AdminId);
         typedResult.Users.Should().Contain(e => e.UserId == TestUser3AdminId);
         typedResult.Users.Should().Contain(e => e.UserId == TestUser4NonAdminId);
         typedResult.Users.Should().Contain(e => e.UserId == TestUser5NonAdminId);

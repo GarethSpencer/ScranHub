@@ -4,6 +4,7 @@ using DAL.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DAL.Migrations
 {
     [DbContext(typeof(ScranHubDbContext))]
-    partial class ScranHubDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260526191541_SettingAuthId")]
+    partial class SettingAuthId
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -430,6 +433,28 @@ namespace DAL.Migrations
                         .HasFilter("[AuthId] IS NOT NULL");
 
                     b.ToTable("Users");
+
+                    b.HasData(
+                        new
+                        {
+                            UserId = new Guid("00000000-0000-0000-0000-000000000001"),
+                            Active = true,
+                            Admin = true,
+                            CreatedBy = new Guid("00000000-0000-0000-0000-000000000001"),
+                            CreatedOn = new DateTime(2026, 4, 18, 0, 0, 0, 0, DateTimeKind.Utc),
+                            DisplayName = "Admin User",
+                            Email = "admin@example.com"
+                        },
+                        new
+                        {
+                            UserId = new Guid("00000000-0000-0000-0000-000000000002"),
+                            Active = true,
+                            Admin = false,
+                            CreatedBy = new Guid("00000000-0000-0000-0000-000000000001"),
+                            CreatedOn = new DateTime(2026, 4, 18, 0, 0, 0, 0, DateTimeKind.Utc),
+                            DisplayName = "Non-Admin User",
+                            Email = "nonadmin@example.com"
+                        });
                 });
 
             modelBuilder.Entity("DAL.Entities.UserFriend", b =>

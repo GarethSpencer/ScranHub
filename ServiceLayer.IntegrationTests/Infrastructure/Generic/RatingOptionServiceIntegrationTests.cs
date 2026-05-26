@@ -42,7 +42,7 @@ public abstract class RatingOptionServiceIntegrationTests<TService>(DatabaseFixt
         _context = new ScranHubDbContext(options);
         _transaction = await _context!.Database.BeginTransactionAsync();
 
-        _tokenData.Setup(x => x.UserId).Returns(SeedUser2NonAdminId);
+        _tokenData.Setup(x => x.UserId).Returns(TestUser2NonAdminId);
 
         _service = CreateService(_context, _tokenData.Object, _logger);
     }
@@ -104,7 +104,7 @@ public abstract class RatingOptionServiceIntegrationTests<TService>(DatabaseFixt
     [Fact]
     public async Task SetGroupCustomOptionsAsync_AlreadyUsingCustomOptions_ReturnsBadRequest()
     {
-        _tokenData.Setup(x => x.UserId).Returns(SeedUser1AdminId);
+        _tokenData.Setup(x => x.UserId).Returns(TestUser1AdminId);
 
         var request = new SetOptionsRequest
         {
@@ -123,7 +123,7 @@ public abstract class RatingOptionServiceIntegrationTests<TService>(DatabaseFixt
     [Fact]
     public async Task SetGroupCustomOptionsAsync_NotEnoughLabels_ReturnsBadRequest()
     {
-        _tokenData.Setup(x => x.UserId).Returns(SeedUser1AdminId);
+        _tokenData.Setup(x => x.UserId).Returns(TestUser1AdminId);
 
         var request = new SetOptionsRequest
         {
@@ -229,7 +229,7 @@ public abstract class RatingOptionServiceIntegrationTests<TService>(DatabaseFixt
     [Fact]
     public async Task AddOptionAsync_LabelAlreadyExists_ReturnsConflict()
     {
-        _tokenData.Setup(x => x.UserId).Returns(SeedUser1AdminId);
+        _tokenData.Setup(x => x.UserId).Returns(TestUser1AdminId);
 
         var request = new SetOptionRequest
         {

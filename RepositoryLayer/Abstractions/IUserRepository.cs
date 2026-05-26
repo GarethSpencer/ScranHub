@@ -19,4 +19,6 @@ public interface IUserRepository : IEFRepository<User>
     Task DeleteAsync(Guid userId, CancellationToken ct);
     Task UpdateAsync(Guid userId, UpdateUserRequest userRequest, CancellationToken ct);
     Task<(IEnumerable<UserResult>, int)> SearchByDisplayNameAsync(SearchUserRequest request, CancellationToken ct);
+    Task<UserResult?> GetByAuthId(string authId, CancellationToken ct);
+    Task SetAuthId(Guid userId, string authId, CancellationToken ct);
 }

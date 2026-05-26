@@ -1,9 +1,6 @@
-﻿using Utilities.Models.Requests.Authentication;
-
-namespace ServiceLayer.Abstractions;
+﻿namespace ServiceLayer.Abstractions;
 
 public interface IAuthService
 {
-    bool ValidateCredentials(AuthenticationDataRequest data);
-    string GenerateToken(Guid id, string userName, string firstName, string surname);
+    Task<(Guid? UserId, bool IsAdmin)> ResolveUserAsync(string authId, string? email, CancellationToken ct);
 }

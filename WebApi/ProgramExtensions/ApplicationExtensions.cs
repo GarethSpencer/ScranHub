@@ -12,18 +12,22 @@ public static class ApplicationExtensions
     /// Configure the WebApplication to use Swagger for API documentation and UI, including support for API versioning and authorization persistence in the UI.
     /// </summary>
     /// <param name="application"></param>
-    public static void ConfigureSwagger(this WebApplication application)
+    /// <param name="configuration"></param>
+    public static void ConfigureSwagger(this WebApplication application, IConfiguration configuration)
     {
         var apiVersionDescriptionProvider = application.Services.GetRequiredService<IApiVersionDescriptionProvider>();
 
         application.UseSwagger();
         application.UseSwaggerUI(options =>
         {
-            foreach (var description in apiVersionDescriptionProvider.ApiVersionDescriptions)
+            options.OAuthScopes("openid", "profile", "email");
+            options.SwaggerEndpoint("/swagger/v1/swagger.json", "ScranHub API v1");
+            options.OAuthClientId("XSz6cNAh50w7T0nJT0S2FTgX0mySt0fy");
+            options.OAuthAdditionalQueryStringParams(new Dictionary<string, string>
             {
-                options.SwaggerEndpoint($"/swagger/{description.GroupName}/swagger.json", description.GroupName.ToUpperInvariant());
-            }
-            options.EnablePersistAuthorization();
+                { "audience", configuration["Auth0:Audience"]! }
+            });
+            options.OAuthUsePkce();
         });
     }
 

@@ -107,7 +107,7 @@ public class FoodTypeOptionServiceIntegrationTests(DatabaseFixture fixture)
     [Fact]
     public async Task SetGroupCustomOptionsAsync_GroupAlreadyHasCustomOptions_ReturnsBadRequest()
     {
-        _tokenData.Setup(x => x.UserId).Returns(SeedUser1AdminId);
+        _tokenData.Setup(x => x.UserId).Returns(TestUser1AdminId);
 
         var request = new SetOptionsRequest
         {
@@ -195,7 +195,7 @@ public class FoodTypeOptionServiceIntegrationTests(DatabaseFixture fixture)
     [Fact]
     public async Task RemoveGroupCustomOptionsAsync_ValidRequest_ReturnsCreated()
     {
-        _tokenData.Setup(x => x.UserId).Returns(SeedUser1AdminId);
+        _tokenData.Setup(x => x.UserId).Returns(TestUser1AdminId);
         var result = await _service!.RemoveGroupCustomOptionsAsync(TestGroup3Id, ct);
 
         _checks.OutputSuccessCheck(result, "removed", "RemoveGroupCustomOptionsAsync", HttpStatusCode.OK);
@@ -214,7 +214,7 @@ public class FoodTypeOptionServiceIntegrationTests(DatabaseFixture fixture)
     [Fact]
     public async Task AddOptionAsync_ValidRequest_ReturnsCreated()
     {
-        _tokenData.Setup(x => x.UserId).Returns(SeedUser1AdminId);
+        _tokenData.Setup(x => x.UserId).Returns(TestUser1AdminId);
 
         var request = new SetOptionRequest
         {
@@ -270,7 +270,7 @@ public class FoodTypeOptionServiceIntegrationTests(DatabaseFixture fixture)
     [Fact]
     public async Task UpdateOptionAsync_LabelAlreadyUsed_ReturnsConflict()
     {
-        _tokenData.Setup(x => x.UserId).Returns(SeedUser1AdminId);
+        _tokenData.Setup(x => x.UserId).Returns(TestUser1AdminId);
 
         var request = new UpdateOptionRequest
         {
@@ -288,7 +288,7 @@ public class FoodTypeOptionServiceIntegrationTests(DatabaseFixture fixture)
     [InlineData("Something New")]
     public async Task UpdateOptionAsync_ValidLabel_ReturnsOK(string newLabel)
     {
-        _tokenData.Setup(x => x.UserId).Returns(SeedUser1AdminId);
+        _tokenData.Setup(x => x.UserId).Returns(TestUser1AdminId);
 
         var request = new UpdateOptionRequest
         {
@@ -328,7 +328,7 @@ public class FoodTypeOptionServiceIntegrationTests(DatabaseFixture fixture)
     [Fact]
     public async Task DeleteOptionAsync_OptionBeingUsed_ReturnsBadRequest()
     {
-        _tokenData.Setup(x => x.UserId).Returns(SeedUser1AdminId);
+        _tokenData.Setup(x => x.UserId).Returns(TestUser1AdminId);
 
         var result = await _service!.DeleteOptionAsync(TestFoodTypeOption7Id, ct);
         _checks.OutputFailureCheck(result, "venue", "DeleteOptionAsync", HttpStatusCode.BadRequest);
@@ -337,7 +337,7 @@ public class FoodTypeOptionServiceIntegrationTests(DatabaseFixture fixture)
     [Fact]
     public async Task DeleteOptionAsync_ValidOptionId_ReturnsOK()
     {
-        _tokenData.Setup(x => x.UserId).Returns(SeedUser1AdminId);
+        _tokenData.Setup(x => x.UserId).Returns(TestUser1AdminId);
 
         var result = await _service!.DeleteOptionAsync(TestFoodTypeOption8Id, ct);
         _checks.OutputSuccessCheck(result, "success", "DeleteOptionAsync", HttpStatusCode.OK);
@@ -350,7 +350,7 @@ public class FoodTypeOptionServiceIntegrationTests(DatabaseFixture fixture)
     [Fact]
     public async Task GetGroupTypeOptionsAsync_ValidCustomsRequest_ReturnsOK()
     {
-        _tokenData.Setup(x => x.UserId).Returns(SeedUser1AdminId);
+        _tokenData.Setup(x => x.UserId).Returns(TestUser1AdminId);
 
         var result = await _service!.GetGroupTypeOptionsAsync(TestGroup3Id, ct);
         _checks.OutputSuccessCheck(result, "success", "GetGroupTypeOptionsAsync", HttpStatusCode.OK);
@@ -407,7 +407,7 @@ public class FoodTypeOptionServiceIntegrationTests(DatabaseFixture fixture)
     [Fact]
     public async Task GetTypeOptionAsync_ValidCustomOptionId_ReturnsOK()
     {
-        _tokenData.Setup(x => x.UserId).Returns(SeedUser1AdminId);
+        _tokenData.Setup(x => x.UserId).Returns(TestUser1AdminId);
 
         var result = await _service!.GetTypeOptionAsync(TestFoodTypeOption7Id, ct);
         _checks.OutputSuccessCheck(result, "success", "GetTypeOptionAsync", HttpStatusCode.OK);

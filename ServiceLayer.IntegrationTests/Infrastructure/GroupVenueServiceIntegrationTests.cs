@@ -41,7 +41,7 @@ public class GroupVenueServiceIntegrationTests(DatabaseFixture fixture) : IAsync
         _context = new ScranHubDbContext(options);
         _transaction = await _context!.Database.BeginTransactionAsync();
 
-        _tokenData.Setup(x => x.UserId).Returns(SeedUser2NonAdminId);
+        _tokenData.Setup(x => x.UserId).Returns(TestUser2NonAdminId);
 
         _service = new GroupVenueService(
             tokenData: _tokenData.Object,
@@ -237,7 +237,7 @@ public class GroupVenueServiceIntegrationTests(DatabaseFixture fixture) : IAsync
     [Fact]
     public async Task CreateGroupVenueAsync_FoodTypeNotAllowedForGroup_ReturnsBadRequest()
     {
-        _tokenData.Setup(x => x.UserId).Returns(SeedUser1AdminId);
+        _tokenData.Setup(x => x.UserId).Returns(TestUser1AdminId);
 
         var request = new CreateGroupVenueRequest
         {
@@ -254,7 +254,7 @@ public class GroupVenueServiceIntegrationTests(DatabaseFixture fixture) : IAsync
     [Fact]
     public async Task CreateGroupVenueAsync_VenueTypeNotAllowedForGroup_ReturnsBadRequest()
     {
-        _tokenData.Setup(x => x.UserId).Returns(SeedUser1AdminId);
+        _tokenData.Setup(x => x.UserId).Returns(TestUser1AdminId);
 
         var request = new CreateGroupVenueRequest
         {
@@ -274,7 +274,7 @@ public class GroupVenueServiceIntegrationTests(DatabaseFixture fixture) : IAsync
     [InlineData("TEST VENUE 5")]
     public async Task CreateGroupVenueAsync_NameAlreadyExists_ReturnsConflict(string venueName)
     {
-        _tokenData.Setup(x => x.UserId).Returns(SeedUser1AdminId);
+        _tokenData.Setup(x => x.UserId).Returns(TestUser1AdminId);
 
         var request = new CreateGroupVenueRequest
         {
@@ -289,7 +289,7 @@ public class GroupVenueServiceIntegrationTests(DatabaseFixture fixture) : IAsync
     [Fact]
     public async Task CreateGroupVenueAsync_ValidInput_ReturnsCreated()
     {
-        _tokenData.Setup(x => x.UserId).Returns(SeedUser1AdminId);
+        _tokenData.Setup(x => x.UserId).Returns(TestUser1AdminId);
 
         var request = new CreateGroupVenueRequest
         {
@@ -312,7 +312,7 @@ public class GroupVenueServiceIntegrationTests(DatabaseFixture fixture) : IAsync
     [Fact]
     public async Task CreateGroupVenueAsync_ValidInputNoOptions_ReturnsCreated()
     {
-        _tokenData.Setup(x => x.UserId).Returns(SeedUser1AdminId);
+        _tokenData.Setup(x => x.UserId).Returns(TestUser1AdminId);
 
         var request = new CreateGroupVenueRequest
         {

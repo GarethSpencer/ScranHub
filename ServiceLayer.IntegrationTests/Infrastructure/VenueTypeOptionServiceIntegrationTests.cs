@@ -107,7 +107,7 @@ public class VenueTypeOptionServiceIntegrationTests(DatabaseFixture fixture)
     [Fact]
     public async Task SetGroupCustomOptionsAsync_GroupAlreadyHasCustomOptions_ReturnsBadRequest()
     {
-        _tokenData.Setup(x => x.UserId).Returns(SeedUser1AdminId);
+        _tokenData.Setup(x => x.UserId).Returns(TestUser1AdminId);
 
         var request = new SetOptionsRequest
         {
@@ -195,7 +195,7 @@ public class VenueTypeOptionServiceIntegrationTests(DatabaseFixture fixture)
     [Fact]
     public async Task RemoveGroupCustomOptionsAsync_ValidRequest_ReturnsCreated()
     {
-        _tokenData.Setup(x => x.UserId).Returns(SeedUser1AdminId);
+        _tokenData.Setup(x => x.UserId).Returns(TestUser1AdminId);
         var result = await _service!.RemoveGroupCustomOptionsAsync(TestGroup3Id, ct);
 
         _checks.OutputSuccessCheck(result, "removed", "RemoveGroupCustomOptionsAsync", HttpStatusCode.OK);

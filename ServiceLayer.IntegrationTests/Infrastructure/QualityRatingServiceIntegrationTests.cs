@@ -118,7 +118,7 @@ public class QualityRatingServiceIntegrationTests(DatabaseFixture fixture)
         _checks.OutputSuccessCheck(result, "success", "CreateRatingAsync", HttpStatusCode.Created);
 
         var typedResult = result.Should().BeOfType<AddRatingResponse>().Subject;
-        _context!.QualityRatings.Should().ContainSingle(e => e.UserId == SeedUser2NonAdminId && e.GroupVenueId == TestGroupVenue3Id
+        _context!.QualityRatings.Should().ContainSingle(e => e.UserId == TestUser2NonAdminId && e.GroupVenueId == TestGroupVenue3Id
             && e.QualityOptionId == SeedQualityOption1Id && e.QualityRatingId == typedResult!.RatingId!.Value);
     }
     #endregion
@@ -143,7 +143,7 @@ public class QualityRatingServiceIntegrationTests(DatabaseFixture fixture)
         {
             QualityRatingId = TestQualityRating4Id,
             QualityOptionId = TestQualityOption7Id,
-            UserId = SeedUser2NonAdminId,
+            UserId = TestUser2NonAdminId,
             GroupVenueId = TestGroupVenue10Id
         }
         );
@@ -181,7 +181,7 @@ public class QualityRatingServiceIntegrationTests(DatabaseFixture fixture)
         var result = await _service!.UpdateRatingAsync(TestQualityRating2Id, request, ct);
         _checks.OutputSuccessCheck(result, "success", "UpdateRatingAsync", HttpStatusCode.OK);
 
-        _context!.QualityRatings.Should().ContainSingle(e => e.UserId == SeedUser2NonAdminId && e.GroupVenueId == TestGroupVenue1Id
+        _context!.QualityRatings.Should().ContainSingle(e => e.UserId == TestUser2NonAdminId && e.GroupVenueId == TestGroupVenue1Id
             && e.QualityOptionId == SeedQualityOption1Id && e.QualityRatingId == TestQualityRating2Id);
     }
     #endregion
@@ -220,7 +220,7 @@ public class QualityRatingServiceIntegrationTests(DatabaseFixture fixture)
 
         var typedResult = result.Should().BeOfType<GetRatingResponse>().Subject;
         typedResult!.Rating!.RatingId.Should().Be(TestQualityRating2Id);
-        typedResult!.Rating!.UserId.Should().Be(SeedUser2NonAdminId);
+        typedResult!.Rating!.UserId.Should().Be(TestUser2NonAdminId);
         typedResult!.Rating!.GroupVenueId.Should().Be(TestGroupVenue1Id);
         typedResult!.Rating!.GroupId.Should().Be(TestGroup1Id);
         typedResult!.Rating!.OptionId.Should().Be(SeedQualityOption2Id);
@@ -238,9 +238,9 @@ public class QualityRatingServiceIntegrationTests(DatabaseFixture fixture)
 
         var typedResult = result.Should().BeOfType<GetRatingsResponse>().Subject;
         typedResult.Ratings!.Count().Should().Be(2);
-        typedResult.Ratings!.Should().Contain(x => x.UserId == SeedUser1AdminId && x.GroupVenueId == TestGroupVenue1Id
+        typedResult.Ratings!.Should().Contain(x => x.UserId == TestUser1AdminId && x.GroupVenueId == TestGroupVenue1Id
             && x.GroupId == TestGroup1Id && x.OptionId == SeedQualityOption1Id && x.RatingId == TestQualityRating1Id);
-        typedResult.Ratings!.Should().Contain(x => x.UserId == SeedUser2NonAdminId && x.GroupVenueId == TestGroupVenue1Id
+        typedResult.Ratings!.Should().Contain(x => x.UserId == TestUser2NonAdminId && x.GroupVenueId == TestGroupVenue1Id
             && x.GroupId == TestGroup1Id && x.OptionId == SeedQualityOption2Id && x.RatingId == TestQualityRating2Id);
     }
     #endregion
@@ -249,16 +249,16 @@ public class QualityRatingServiceIntegrationTests(DatabaseFixture fixture)
     [Fact]
     public async Task GetUserRatingsForGroupAsync_ValidGroupId_ReturnsOK()
     {
-        _tokenData.Setup(x => x.UserId).Returns(SeedUser1AdminId);
+        _tokenData.Setup(x => x.UserId).Returns(TestUser1AdminId);
 
         var result = await _service!.GetUserRatingsForGroupAsync(TestGroup1Id, ct);
         _checks.OutputSuccessCheck(result, "success", "GetUserRatingsForGroupAsync", HttpStatusCode.OK);
 
         var typedResult = result.Should().BeOfType<GetRatingsResponse>().Subject;
         typedResult.Ratings!.Count().Should().Be(2);
-        typedResult.Ratings!.Should().Contain(x => x.UserId == SeedUser1AdminId && x.GroupVenueId == TestGroupVenue1Id
+        typedResult.Ratings!.Should().Contain(x => x.UserId == TestUser1AdminId && x.GroupVenueId == TestGroupVenue1Id
             && x.GroupId == TestGroup1Id && x.OptionId == SeedQualityOption1Id && x.RatingId == TestQualityRating1Id);
-        typedResult.Ratings!.Should().Contain(x => x.UserId == SeedUser1AdminId && x.GroupVenueId == TestGroupVenue2Id
+        typedResult.Ratings!.Should().Contain(x => x.UserId == TestUser1AdminId && x.GroupVenueId == TestGroupVenue2Id
             && x.GroupId == TestGroup1Id && x.OptionId == SeedQualityOption1Id && x.RatingId == TestQualityRating3Id);
     }
     #endregion

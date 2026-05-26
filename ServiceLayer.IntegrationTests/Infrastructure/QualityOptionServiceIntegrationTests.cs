@@ -209,35 +209,35 @@ public class QualityOptionServiceIntegrationTests(DatabaseFixture fixture)
         _context.QualityRatings.AddRange(new QualityRating
         {
             QualityRatingId = TestQualityRating4Id,
-            UserId = SeedUser1AdminId,
+            UserId = TestUser1AdminId,
             QualityOptionId = TestQualityOption5Id,
             GroupVenueId = TestGroupVenue5Id
         },
         new QualityRating
         {
             QualityRatingId = TestQualityRating5Id,
-            UserId = SeedUser1AdminId,
+            UserId = TestUser1AdminId,
             QualityOptionId = TestQualityOption6Id,
             GroupVenueId = TestGroupVenue6Id
         },
         new QualityRating
         {
             QualityRatingId = TestQualityRating6Id,
-            UserId = SeedUser1AdminId,
+            UserId = TestUser1AdminId,
             QualityOptionId = TestQualityOption8Id,
             GroupVenueId = TestGroupVenue7Id
         },
         new QualityRating
         {
             QualityRatingId = TestQualityRating7Id,
-            UserId = SeedUser1AdminId,
+            UserId = TestUser1AdminId,
             QualityOptionId = TestQualityOption9Id,
             GroupVenueId = TestGroupVenue8Id
         },
         new QualityRating
         {
             QualityRatingId = TestQualityRating8Id,
-            UserId = SeedUser1AdminId,
+            UserId = TestUser1AdminId,
             QualityOptionId = TestQualityOption10Id,
             GroupVenueId = TestGroupVenue9Id
         }
@@ -245,7 +245,7 @@ public class QualityOptionServiceIntegrationTests(DatabaseFixture fixture)
 
         await _context.SaveChangesAsync(ct);
 
-        _tokenData.Setup(x => x.UserId).Returns(SeedUser1AdminId);
+        _tokenData.Setup(x => x.UserId).Returns(TestUser1AdminId);
 
         var result = await _service!.RemoveGroupCustomOptionsAsync(TestGroup3Id, ct);
         _checks.OutputFailureCheck(result, "there are only", "RemoveGroupCustomOptionsAsync", HttpStatusCode.BadRequest);
@@ -257,28 +257,28 @@ public class QualityOptionServiceIntegrationTests(DatabaseFixture fixture)
         _context!.QualityRatings.AddRange(new QualityRating
         {
             QualityRatingId = TestQualityRating4Id,
-            UserId = SeedUser1AdminId,
+            UserId = TestUser1AdminId,
             QualityOptionId = TestQualityOption5Id,
             GroupVenueId = TestGroupVenue5Id
         },
         new QualityRating
         {
             QualityRatingId = TestQualityRating5Id,
-            UserId = SeedUser1AdminId,
+            UserId = TestUser1AdminId,
             QualityOptionId = TestQualityOption6Id,
             GroupVenueId = TestGroupVenue6Id
         },
         new QualityRating
         {
             QualityRatingId = TestQualityRating6Id,
-            UserId = SeedUser1AdminId,
+            UserId = TestUser1AdminId,
             QualityOptionId = TestQualityOption9Id,
             GroupVenueId = TestGroupVenue7Id
         },
         new QualityRating
         {
             QualityRatingId = TestQualityRating7Id,
-            UserId = SeedUser1AdminId,
+            UserId = TestUser1AdminId,
             QualityOptionId = TestQualityOption9Id,
             GroupVenueId = TestGroupVenue8Id
         }
@@ -286,7 +286,7 @@ public class QualityOptionServiceIntegrationTests(DatabaseFixture fixture)
 
         await _context.SaveChangesAsync(ct);
 
-        _tokenData.Setup(x => x.UserId).Returns(SeedUser1AdminId);
+        _tokenData.Setup(x => x.UserId).Returns(TestUser1AdminId);
 
         var result = await _service!.RemoveGroupCustomOptionsAsync(TestGroup3Id, ct);
         _checks.OutputSuccessCheck(result, "success", "RemoveGroupCustomOptionsAsync", HttpStatusCode.OK);
@@ -317,28 +317,28 @@ public class QualityOptionServiceIntegrationTests(DatabaseFixture fixture)
         _context!.QualityRatings.AddRange(new QualityRating
         {
             QualityRatingId = TestQualityRating4Id,
-            UserId = SeedUser1AdminId,
+            UserId = TestUser1AdminId,
             QualityOptionId = TestQualityOption5Id,
             GroupVenueId = TestGroupVenue5Id
         },
         new QualityRating
         {
             QualityRatingId = TestQualityRating5Id,
-            UserId = SeedUser1AdminId,
+            UserId = TestUser1AdminId,
             QualityOptionId = TestQualityOption6Id,
             GroupVenueId = TestGroupVenue6Id
         },
         new QualityRating
         {
             QualityRatingId = TestQualityRating6Id,
-            UserId = SeedUser1AdminId,
+            UserId = TestUser1AdminId,
             QualityOptionId = TestQualityOption8Id,
             GroupVenueId = TestGroupVenue7Id
         },
         new QualityRating
         {
             QualityRatingId = TestQualityRating7Id,
-            UserId = SeedUser1AdminId,
+            UserId = TestUser1AdminId,
             QualityOptionId = TestQualityOption10Id,
             GroupVenueId = TestGroupVenue8Id
         }
@@ -346,7 +346,7 @@ public class QualityOptionServiceIntegrationTests(DatabaseFixture fixture)
 
         await _context.SaveChangesAsync(ct);
 
-        _tokenData.Setup(x => x.UserId).Returns(SeedUser1AdminId);
+        _tokenData.Setup(x => x.UserId).Returns(TestUser1AdminId);
 
         var result = await _service!.RemoveGroupCustomOptionsAsync(TestGroup3Id, ct);
         _checks.OutputSuccessCheck(result, "success", "RemoveGroupCustomOptionsAsync", HttpStatusCode.OK);
@@ -377,28 +377,28 @@ public class QualityOptionServiceIntegrationTests(DatabaseFixture fixture)
         _context!.QualityRatings.AddRange(new QualityRating
         {
             QualityRatingId = TestQualityRating4Id,
-            UserId = SeedUser1AdminId,
+            UserId = TestUser1AdminId,
             QualityOptionId = TestQualityOption5Id,
             GroupVenueId = TestGroupVenue5Id
         },
         new QualityRating
         {
             QualityRatingId = TestQualityRating5Id,
-            UserId = SeedUser1AdminId,
+            UserId = TestUser1AdminId,
             QualityOptionId = TestQualityOption5Id,
             GroupVenueId = TestGroupVenue6Id
         },
         new QualityRating
         {
             QualityRatingId = TestQualityRating6Id,
-            UserId = SeedUser1AdminId,
+            UserId = TestUser1AdminId,
             QualityOptionId = TestQualityOption8Id,
             GroupVenueId = TestGroupVenue7Id
         },
         new QualityRating
         {
             QualityRatingId = TestQualityRating7Id,
-            UserId = SeedUser1AdminId,
+            UserId = TestUser1AdminId,
             QualityOptionId = TestQualityOption8Id,
             GroupVenueId = TestGroupVenue8Id
         }
@@ -406,7 +406,7 @@ public class QualityOptionServiceIntegrationTests(DatabaseFixture fixture)
 
         await _context.SaveChangesAsync(ct);
 
-        _tokenData.Setup(x => x.UserId).Returns(SeedUser1AdminId);
+        _tokenData.Setup(x => x.UserId).Returns(TestUser1AdminId);
 
         var result = await _service!.RemoveGroupCustomOptionsAsync(TestGroup3Id, ct);
         _checks.OutputSuccessCheck(result, "success", "RemoveGroupCustomOptionsAsync", HttpStatusCode.OK);
@@ -437,28 +437,28 @@ public class QualityOptionServiceIntegrationTests(DatabaseFixture fixture)
         _context!.QualityRatings.AddRange(new QualityRating
         {
             QualityRatingId = TestQualityRating4Id,
-            UserId = SeedUser1AdminId,
+            UserId = TestUser1AdminId,
             QualityOptionId = TestQualityOption5Id,
             GroupVenueId = TestGroupVenue5Id
         },
         new QualityRating
         {
             QualityRatingId = TestQualityRating5Id,
-            UserId = SeedUser1AdminId,
+            UserId = TestUser1AdminId,
             QualityOptionId = TestQualityOption5Id,
             GroupVenueId = TestGroupVenue6Id
         },
         new QualityRating
         {
             QualityRatingId = TestQualityRating6Id,
-            UserId = SeedUser1AdminId,
+            UserId = TestUser1AdminId,
             QualityOptionId = TestQualityOption10Id,
             GroupVenueId = TestGroupVenue7Id
         },
         new QualityRating
         {
             QualityRatingId = TestQualityRating7Id,
-            UserId = SeedUser1AdminId,
+            UserId = TestUser1AdminId,
             QualityOptionId = TestQualityOption10Id,
             GroupVenueId = TestGroupVenue8Id
         }
@@ -466,7 +466,7 @@ public class QualityOptionServiceIntegrationTests(DatabaseFixture fixture)
 
         await _context.SaveChangesAsync(ct);
 
-        _tokenData.Setup(x => x.UserId).Returns(SeedUser1AdminId);
+        _tokenData.Setup(x => x.UserId).Returns(TestUser1AdminId);
 
         var result = await _service!.RemoveGroupCustomOptionsAsync(TestGroup3Id, ct);
         _checks.OutputSuccessCheck(result, "success", "RemoveGroupCustomOptionsAsync", HttpStatusCode.OK);
@@ -488,7 +488,7 @@ public class QualityOptionServiceIntegrationTests(DatabaseFixture fixture)
     [Fact]
     public async Task AddOptionAsync_ValidInput_ReturnsCreated()
     {
-        _tokenData.Setup(x => x.UserId).Returns(SeedUser1AdminId);
+        _tokenData.Setup(x => x.UserId).Returns(TestUser1AdminId);
 
         var request = new SetOptionRequest
         {
@@ -549,7 +549,7 @@ public class QualityOptionServiceIntegrationTests(DatabaseFixture fixture)
     [Fact]
     public async Task UpdateOptionAsync_LabelAlreadyUsed_ReturnsConflict()
     {
-        _tokenData.Setup(x => x.UserId).Returns(SeedUser1AdminId);
+        _tokenData.Setup(x => x.UserId).Returns(TestUser1AdminId);
 
         var request = new UpdateOptionRequest
         {
@@ -567,7 +567,7 @@ public class QualityOptionServiceIntegrationTests(DatabaseFixture fixture)
     [InlineData("Something New")]
     public async Task UpdateOptionAsync_ValidRequest_ReturnsOK(string newLabel)
     {
-        _tokenData.Setup(x => x.UserId).Returns(SeedUser1AdminId);
+        _tokenData.Setup(x => x.UserId).Returns(TestUser1AdminId);
 
         var request = new UpdateOptionRequest
         {
@@ -609,14 +609,14 @@ public class QualityOptionServiceIntegrationTests(DatabaseFixture fixture)
         _context!.QualityRatings.Add(new QualityRating
         {
             QualityRatingId = TestQualityRating4Id,
-            UserId = SeedUser1AdminId,
+            UserId = TestUser1AdminId,
             QualityOptionId = TestQualityOption5Id,
             GroupVenueId = TestGroupVenue5Id
         });
 
         await _context.SaveChangesAsync(ct);
 
-        _tokenData.Setup(x => x.UserId).Returns(SeedUser1AdminId);
+        _tokenData.Setup(x => x.UserId).Returns(TestUser1AdminId);
 
         var result = await _service!.DeleteOptionAsync(TestQualityOption5Id, ct);
         _checks.OutputFailureCheck(result, "being used", "DeleteOptionAsync", HttpStatusCode.BadRequest);
@@ -625,7 +625,7 @@ public class QualityOptionServiceIntegrationTests(DatabaseFixture fixture)
     [Fact]
     public async Task DeleteOptionAsync_ValidUnusedOption_ReturnsOK()
     {
-        _tokenData.Setup(x => x.UserId).Returns(SeedUser1AdminId);
+        _tokenData.Setup(x => x.UserId).Returns(TestUser1AdminId);
 
         var result = await _service!.DeleteOptionAsync(TestQualityOption5Id, ct);
         _checks.OutputSuccessCheck(result, "success", "DeleteOptionAsync", HttpStatusCode.OK);
@@ -638,7 +638,7 @@ public class QualityOptionServiceIntegrationTests(DatabaseFixture fixture)
     [Fact]
     public async Task ReorderOptionsAsync_NoOptionsIds_ReturnsBadRequest()
     {
-        _tokenData.Setup(x => x.UserId).Returns(SeedUser1AdminId);
+        _tokenData.Setup(x => x.UserId).Returns(TestUser1AdminId);
 
         var request = new OrderOptionsRequest
         {
@@ -653,7 +653,7 @@ public class QualityOptionServiceIntegrationTests(DatabaseFixture fixture)
     [Fact]
     public async Task ReorderOptionsAsync_WrongOptionsIds_ReturnsBadRequest()
     {
-        _tokenData.Setup(x => x.UserId).Returns(SeedUser1AdminId);
+        _tokenData.Setup(x => x.UserId).Returns(TestUser1AdminId);
 
         var request = new OrderOptionsRequest
         {
@@ -668,7 +668,7 @@ public class QualityOptionServiceIntegrationTests(DatabaseFixture fixture)
     [Fact]
     public async Task ReorderOptionsAsync_DuplicateOptionsIds_ReturnsBadRequest()
     {
-        _tokenData.Setup(x => x.UserId).Returns(SeedUser1AdminId);
+        _tokenData.Setup(x => x.UserId).Returns(TestUser1AdminId);
 
         var request = new OrderOptionsRequest
         {
@@ -683,7 +683,7 @@ public class QualityOptionServiceIntegrationTests(DatabaseFixture fixture)
     [Fact]
     public async Task ReorderOptionsAsync_ValidOptionsIds_ReturnsOK()
     {
-        _tokenData.Setup(x => x.UserId).Returns(SeedUser1AdminId);
+        _tokenData.Setup(x => x.UserId).Returns(TestUser1AdminId);
 
         var request = new OrderOptionsRequest
         {
@@ -721,7 +721,7 @@ public class QualityOptionServiceIntegrationTests(DatabaseFixture fixture)
     [Fact]
     public async Task GetGroupRatingOptionsAsync_ValidGroupId_ReturnsOK()
     {
-        _tokenData.Setup(x => x.UserId).Returns(SeedUser1AdminId);
+        _tokenData.Setup(x => x.UserId).Returns(TestUser1AdminId);
 
         var result = await _service!.GetGroupRatingOptionsAsync(TestGroup3Id, ct);
         _checks.OutputSuccessCheck(result, "success", "GetGroupRatingOptionsAsync", HttpStatusCode.OK);
@@ -764,7 +764,7 @@ public class QualityOptionServiceIntegrationTests(DatabaseFixture fixture)
     [Fact]
     public async Task GetRatingOptionAsync_ValidOptionId_ReturnsOK()
     {
-        _tokenData.Setup(x => x.UserId).Returns(SeedUser1AdminId);
+        _tokenData.Setup(x => x.UserId).Returns(TestUser1AdminId);
 
         var result = await _service!.GetRatingOptionAsync(TestQualityOption5Id, ct);
         _checks.OutputSuccessCheck(result, "success", "GetRatingOptionAsync", HttpStatusCode.OK);

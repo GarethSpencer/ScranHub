@@ -42,7 +42,7 @@ public class GroupServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifet
         _context = new ScranHubDbContext(options);
         _transaction = await _context!.Database.BeginTransactionAsync();
 
-        _tokenData.Setup(x => x.UserId).Returns(SeedUser2NonAdminId);
+        _tokenData.Setup(x => x.UserId).Returns(TestUser2NonAdminId);
 
         _service = new GroupService(
             tokenData: _tokenData.Object,
@@ -94,7 +94,7 @@ public class GroupServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifet
 
         var typedResult = result.Should().BeOfType<AddGroupResponse>().Subject;
         _logger.Entries.Should().ContainSingle(e => e.Message.Contains(request.GroupName, StringComparison.InvariantCultureIgnoreCase));
-        _context!.UserGroups.Should().ContainSingle(e => e.UserId == SeedUser2NonAdminId && e.GroupId == typedResult.GroupId);
+        _context!.UserGroups.Should().ContainSingle(e => e.UserId == TestUser2NonAdminId && e.GroupId == typedResult.GroupId);
     }
     #endregion
 
@@ -188,7 +188,7 @@ public class GroupServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifet
     [Fact]
     public async Task SearchGroupsAsync_ValidAdminSearch_ReturnsOk()
     {
-        _tokenData.Setup(x => x.UserId).Returns(SeedUser1AdminId);
+        _tokenData.Setup(x => x.UserId).Returns(TestUser1AdminId);
 
         var request = new SearchGroupRequest
         {
@@ -286,7 +286,7 @@ public class GroupServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifet
     [Fact]
     public async Task UpdateGroupAsync_UpdatingGroupToExistingName_ReturnsConflict()
     {
-        _tokenData.Setup(x => x.UserId).Returns(SeedUser1AdminId);
+        _tokenData.Setup(x => x.UserId).Returns(TestUser1AdminId);
 
         var request = new UpdateGroupRequest
         {
@@ -305,7 +305,7 @@ public class GroupServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifet
     [InlineData("TEST GROUP 3")]
     public async Task UpdateGroupAsync_ValidDetailsSameNameDifferentCase_ReturnsOK(string newGroupName)
     {
-        _tokenData.Setup(x => x.UserId).Returns(SeedUser1AdminId);
+        _tokenData.Setup(x => x.UserId).Returns(TestUser1AdminId);
 
         var request = new UpdateGroupRequest
         {
@@ -336,7 +336,7 @@ public class GroupServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifet
         _checks.OutputSuccessCheck(result, "success", "GetGroupsForUserAsync", HttpStatusCode.OK);
 
         var typedResult = result.Should().BeOfType<UserGroupsResponse>().Subject;
-        typedResult.UserId.Should().Be(SeedUser2NonAdminId);
+        typedResult.UserId.Should().Be(TestUser2NonAdminId);
         typedResult.UserGroups.Should().HaveCount(2);
         typedResult.UserGroups.Should().Contain(e => e.GroupId == TestGroup1Id);
         typedResult.UserGroups.Should().Contain(e => e.GroupId == TestGroup2Id);
@@ -384,7 +384,7 @@ public class GroupServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifet
     [Fact]
     public async Task LeaveGroupAsync_CreatedGroup_ReturnsBadRequest()
     {
-        _tokenData.Setup(x => x.UserId).Returns(SeedUser1AdminId);
+        _tokenData.Setup(x => x.UserId).Returns(TestUser1AdminId);
 
         var result = await _service!.LeaveGroupAsync(TestGroup3Id, ct);
         _checks.OutputFailureCheck(result, "created", "LeaveGroupAsync", HttpStatusCode.Forbidden);
@@ -395,7 +395,7 @@ public class GroupServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifet
     {
         var result = await _service!.LeaveGroupAsync(TestGroup2Id, ct);
         _checks.OutputSuccessCheck(result, "success", "LeaveGroupAsync", HttpStatusCode.OK);
-        _context!.UserGroups.Should().NotContain(e => e.UserId == SeedUser2NonAdminId && e.GroupId == TestGroup2Id);
+        _context!.UserGroups.Should().NotContain(e => e.UserId == TestUser2NonAdminId && e.GroupId == TestGroup2Id);
     }
     #endregion
 
@@ -447,7 +447,7 @@ public class GroupServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifet
         var result = await _service!.JoinGroupAsync(TestGroup3Id, ct);
         _checks.OutputSuccessCheck(result, "success", "JoinGroupAsync", HttpStatusCode.Created);
 
-        _context!.UserGroups.Should().ContainSingle(e => e.UserId == SeedUser2NonAdminId && e.GroupId == TestGroup3Id);
+        _context!.UserGroups.Should().ContainSingle(e => e.UserId == TestUser2NonAdminId && e.GroupId == TestGroup3Id);
     }
     #endregion
 
@@ -478,7 +478,7 @@ public class GroupServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifet
     [Fact]
     public async Task DeleteGroupAsync_ValidRequest_ReturnsOK()
     {
-        _tokenData.Setup(x => x.UserId).Returns(SeedUser1AdminId);
+        _tokenData.Setup(x => x.UserId).Returns(TestUser1AdminId);
 
         var result = await _service!.DeleteGroupAsync(TestGroup1Id, ct);
         _checks.OutputSuccessCheck(result, "success", "DeleteGroupAsync", HttpStatusCode.OK);
@@ -518,7 +518,7 @@ public class GroupServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifet
     [Fact]
     public async Task GetAllGroupsAsync_Admin_ReturnsOK()
     {
-        _tokenData.Setup(x => x.UserId).Returns(SeedUser1AdminId);
+        _tokenData.Setup(x => x.UserId).Returns(TestUser1AdminId);
 
         var request = new PaginationBaseRequest
         {

@@ -42,7 +42,7 @@ public abstract class RatingServiceIntegrationTests<TService>(DatabaseFixture fi
         _context = new ScranHubDbContext(options);
         _transaction = await _context!.Database.BeginTransactionAsync();
 
-        _tokenData.Setup(x => x.UserId).Returns(SeedUser2NonAdminId);
+        _tokenData.Setup(x => x.UserId).Returns(TestUser2NonAdminId);
 
         _service = CreateService(_context, _tokenData.Object, _logger);
     }

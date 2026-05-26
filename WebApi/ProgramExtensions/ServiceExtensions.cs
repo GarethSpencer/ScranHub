@@ -1,10 +1,10 @@
 ﻿using Asp.Versioning;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
-using System.Text;
+using System.Security.Claims;
 using System.Text.Json.Serialization;
-using Utilities.Models.Options;
 using Utilities.Models.Responses.Generic;
 using WebApi.Middleware;
 
@@ -38,8 +38,6 @@ public static class ServiceExtensions
             {
                 opts.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
             });
-
-        services.AddScoped<ExceptionHandlingMiddleware>();
     }
 
     /// <summary>
@@ -65,24 +63,35 @@ public static class ServiceExtensions
     /// Configure Swagger for API documentation and UI, including support for API versioning and authorization persistence in the UI.
     /// </summary>
     /// <param name="services"></param>
-    public static void ConfigureSwagger(this IServiceCollection services)
+    /// <param name="configuration"></param>
+    public static void ConfigureSwagger(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddSwaggerGen(opts =>
         {
             opts.SwaggerDoc("v1", new OpenApiInfo { Title = "ScranHub API", Version = "v1" });
 
-            opts.AddSecurityDefinition("bearer", new OpenApiSecurityScheme
+            opts.AddSecurityDefinition("oauth2", new OpenApiSecurityScheme
             {
-                Type = SecuritySchemeType.Http,
-                Name = "Authorization",
-                Scheme = "bearer",
-                BearerFormat = "JWT",
-                Description = "Paste JWT Token Here"
+                Type = SecuritySchemeType.OAuth2,
+                Flows = new OpenApiOAuthFlows
+                {
+                    AuthorizationCode = new OpenApiOAuthFlow
+                    {
+                        AuthorizationUrl = new Uri($"{configuration["Auth0:Authority"]}authorize"),
+                        TokenUrl = new Uri($"{configuration["Auth0:Authority"]}oauth/token"),
+                        Scopes = new Dictionary<string, string>
+                        {
+                            { "openid", "OpenID" },
+                            { "profile", "Profile" },
+                            { "email", "Email" }
+                        }
+                    }
+                }
             });
 
             opts.AddSecurityRequirement(document => new OpenApiSecurityRequirement
             {
-                [new OpenApiSecuritySchemeReference("bearer", document)] = []
+                [new OpenApiSecuritySchemeReference("oauth2", document)] = ["openid", "profile", "email"]
             });
 
             opts.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml"));
@@ -142,22 +151,16 @@ public static class ServiceExtensions
     /// <param name="configuration"></param>
     public static void ConfigureAuthentication(this IServiceCollection services, IConfiguration configuration)
     {
-        services.AddAuthentication("Bearer")
-            .AddJwtBearer(opts =>
+        services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+            .AddJwtBearer(options =>
             {
-                opts.TokenValidationParameters = new()
+                options.Authority = configuration["Auth0:Authority"];
+                options.Audience = configuration["Auth0:Audience"];
+                options.TokenValidationParameters = new TokenValidationParameters
                 {
-                    ValidateIssuer = true,
-                    ValidateAudience = true,
-                    ValidateIssuerSigningKey = true,
-                    ValidIssuer = configuration.GetValue<string>("Authentication:Issuer"),
-                    ValidAudience = configuration.GetValue<string>("Authentication:Audience"),
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(
-                        configuration.GetValue<string>("Authentication:SecretKey")!))
+                    NameClaimType = ClaimTypes.NameIdentifier
                 };
             });
-
-        services.Configure<Authentication>(configuration.GetSection("Authentication"));
     }
 
     /// <summary>
@@ -182,5 +185,15 @@ public static class ServiceExtensions
     {
         services.AddHealthChecks()
             .AddSqlServer(configuration.GetConnectionString("Default")!);
+    }
+
+    /// <summary>
+    /// Configure middleware for the application, including exception handling and user resolution.
+    /// </summary>
+    /// <param name="services"></param>
+    public static void ConfigureMiddleware(this IServiceCollection services)
+    {
+        services.AddScoped<ExceptionHandlingMiddleware>();
+        services.AddScoped<UserResolutionMiddleware>();
     }
 }
