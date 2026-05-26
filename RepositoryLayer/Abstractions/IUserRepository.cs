@@ -10,7 +10,7 @@ public interface IUserRepository : IEFRepository<User>
 {
     Task<(IEnumerable<UserDetailedResult>, int)> GetAllAsync(PaginationBaseRequest request, CancellationToken ct);
     Task<IEnumerable<User>> GetAllActiveAdminsAsync(CancellationToken ct, bool trackChanges = false);
-    Task<UserResult?> GetByEmailAsync(string email, CancellationToken ct);
+    Task<UserAuthResult?> GetByEmailAsync(string email, CancellationToken ct);
     Task<UserResult?> GetDetailsByIdAsync(Guid id, CancellationToken ct);
     Task<IEnumerable<FriendResult>?> GetFriendsForUserAsync(Guid id, CancellationToken ct);
     Task<User?> GetUserGroupsByIdAsync(Guid userId, CancellationToken ct, bool trackChanges = false);
@@ -19,6 +19,6 @@ public interface IUserRepository : IEFRepository<User>
     Task DeleteAsync(Guid userId, CancellationToken ct);
     Task UpdateAsync(Guid userId, UpdateUserRequest userRequest, CancellationToken ct);
     Task<(IEnumerable<UserResult>, int)> SearchByDisplayNameAsync(SearchUserRequest request, CancellationToken ct);
-    Task<UserResult?> GetByAuthId(string authId, CancellationToken ct);
+    Task<UserAuthResult?> GetByAuthId(string authId, CancellationToken ct);
     Task SetAuthId(Guid userId, string authId, CancellationToken ct);
 }

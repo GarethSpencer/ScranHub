@@ -51,14 +51,12 @@ public sealed class UserRepository(ScranHubDbContext dbContext) : EFRepository<U
         return new UserResult
         {
             UserId = user.UserId,
-            AuthId = user.AuthId,
             DisplayName = user.DisplayName,
             Active = user.Active,
-            Admin = user.Admin
         };
     }
 
-    public async Task<UserResult?> GetByEmailAsync(string email, CancellationToken ct)
+    public async Task<UserAuthResult?> GetByEmailAsync(string email, CancellationToken ct)
     {
         var user = await _dbSet.FirstOrDefaultAsync(x => x.Email == email, ct);
 
@@ -67,12 +65,10 @@ public sealed class UserRepository(ScranHubDbContext dbContext) : EFRepository<U
             return null;
         }
 
-        return new UserResult
+        return new UserAuthResult
         {
             UserId = user.UserId,
             AuthId = user.AuthId,
-            DisplayName = user.DisplayName,
-            Active = user.Active,
             Admin = user.Admin
         };
     }
@@ -187,10 +183,8 @@ public sealed class UserRepository(ScranHubDbContext dbContext) : EFRepository<U
         var userResults = users.Select(u => new UserResult
         {
             UserId = u.UserId,
-            AuthId = u.AuthId,
             DisplayName = u.DisplayName,
             Active = u.Active,
-            Admin = u.Admin
         });
 
         return (userResults, totalCount);
@@ -214,15 +208,13 @@ public sealed class UserRepository(ScranHubDbContext dbContext) : EFRepository<U
         _dbSet.Remove(user);
     }
 
-    public async Task<UserResult?> GetByAuthId(string authId, CancellationToken ct)
+    public async Task<UserAuthResult?> GetByAuthId(string authId, CancellationToken ct)
     {
         return await _dbSet.Where(x => x.AuthId == authId)
-            .Select(u => new UserResult
+            .Select(u => new UserAuthResult
             {
                 UserId = u.UserId,
                 AuthId = u.AuthId,
-                DisplayName = u.DisplayName,
-                Active = u.Active,
                 Admin = u.Admin
             }).FirstOrDefaultAsync(ct);
     }
