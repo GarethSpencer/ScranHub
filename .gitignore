@@ -13,7 +13,6 @@ appsettings.Local.json
 *.publishproj
 *.azurePubxml
 *.publishsettings
-**/Properties/launchSettings.json
 PublishScripts/
 
 # ---------------------------
