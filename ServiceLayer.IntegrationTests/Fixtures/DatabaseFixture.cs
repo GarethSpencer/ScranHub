@@ -44,6 +44,7 @@ public class DatabaseFixture : IAsyncLifetime
         {
             UserId = TestUser2NonAdminId,
             DisplayName = TestUser2NonAdminName,
+            AuthId = TestAuthId,
             Email = TestUser2NonAdminEmail,
             Active = true,
             Admin = false
