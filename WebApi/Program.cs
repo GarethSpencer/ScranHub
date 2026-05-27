@@ -1,3 +1,4 @@
+using Azure.Identity;
 using Serilog;
 using Serilog.Debugging;
 using ServiceLayer;
@@ -6,6 +7,14 @@ using WebApi.Middleware;
 using WebApi.ProgramExtensions;
 
 var builder = WebApplication.CreateBuilder(args);
+
+if (!builder.Environment.IsDevelopment())
+{
+    var keyVaultUrl = builder.Configuration["AZURE_KEY_VAULT_URL"];
+    builder.Configuration.AddAzureKeyVault(
+        new Uri(keyVaultUrl!),
+        new DefaultAzureCredential());
+}
 
 // From ServiceExtensions
 builder.Services.ConfigureApiBehavior();
