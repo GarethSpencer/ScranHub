@@ -11,9 +11,27 @@ var builder = WebApplication.CreateBuilder(args);
 if (!builder.Environment.IsDevelopment())
 {
     var keyVaultUrl = builder.Configuration["AZURE_KEY_VAULT_URL"];
-    builder.Configuration.AddAzureKeyVault(
-        new Uri(keyVaultUrl!),
-        new DefaultAzureCredential());
+    Console.WriteLine($"KeyVault URL: {keyVaultUrl}");
+    Console.WriteLine($"Environment: {builder.Environment.EnvironmentName}");
+
+    if (keyVaultUrl is not null)
+    {
+        try
+        {
+            builder.Configuration.AddAzureKeyVault(
+                new Uri(keyVaultUrl),
+                new DefaultAzureCredential());
+            Console.WriteLine("KeyVault configuration added successfully.");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"KeyVault configuration failed: {ex.Message}");
+        }
+    }
+    else
+    {
+        Console.WriteLine("KeyVault URL is null - skipping KeyVault configuration.");
+    }
 }
 
 // From ServiceExtensions
