@@ -60,7 +60,7 @@ public static class ServiceExtensions
     }
 
     /// <summary>
-    /// Configure Swagger for API documentation and UI, including support for API versioning and authorization persistence in the UI.
+    /// Configure Swagger for API documentation and UI, including support for API versioning and authentication with Auth0.
     /// </summary>
     /// <param name="services"></param>
     /// <param name="configuration"></param>
@@ -99,10 +99,11 @@ public static class ServiceExtensions
     }
 
     /// <summary>
-    /// Configure Scalar for API reference documentation and UI, including support for authentication with Bearer tokens in the UI.
+    /// Configure Scalar for API reference documentation and UI, including support for authentication with Auth0.
     /// </summary>
     /// <param name="services"></param>
-    public static void ConfigureScalar(this IServiceCollection services)
+    /// <param name="configuration"></param>
+    public static void ConfigureScalar(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddOpenApi(opts =>
         {
@@ -110,12 +111,23 @@ public static class ServiceExtensions
             {
                 document.Components ??= new();
                 document.Components.SecuritySchemes ??= new Dictionary<string, IOpenApiSecurityScheme>();
-                document.Components.SecuritySchemes["Bearer"] = new OpenApiSecurityScheme
+                document.Components.SecuritySchemes["oauth2"] = new OpenApiSecurityScheme
                 {
-                    Type = SecuritySchemeType.Http,
-                    Scheme = "bearer",
-                    BearerFormat = "JWT",
-                    Description = "Paste JWT Token Here"
+                    Type = SecuritySchemeType.OAuth2,
+                    Flows = new OpenApiOAuthFlows
+                    {
+                        AuthorizationCode = new OpenApiOAuthFlow
+                        {
+                            AuthorizationUrl = new Uri($"{configuration["Auth0:Authority"]}authorize"),
+                            TokenUrl = new Uri($"{configuration["Auth0:Authority"]}oauth/token"),
+                            Scopes = new Dictionary<string, string>
+                            {
+                                { "openid", "OpenID" },
+                                { "profile", "Profile" },
+                                { "email", "Email" }
+                            }
+                        }
+                    }
                 };
 
                 return Task.CompletedTask;

@@ -21,7 +21,7 @@ builder.Services.ConfigureApiBehavior();
 builder.Services.ConfigureApiVersioning();
 builder.Services.ConfigureMiddleware();
 builder.Services.ConfigureSwagger(builder.Configuration);
-builder.Services.ConfigureScalar();
+builder.Services.ConfigureScalar(builder.Configuration);
 builder.Services.ConfigureCors();
 builder.Services.ConfigureAuthentication(builder.Configuration);
 builder.Services.ConfigureAuthorization();
@@ -42,7 +42,7 @@ if (app.Environment.IsDevelopment())
 {
     SelfLog.Enable(Console.Error);
     app.ConfigureSwagger(builder.Configuration);
-    app.ConfigureScalar();
+    app.ConfigureScalar(builder.Configuration);
 }
 
 app.UseMiddleware<ExceptionHandlingMiddleware>();

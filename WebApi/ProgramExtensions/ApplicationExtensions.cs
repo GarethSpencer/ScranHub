@@ -9,7 +9,7 @@ namespace WebApi.ProgramExtensions;
 public static class ApplicationExtensions
 {
     /// <summary>
-    /// Configure the WebApplication to use Swagger for API documentation and UI, including support for API versioning and authorization persistence in the UI.
+    /// Configure the WebApplication to use Swagger for API documentation and UI, including support for API versioning and Auth0
     /// </summary>
     /// <param name="application"></param>
     /// <param name="configuration"></param>
@@ -32,18 +32,23 @@ public static class ApplicationExtensions
     }
 
     /// <summary>
-    /// Configure the WebApplication to use Scalar for API reference documentation and UI, including support for authentication with Bearer tokens in the UI.
+    /// Configure the WebApplication to use Scalar for API reference documentation and UI, including support for Auth0
     /// </summary>
     /// <param name="application"></param>
-    public static void ConfigureScalar(this WebApplication application)
+    /// <param name="configuration"></param>
+    public static void ConfigureScalar(this WebApplication application, IConfiguration configuration)
     {
         application.MapOpenApi().AllowAnonymous();
         application.MapScalarApiReference(opts =>
         {
-            opts.Authentication = new ScalarAuthenticationOptions
-            {
-                PreferredSecuritySchemes = ["Bearer"]
-            };
+            opts.AddPreferredSecuritySchemes("oauth2")
+                .AddAuthorizationCodeFlow("oauth2", flow =>
+                {
+                    flow.ClientId = configuration["Auth0:ClientId"];
+                    flow.Pkce = Pkce.Sha256;
+                    flow.SelectedScopes = ["openid", "profile", "email"];
+                    flow.AddQueryParameter("audience", configuration["Auth0:Audience"]!);
+                });
         }).AllowAnonymous();
     }
 }
