@@ -150,7 +150,7 @@ public static class ServiceExtensions
                     .AllowAnyHeader());
 
             opts.AddPolicy("ProductionCorsPolicy",
-                policy => policy.WithOrigins("https://witty-hill-0dac1db03.7.azurestaticapps.net")
+                policy => policy.WithOrigins("https://www.scranhub.uk")
                     .AllowAnyMethod()
                     .WithHeaders("Authorization", "Content-Type"));
         });
