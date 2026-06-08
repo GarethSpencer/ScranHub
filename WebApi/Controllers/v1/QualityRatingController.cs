@@ -13,7 +13,7 @@ namespace WebApi.Controllers.v1;
 /// </summary>
 /// <param name="qualityRatingService">Service for managing quality ratings.</param>
 [ApiController]
-[Route("v{version:apiVersion}/[controller]")]
+[Route("api/v{version:apiVersion}/[controller]")]
 [ApiVersion("1.0")]
 [Produces("application/json")]
 public class QualityRatingController(IQualityRatingService qualityRatingService) : ControllerBase

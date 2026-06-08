@@ -13,7 +13,7 @@ namespace WebApi.Controllers.v1;
 /// </summary>
 /// <param name="costRatingService">Service for managing cost ratings.</param>
 [ApiController]
-[Route("v{version:apiVersion}/[controller]")]
+[Route("api/v{version:apiVersion}/[controller]")]
 [ApiVersion("1.0")]
 [Produces("application/json")]
 public class CostRatingController(ICostRatingService costRatingService) : ControllerBase

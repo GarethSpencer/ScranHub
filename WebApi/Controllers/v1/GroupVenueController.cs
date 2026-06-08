@@ -18,7 +18,7 @@ namespace WebApi.Controllers.v1;
 /// <param name="updateGroupVenueRequestValidator">Validator for update group venue requests.</param>
 /// <param name="searchGroupVenueRequestValidator">Validator for search group venue requests.</param>
 [ApiController]
-[Route("v{version:apiVersion}/[controller]")]
+[Route("api/v{version:apiVersion}/[controller]")]
 [ApiVersion("1.0")]
 [Produces("application/json")]
 public class GroupVenueController(

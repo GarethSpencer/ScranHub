@@ -196,6 +196,36 @@ public class UserService(ITokenData tokenData,
         }.WithResponseLog(_logger, callingUserId, $"User [{userId}] created successfully.");
     }
 
+    public async Task<CommonResponse> GetCurrentUserAsync(CancellationToken ct)
+    {
+        if (!_tokenData.UserId.HasValue)
+        {
+            return new CommonResponse
+            {
+                StatusCode = HttpStatusCode.Unauthorized,
+                Message = "Unauthorized."
+            }.WithResponseLog(_logger);
+        }
+
+        var callingUserId = _tokenData.UserId!.Value;
+        var user = await _userRepository.GetDetailsByIdAsync(callingUserId, ct);
+        if (user == null)
+        {
+            return new CommonResponse
+            {
+                StatusCode = HttpStatusCode.NotFound,
+                Message = "User was not found."
+            }.WithResponseLog(_logger, callingUserId);
+        }
+
+        return new GetUserResponse
+        {
+            StatusCode = HttpStatusCode.OK,
+            Message = "User returned successfully.",
+            User = user
+        }.WithResponseLog(_logger, callingUserId);
+    }
+
     public async Task<CommonResponse> GetUserAsync(Guid userId, CancellationToken ct)
     {
         if (!_tokenData.UserId.HasValue)

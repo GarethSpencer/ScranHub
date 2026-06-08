@@ -66,6 +66,33 @@ public class UserControllerTests
     }
 
     [Fact]
+    public async Task GetCurrentUser_ValidRequest_ReturnsCorrectResult()
+    {
+        var expectedResponse = new GetUserResponse { StatusCode = HttpStatusCode.OK };
+        _userServiceMock.Setup(s => s.GetCurrentUserAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(expectedResponse);
+
+        var result = await _sut.GetCurrentUser(ct);
+
+        var statusCodeResult = Assert.IsType<ObjectResult>(result);
+        Assert.IsType<GetUserResponse>(statusCodeResult.Value);
+        Assert.Equal(StatusCodes.Status200OK, statusCodeResult.StatusCode);
+        Assert.Equal(expectedResponse, statusCodeResult.Value);
+    }
+
+    [Fact]
+    public async Task GetCurrentUser_ValidRequest_CallsServiceCorrectly()
+    {
+        var expectedResponse = new GetUserResponse { StatusCode = HttpStatusCode.OK };
+        _userServiceMock.Setup(s => s.GetCurrentUserAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(expectedResponse);
+
+        await _sut.GetCurrentUser(ct);
+
+        _userServiceMock.Verify(s => s.GetCurrentUserAsync(ct), Times.Once);
+    }
+
+    [Fact]
     public async Task SearchUsers_NullRequest_ReturnsBadRequest()
     {
         var result = await _sut.SearchUsers(null!, ct);

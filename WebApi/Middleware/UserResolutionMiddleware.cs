@@ -12,8 +12,8 @@ internal class UserResolutionMiddleware(IAuthService authService, ITokenData tok
 
         if (sub is not null)
         {
-            var email = context.User.FindFirst(ClaimTypes.Email)?.Value;
             tokenData.AuthId = sub;
+            var email = context.User.FindFirst(ClaimTypes.Email)?.Value;
 
             var (userId, isAdmin) = await authService.ResolveUserAsync(sub, email, context.RequestAborted);
             tokenData.UserId = userId;

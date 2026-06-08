@@ -14,6 +14,8 @@ public interface IUserService
 
     Task<CommonResponse> UpdateUserAsync(Guid userId, UpdateUserRequest request, CancellationToken ct);
 
+    Task<CommonResponse> GetCurrentUserAsync(CancellationToken ct);
+
     Task<CommonResponse> GetUserAsync(Guid userId, CancellationToken ct);
 
     Task<CommonResponse> AddUserFriendAsync(Guid friendId, CancellationToken ct);

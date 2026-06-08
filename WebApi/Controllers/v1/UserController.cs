@@ -20,7 +20,7 @@ namespace WebApi.Controllers.v1;
 /// <param name="searchUserRequestValidator">Validator for search user requests.</param>
 /// <param name="addFriendRequestValidator">Validator for add friend requests.</param>
 [ApiController]
-[Route("v{version:apiVersion}/[controller]")]
+[Route("api/v{version:apiVersion}/[controller]")]
 [ApiVersion("1.0")]
 [Produces("application/json")]
 public class UserController(
@@ -37,6 +37,18 @@ public class UserController(
     private readonly IValidator<UpdateUserFriendRequest> _updateUserFriendRequestValidator = updateUserFriendRequestValidator;
     private readonly IValidator<SearchUserRequest> _searchUserRequestValidator = searchUserRequestValidator;
     private readonly IValidator<AddFriendRequest> _addFriendRequestValidator = addFriendRequestValidator;
+
+    /// <summary>
+    /// Get the details for the current user.
+    /// </summary>
+    /// <param name="ct"></param>
+    [HttpGet("me")]
+    [ProducesResponseType(typeof(GetUserResponse), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetCurrentUser(CancellationToken ct)
+    {
+        var response = await _userService.GetCurrentUserAsync(ct);
+        return StatusCode((int)response.StatusCode, response);
+    }
 
     /// <summary>
     /// Get details of a user by their ID, if you are their friend or an admin.

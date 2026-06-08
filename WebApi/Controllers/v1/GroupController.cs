@@ -17,7 +17,7 @@ namespace WebApi.Controllers.v1;
 /// <param name="updateGroupRequestValidator">Validator for update group requests.</param>
 /// <param name="searchGroupRequestValidator">Validator for search group requests.</param>
 [ApiController]
-[Route("v{version:apiVersion}/[controller]")]
+[Route("api/v{version:apiVersion}/[controller]")]
 [ApiVersion("1.0")]
 [Produces("application/json")]
 public class GroupController(

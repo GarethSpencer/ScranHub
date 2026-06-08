@@ -18,7 +18,7 @@ namespace WebApi.Controllers.v1;
 /// <param name="setOptionRequestValidator">Validator for setting a single option request.</param>
 /// <param name="updateOptionRequestValidator">Validator for updating option requests.</param>
 [ApiController]
-[Route("v{version:apiVersion}/[controller]")]
+[Route("api/v{version:apiVersion}/[controller]")]
 [ApiVersion("1.0")]
 [Produces("application/json")]
 public class CostOptionController(

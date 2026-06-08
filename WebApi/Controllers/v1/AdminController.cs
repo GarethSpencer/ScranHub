@@ -16,7 +16,7 @@ namespace WebApi.Controllers.v1;
 /// <param name="groupService">Service for managing group-related operations.</param>
 /// <param name="paginationBaseRequestValidator">Validator for pagination requests.</param>
 [ApiController]
-[Route("v{version:apiVersion}/[controller]")]
+[Route("api/v{version:apiVersion}/[controller]")]
 [ApiVersion("1.0")]
 [Produces("application/json")]
 public class AdminController(

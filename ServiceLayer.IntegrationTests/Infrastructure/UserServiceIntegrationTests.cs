@@ -453,6 +453,38 @@ public class UserServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
     }
     #endregion
 
+    #region GetCurrentUserAsync
+    [Fact]
+    public async Task GetCurrentUserAsync_NotAuthenticated_ReturnsUnauthorized()
+    {
+        _tokenData.Setup(x => x.UserId).Returns((Guid?)null);
+
+        var result = await _service!.GetCurrentUserAsync(ct);
+        _checks.OutputFailureCheck(result, "unauthorized", "GetCurrentUserAsync", HttpStatusCode.Unauthorized);
+    }
+
+    [Fact]
+    public async Task GetCurrentUserAsync_InvalidUserId_ReturnsNotFound()
+    {
+        _tokenData.Setup(x => x.UserId).Returns(Guid.Empty);
+
+        var result = await _service!.GetCurrentUserAsync(ct);
+        _checks.OutputFailureCheck(result, "not found", "GetCurrentUserAsync", HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    public async Task GetCurrentUserAsync_TokenExistsForAdmin_ReturnsOK()
+    {
+        var result = await _service!.GetCurrentUserAsync(ct);
+        _checks.OutputSuccessCheck(result, "success", "GetCurrentUserAsync", HttpStatusCode.OK);
+
+        var typedResult = result.Should().BeOfType<GetUserResponse>().Subject;
+        typedResult.User!.UserId.Should().Be(TestUser2NonAdminId);
+        typedResult.User.Active.Should().BeTrue();
+        typedResult.User.DisplayName.Should().Be(TestUser2NonAdminName);
+    }
+    #endregion
+
     #region GetUserAsync
     [Fact]
     public async Task GetUserAsync_NotAuthenticated_ReturnsUnauthorized()

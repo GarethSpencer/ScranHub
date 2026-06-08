@@ -10,7 +10,7 @@ namespace WebApi.Controllers.v1;
 /// Provides endpoints for retrieving lookup data, to be used by the client for display and selection purposes.
 /// </summary>
 [ApiController]
-[Route("v{version:apiVersion}/[controller]")]
+[Route("api/v{version:apiVersion}/[controller]")]
 [ApiVersion("1.0")]
 [AllowAnonymous]
 [Produces("application/json")]
