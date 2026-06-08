@@ -68,8 +68,9 @@ public sealed class UserRepository(ScranHubDbContext dbContext) : EFRepository<U
         return new UserAuthResult
         {
             UserId = user.UserId,
+            Email = user.Email,
             AuthId = user.AuthId,
-            Admin = user.Admin
+            Admin = user.Admin,
         };
     }
 
@@ -167,6 +168,12 @@ public sealed class UserRepository(ScranHubDbContext dbContext) : EFRepository<U
         }
     }
 
+    public async Task UpdateEmailAsync(Guid userId, string email, CancellationToken ct)
+    {
+        var user = await _dbSet.FindAsync([userId], ct);
+        user?.Email = email;
+    }
+
     public async Task<(IEnumerable<UserResult>, int)> SearchByDisplayNameAsync(SearchUserRequest request, CancellationToken ct)
     {
         var usersQuery = _dbSet
@@ -214,6 +221,7 @@ public sealed class UserRepository(ScranHubDbContext dbContext) : EFRepository<U
             .Select(u => new UserAuthResult
             {
                 UserId = u.UserId,
+                Email = u.Email,
                 AuthId = u.AuthId,
                 Admin = u.Admin
             }).FirstOrDefaultAsync(ct);

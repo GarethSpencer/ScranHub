@@ -2,5 +2,5 @@
 
 public interface IAuthService
 {
-    Task<(Guid? UserId, bool IsAdmin)> ResolveUserAsync(string authId, string? email, CancellationToken ct);
+    Task<(Guid? userId, bool isAdmin)> ResolveUserAsync(string authId, string? email, CancellationToken ct);
 }

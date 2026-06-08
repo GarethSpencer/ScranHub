@@ -47,80 +47,100 @@ public class AuthServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
 
     #region ResolveUserAsync
     [Theory]
-    [InlineData("", null)]
-    [InlineData("invalid123", null)]
-    public async Task ResolveUserAsync_InvalidAuthIdNullEmail_ReturnsNoUser(string authId, string? email)
-    {
-        var (UserId, IsAdmin) = await _service!.ResolveUserAsync(authId, email, ct);
-
-        UserId.Should().BeNull();
-        IsAdmin.Should().BeFalse();
-
-        _logger.Entries.Should().HaveCount(1);
-        _logger.Entries.Should().ContainSingle(e => e.Message == $"[ResolveUserAsync] not resolved for AuthId [{authId}] email [(null)].");
-    }
-
-    [Theory]
     [InlineData(TestAuthId, TestUser2NonAdminEmail)]
-    [InlineData(TestAuthId, "fake@email.com")]
-    [InlineData(TestAuthId, "")]
     [InlineData(TestAuthId, null)]
-    public async Task ResolveUserAsync_ValidAuthIdAnyEmail_ReturnsCorrectUser(string authId, string? email)
+    public async Task ResolveUserAsync_ValidAuthIdValidOrNotProvidedEmail_ReturnsCorrectUser(string authId, string? email)
     {
-        var (UserId, IsAdmin) = await _service!.ResolveUserAsync(authId, email, ct);
-        
-        UserId.Should().Be(TestUser2NonAdminId);
-        IsAdmin.Should().BeFalse();
+        var (userId, isAdmin) = await _service!.ResolveUserAsync(authId, email, ct);
+
+        userId.Should().Be(TestUser2NonAdminId);
+        isAdmin.Should().BeFalse();
 
         _logger.Entries.Should().HaveCount(0);
     }
 
-    [Theory]
-    [InlineData("invalid123", "fake@email.com")]
-    [InlineData("", "fake@email.com")]
-    [InlineData("invalid123", "null")]
-    [InlineData("", "null")]
-    public async Task ResolveUserAsync_InvalidAuthIdInvalidEmail_ReturnsNoUser(string authId, string? email)
+    [Fact]
+    public async Task ResolveUserAsync_ValidAuthIdNewEmail_ReturnsCorrectUserUpdatesEmail()
     {
-        var (UserId, IsAdmin) = await _service!.ResolveUserAsync(authId, email, ct);
+        var (userId, isAdmin) = await _service!.ResolveUserAsync(TestAuthId, "new@email.com", ct);
 
-        UserId.Should().BeNull();
-        IsAdmin.Should().BeFalse();
+        userId.Should().Be(TestUser2NonAdminId);
+        isAdmin.Should().BeFalse();
 
         _logger.Entries.Should().HaveCount(1);
-        _logger.Entries.Should().ContainSingle(e => e.Message == $"[ResolveUserAsync] not resolved for AuthId [{authId}] email [{email}].");
+        _logger.Entries.Should().ContainSingle(e => e.Message == $"[ResolveUserAsync] email updated for [{userId}] from Auth0 token.");
+    }
+
+    [Fact]
+    public async Task ResolveUserAsync_ValidAuthIdAnotherUsersEmail_ReturnsUnresolvedUserWithWarning()
+    {
+        var (userId, isAdmin) = await _service!.ResolveUserAsync(TestAuthId, TestUser1AdminEmail, ct);
+
+        userId.Should().BeNull();
+        isAdmin.Should().BeFalse();
+
+        _logger.Entries.Should().HaveCount(1);
+        _logger.Entries.Should().ContainSingle(e => e.Message == $"[ResolveUserAsync] AuthId [{TestAuthId}] email [{TestUser1AdminEmail}] already belongs to another user.");
     }
 
     [Theory]
-    [InlineData("invalid123", TestUser2NonAdminEmail)]
-    [InlineData("", TestUser2NonAdminEmail)]
-    public async Task ResolveUserAsync_InvalidAuthIdValidEmail_ReturnsUserAddsAuthId(string authId, string? email)
+    [InlineData("", null)]
+    [InlineData("nomatch123", null)]
+    public async Task ResolveUserAsync_NoMatchingAuthIdNullEmail_ReturnsUnresolvedUserWithWarning(string authId, string? email)
     {
-        var (UserId, IsAdmin) = await _service!.ResolveUserAsync(authId, email, ct);
+        var (userId, isAdmin) = await _service!.ResolveUserAsync(authId, email, ct);
 
-        UserId.Should().Be(TestUser2NonAdminId);
-        IsAdmin.Should().BeFalse();
+        userId.Should().BeNull();
+        isAdmin.Should().BeFalse();
+
         _logger.Entries.Should().HaveCount(1);
-        _logger.Entries.Should().ContainSingle(e => e.Message == $"[ResolveUserAsync] resolved successfully for [{TestUser2NonAdminId}] and AuthId value set.");
-
-        var user = _context!.Users.Where(x => x.UserId == TestUser2NonAdminId).Single();
-        user.AuthId.Should().Be(authId);
+        _logger.Entries.Should().ContainSingle(e => e.Message == $"[ResolveUserAsync] not resolved for AuthId [{authId}] as email is not provided and no user found with the authId.");
     }
 
-    [Theory]
-    [InlineData("invalid123", TestUser1AdminEmail)]
-    [InlineData("", TestUser1AdminEmail)]
-    public async Task ResolveUserAsync_InvalidAuthIdValidEmailNewUser_ReturnsUserAddsAuthId(string authId, string? email)
+    [Fact]
+    public async Task ResolveUserAsync_NewAuthIdValidEmail_ReturnsCorrectUserAddsAuthId()
     {
-        var (UserId, IsAdmin) = await _service!.ResolveUserAsync(authId, email, ct);
+        var (userId, isAdmin) = await _service!.ResolveUserAsync("validnew123", TestUser1AdminEmail, ct);
 
-        UserId.Should().Be(TestUser1AdminId);
-        IsAdmin.Should().BeTrue();
+        userId.Should().Be(TestUser1AdminId);
+        isAdmin.Should().BeTrue();
+
         _logger.Entries.Should().HaveCount(1);
-        _logger.Entries.Should().ContainSingle(e => e.Message == $"[ResolveUserAsync] resolved successfully for [{TestUser1AdminId}] and AuthId value set.");
+        _logger.Entries.Should().ContainSingle(e => e.Message == $"[ResolveUserAsync] resolved successfully for [{userId}] and AuthId value set.");
 
         var user = _context!.Users.Where(x => x.UserId == TestUser1AdminId).Single();
-        user.AuthId.Should().Be(authId);
+        user.AuthId.Should().Be("validnew123");
+    }
+
+    [Fact]
+    public async Task ResolveUserAsync_InvalidAuthIdValidEmail_ReturnsUnresolvedUserWithWarning()
+    {
+        var (userId, isAdmin) = await _service!.ResolveUserAsync("valid123", TestUser2NonAdminEmail, ct);
+
+        userId.Should().BeNull();
+        isAdmin.Should().BeFalse();
+        _logger.Entries.Should().HaveCount(1);
+        _logger.Entries.Should().ContainSingle(e => e.Message == $"[ResolveUserAsync] not resolved for AuthId [valid123] email [{TestUser2NonAdminEmail}] as the authId does not match the database value.");
+
+        var user = _context!.Users.Where(x => x.UserId == TestUser2NonAdminId).Single();
+        user.AuthId.Should().Be(TestAuthId);
+    }
+
+    [Fact]
+    public async Task ResolveUserAsync_ValidAuthIdValidEmailNewUser_ReturnsCorrectUserAddsNewUser()
+    {
+        var (userId, isAdmin) = await _service!.ResolveUserAsync("valid123", "newuser@example.com", ct);
+
+        userId.Should().NotBeNull();
+        isAdmin.Should().BeFalse();
+        _logger.Entries.Should().HaveCount(1);
+        _logger.Entries.Should().ContainSingle(e => e.Message == $"[ResolveUserAsync] resolved for AuthId [valid123] email [newuser@example.com] and new user [{userId}] created.");
+
+        var user = _context!.Users.Where(x => x.UserId == userId).Single();
+        user.AuthId.Should().Be("valid123");
+        user.Admin.Should().BeFalse();
+        user.Email.Should().Be("newuser@example.com");
+        user.DisplayName.Should().Be("newuser");
     }
     #endregion
 

@@ -1,7 +1,6 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using RepositoryLayer;
-using RepositoryLayer.Abstractions;
 using ServiceLayer.Abstractions;
 using ServiceLayer.Infrastructure;
 
