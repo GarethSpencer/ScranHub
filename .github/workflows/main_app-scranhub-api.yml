@@ -15,23 +15,24 @@ jobs:
     permissions:
       contents: read #This is required for actions/checkout
     steps:
-      - uses: actions/checkout@v5
+      - name: Checkout
+        uses: actions/checkout@v5
 
       - name: Set up .NET Core
         uses: actions/setup-dotnet@v5
         with:
           dotnet-version: '10.x'
 
-      - name: Build with dotnet
+      - name: Build
         run: dotnet build --configuration Release
 
       - name: Test
         run: dotnet test --configuration Release --no-build
 
-      - name: dotnet publish
+      - name: Publish
         run: dotnet publish ./WebApi/WebApi.csproj -c Release --no-build -o "${{env.DOTNET_ROOT}}/myapp"
 
-      - name: Upload artifact for deployment job
+      - name: Upload artifact
         uses: actions/upload-artifact@v6
         with:
           name: .net-app
@@ -45,7 +46,7 @@ jobs:
       contents: read #This is required for actions/checkout
 
     steps:
-      - name: Download artifact from build job
+      - name: Download artifact
         uses: actions/download-artifact@v7
         with:
           name: .net-app
