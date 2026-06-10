@@ -39,7 +39,31 @@ public sealed class UserRepository(ScranHubDbContext dbContext) : EFRepository<U
         return (results, total);
     }
 
-    public async Task<UserResult?> GetDetailsByIdAsync(Guid id, CancellationToken ct)
+    public async Task<UserDetailedResult?> GetDetailsByIdAsync(Guid id, CancellationToken ct)
+    {
+        var user = await _dbSet.FindAsync([id], ct);
+
+        if (user == null)
+        {
+            return null;
+        }
+
+        return new UserDetailedResult
+        {
+            UserId = user.UserId,
+            AuthId = user.AuthId,
+            DisplayName = user.DisplayName,
+            Active = user.Active,
+            Admin = user.Admin,
+            FriendCount = user.InitiatedFriendships.Count + user.ReceivedFriendships.Count,
+            CreatedOn = user.CreatedOn,
+            CreatedBy = user.CreatedBy,
+            UpdatedOn = user.UpdatedOn,
+            UpdatedBy = user.UpdatedBy
+        };
+    }
+
+    public async Task<UserResult?> GetByIdAsync(Guid id, CancellationToken ct)
     {
         var user = await _dbSet.FindAsync([id], ct);
 
@@ -71,6 +95,7 @@ public sealed class UserRepository(ScranHubDbContext dbContext) : EFRepository<U
             Email = user.Email,
             AuthId = user.AuthId,
             Admin = user.Admin,
+            Active = user.Active
         };
     }
 
@@ -168,6 +193,12 @@ public sealed class UserRepository(ScranHubDbContext dbContext) : EFRepository<U
         }
     }
 
+    public async Task SetActiveAsync(Guid userId, CancellationToken ct)
+    {
+        var user = await _dbSet.FindAsync([userId], ct);
+        user?.Active = true;
+    }
+
     public async Task UpdateEmailAsync(Guid userId, string email, CancellationToken ct)
     {
         var user = await _dbSet.FindAsync([userId], ct);
@@ -215,7 +246,7 @@ public sealed class UserRepository(ScranHubDbContext dbContext) : EFRepository<U
         _dbSet.Remove(user);
     }
 
-    public async Task<UserAuthResult?> GetByAuthId(string authId, CancellationToken ct)
+    public async Task<UserAuthResult?> GetByAuthIdAsync(string authId, CancellationToken ct)
     {
         return await _dbSet.Where(x => x.AuthId == authId)
             .Select(u => new UserAuthResult
@@ -223,11 +254,12 @@ public sealed class UserRepository(ScranHubDbContext dbContext) : EFRepository<U
                 UserId = u.UserId,
                 Email = u.Email,
                 AuthId = u.AuthId,
-                Admin = u.Admin
+                Admin = u.Admin,
+                Active = u.Active
             }).FirstOrDefaultAsync(ct);
     }
 
-    public async Task SetAuthId(Guid userId, string authId, CancellationToken ct)
+    public async Task SetAuthIdAsync(Guid userId, string authId, CancellationToken ct)
     {
         var user = await _dbSet.FindAsync([userId], ct);
         user?.AuthId = authId;

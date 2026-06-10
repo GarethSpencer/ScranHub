@@ -166,7 +166,7 @@ public class UserService(ITokenData tokenData,
             }.WithResponseLog(_logger, callingUserId);
         }
 
-        var userToUpdate = await _userRepository.GetDetailsByIdAsync(userId, ct);
+        var userToUpdate = await _userRepository.GetByIdAsync(userId, ct);
         if (userToUpdate == null)
         {
             return new CommonResponse
@@ -218,7 +218,7 @@ public class UserService(ITokenData tokenData,
             }.WithResponseLog(_logger, callingUserId);
         }
 
-        return new GetUserResponse
+        return new GetUserDetailedResponse
         {
             StatusCode = HttpStatusCode.OK,
             Message = "User returned successfully.",
@@ -238,7 +238,7 @@ public class UserService(ITokenData tokenData,
         }
 
         var callingUserId = _tokenData.UserId!.Value;
-        var user = await _userRepository.GetDetailsByIdAsync(userId, ct);
+        var user = await _userRepository.GetByIdAsync(userId, ct);
         if (user == null)
         {
             return new CommonResponse

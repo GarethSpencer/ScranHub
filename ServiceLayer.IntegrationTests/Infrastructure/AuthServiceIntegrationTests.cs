@@ -47,8 +47,8 @@ public class AuthServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
 
     #region ResolveUserAsync
     [Theory]
-    [InlineData(TestAuthId, TestUser2NonAdminEmail)]
-    [InlineData(TestAuthId, null)]
+    [InlineData(TestAuth2Id, TestUser2NonAdminEmail)]
+    [InlineData(TestAuth2Id, null)]
     public async Task ResolveUserAsync_ValidAuthIdValidOrNotProvidedEmail_ReturnsCorrectUser(string authId, string? email)
     {
         var (userId, isAdmin) = await _service!.ResolveUserAsync(authId, email, ct);
@@ -62,7 +62,7 @@ public class AuthServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
     [Fact]
     public async Task ResolveUserAsync_ValidAuthIdNewEmail_ReturnsCorrectUserUpdatesEmail()
     {
-        var (userId, isAdmin) = await _service!.ResolveUserAsync(TestAuthId, "new@email.com", ct);
+        var (userId, isAdmin) = await _service!.ResolveUserAsync(TestAuth2Id, "new@email.com", ct);
 
         userId.Should().Be(TestUser2NonAdminId);
         isAdmin.Should().BeFalse();
@@ -71,16 +71,46 @@ public class AuthServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
         _logger.Entries.Should().ContainSingle(e => e.Message == $"[ResolveUserAsync] email updated for [{userId}] from Auth0 token.");
     }
 
+    [Theory]
+    [InlineData(TestAuth5Id, TestUser5NonAdminEmail)]
+    [InlineData(TestAuth5Id, null)]
+    public async Task ResolveUserAsync_InactiveValidAuthIdValidOrNotProvidedEmail_ReturnsCorrectUserSetsActive(string authId, string? email)
+    {
+        var (userId, isAdmin) = await _service!.ResolveUserAsync(authId, email, ct);
+
+        userId.Should().Be(TestUser5NonAdminId);
+        isAdmin.Should().BeFalse();
+
+        _logger.Entries.Should().HaveCount(1);
+        _logger.Entries.Should().ContainSingle(e => e.Message == $"[ResolveUserAsync] user [{userId}] reactivated as part of auth resolution process.");
+
+        var user = _context!.Users.Where(x => x.AuthId == TestAuth5Id).Single();
+        user.Active.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task ResolveUserAsync_InactiveValidAuthIdNewEmail_ReturnsCorrectUserUpdatesEmailSetsActive()
+    {
+        var (userId, isAdmin) = await _service!.ResolveUserAsync(TestAuth5Id, "new@email.com", ct);
+
+        userId.Should().Be(TestUser5NonAdminId);
+        isAdmin.Should().BeFalse();
+
+        _logger.Entries.Should().HaveCount(2);
+        _logger.Entries.Should().ContainSingle(e => e.Message == $"[ResolveUserAsync] email updated for [{userId}] from Auth0 token.");
+        _logger.Entries.Should().ContainSingle(e => e.Message == $"[ResolveUserAsync] user [{userId}] reactivated as part of auth resolution process.");
+    }
+
     [Fact]
     public async Task ResolveUserAsync_ValidAuthIdAnotherUsersEmail_ReturnsUnresolvedUserWithWarning()
     {
-        var (userId, isAdmin) = await _service!.ResolveUserAsync(TestAuthId, TestUser1AdminEmail, ct);
+        var (userId, isAdmin) = await _service!.ResolveUserAsync(TestAuth2Id, TestUser1AdminEmail, ct);
 
         userId.Should().BeNull();
         isAdmin.Should().BeFalse();
 
         _logger.Entries.Should().HaveCount(1);
-        _logger.Entries.Should().ContainSingle(e => e.Message == $"[ResolveUserAsync] AuthId [{TestAuthId}] email [{TestUser1AdminEmail}] already belongs to another user.");
+        _logger.Entries.Should().ContainSingle(e => e.Message == $"[ResolveUserAsync] AuthId [{TestAuth2Id}] email [{TestUser1AdminEmail}] already belongs to another user.");
     }
 
     [Theory]
@@ -123,7 +153,7 @@ public class AuthServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
         _logger.Entries.Should().ContainSingle(e => e.Message == $"[ResolveUserAsync] not resolved for AuthId [valid123] email [{TestUser2NonAdminEmail}] as the authId does not match the database value.");
 
         var user = _context!.Users.Where(x => x.UserId == TestUser2NonAdminId).Single();
-        user.AuthId.Should().Be(TestAuthId);
+        user.AuthId.Should().Be(TestAuth2Id);
     }
 
     [Fact]

@@ -14,10 +14,17 @@ public class AuthService(IUserRepository userRepository, IUnitOfWork unitOfWork,
 
     public async Task<(Guid? userId, bool isAdmin)> ResolveUserAsync(string authId, string? email, CancellationToken ct)
     {
-        var user = await _userRepository.GetByAuthId(authId, ct);
+        var user = await _userRepository.GetByAuthIdAsync(authId, ct);
 
         if (user is not null)
         {
+            if (!user.Active)
+            {
+                await _userRepository.SetActiveAsync(user.UserId, ct);
+                await _unitOfWork.SaveChangesAsync(ct);
+                _logger.LogInformation("[ResolveUserAsync] user [{UserId}] reactivated as part of auth resolution process.", user.UserId);
+            }
+
             if (email is not null && user.Email != email)
             {
                 var existingUserWithEmail = await _userRepository.GetByEmailAsync(email, ct);
@@ -45,7 +52,8 @@ public class AuthService(IUserRepository userRepository, IUnitOfWork unitOfWork,
 
         if (user is not null && user.AuthId is null)
         {
-            await _userRepository.SetAuthId(user.UserId, authId, ct);
+            await _userRepository.SetAuthIdAsync(user.UserId, authId, ct);
+            await _userRepository.SetActiveAsync(user.UserId, ct); //ensures all valid users on the website are active
             await _unitOfWork.SaveChangesAsync(ct);
             _logger.LogInformation("[ResolveUserAsync] resolved successfully for [{user.UserId}] and AuthId value set.", user.UserId);
             return (user.UserId, user.Admin);
@@ -65,7 +73,7 @@ public class AuthService(IUserRepository userRepository, IUnitOfWork unitOfWork,
         };
 
         var newUserId = await _userRepository.CreateAsync(newUser, ct);
-        await _userRepository.SetAuthId(newUserId, authId, ct);
+        await _userRepository.SetAuthIdAsync(newUserId, authId, ct);
         await _unitOfWork.SaveChangesAsync(ct);
 
         _logger.LogInformation("[ResolveUserAsync] resolved for AuthId [{authId}] email [{email}] and new user [{newUserId}] created.", authId, email, newUserId);

@@ -43,7 +43,7 @@ public class UserController(
     /// </summary>
     /// <param name="ct"></param>
     [HttpGet("me")]
-    [ProducesResponseType(typeof(GetUserResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(GetUserDetailedResponse), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetCurrentUser(CancellationToken ct)
     {
         var response = await _userService.GetCurrentUserAsync(ct);

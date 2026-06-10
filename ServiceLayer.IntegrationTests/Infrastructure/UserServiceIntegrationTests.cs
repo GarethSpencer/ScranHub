@@ -478,7 +478,7 @@ public class UserServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
         var result = await _service!.GetCurrentUserAsync(ct);
         _checks.OutputSuccessCheck(result, "success", "GetCurrentUserAsync", HttpStatusCode.OK);
 
-        var typedResult = result.Should().BeOfType<GetUserResponse>().Subject;
+        var typedResult = result.Should().BeOfType<GetUserDetailedResponse>().Subject;
         typedResult.User!.UserId.Should().Be(TestUser2NonAdminId);
         typedResult.User.Active.Should().BeTrue();
         typedResult.User.DisplayName.Should().Be(TestUser2NonAdminName);

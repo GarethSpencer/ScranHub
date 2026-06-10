@@ -20,7 +20,8 @@ public class TestConstants
     public const string TestUser4NonAdminEmail = "user4@example.com";
     public const string TestUser5NonAdminEmail = "user5@example.com";
 
-    public const string TestAuthId = "auth0|abc123";
+    public const string TestAuth2Id = "auth2|abc123";
+    public const string TestAuth5Id = "auth5|abc123";
 
     public static readonly Guid TestGroup1Id = Guid.Parse("10000000-0000-0000-0000-000000000000");
     public static readonly Guid TestGroup2Id = Guid.Parse("20000000-0000-0000-0000-000000000000");
