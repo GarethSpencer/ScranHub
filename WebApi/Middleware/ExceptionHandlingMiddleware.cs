@@ -36,8 +36,10 @@ internal class ExceptionHandlingMiddleware(ILogger<ExceptionHandlingMiddleware> 
             ? exception.Message
             : "An unexpected error occurred. Please try again later.";
 
+        var ressponseBody = new ErrorResultResponse { Errors = [message] };
+
         await context.Response.WriteAsync(JsonSerializer.Serialize(
-            new ErrorResultResponse { Errors = [message] },
+            new InternalServerErrorResponse(ressponseBody),
             _jsonOptions
         ));
     }
