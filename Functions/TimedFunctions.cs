@@ -19,7 +19,7 @@ public class TimedFunctions(ILoggerFactory loggerFactory, IUserRepository userRe
 
         try
         {
-            var inactiveUsers = await userRepository.GetAllInactiveAsync(ct);
+            var inactiveUsers = await userRepository.GetAllLongTermInactiveAsync(30, ct); //users made inactive at least 30 days ago
 
             var count = inactiveUsers.Count();
             if (count == 0)

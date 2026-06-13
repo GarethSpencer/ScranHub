@@ -24,5 +24,5 @@ public interface IUserRepository : IEFRepository<User>
     Task<(IEnumerable<UserResult>, int)> SearchByDisplayNameAsync(SearchUserRequest request, CancellationToken ct);
     Task<UserAuthResult?> GetByAuthIdAsync(string authId, CancellationToken ct);
     Task SetAuthIdAsync(Guid userId, string authId, CancellationToken ct);
-    Task<IEnumerable<UserResult>> GetAllInactiveAsync(CancellationToken ct);
+    Task<IEnumerable<UserResult>> GetAllLongTermInactiveAsync(int minimumDaysInactive, CancellationToken ct);
 }

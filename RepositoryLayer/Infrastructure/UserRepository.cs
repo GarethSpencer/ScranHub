@@ -267,9 +267,10 @@ public sealed class UserRepository(ScranHubDbContext dbContext) : EFRepository<U
         user?.AuthId = authId;
     }
 
-    public async Task<IEnumerable<UserResult>> GetAllInactiveAsync(CancellationToken ct)
+    public async Task<IEnumerable<UserResult>> GetAllLongTermInactiveAsync(int minimumDaysInactive, CancellationToken ct)
     {
-        return await _dbSet.Where(x => x.Active)
+        var requiredDeactivationDate = DateTime.UtcNow.AddDays(-minimumDaysInactive);
+        return await _dbSet.Where(x => !x.Active && x.UpdatedOn <= requiredDeactivationDate)
             .Select(u => new UserResult
             {
              UserId = u.UserId,
