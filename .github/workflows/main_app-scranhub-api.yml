@@ -38,6 +38,15 @@ jobs:
           name: .net-app
           path: ${{env.DOTNET_ROOT}}/myapp
 
+      - name: Publish Functions
+        run: dotnet publish ./Functions/Functions.csproj -c Release --no-build -o "${{env.DOTNET_ROOT}}/myfunctions"
+
+      - name: Upload Functions artifact
+        uses: actions/upload-artifact@v6
+        with:
+          name: .net-functions
+          path: ${{env.DOTNET_ROOT}}/myfunctions
+
   deploy:
     runs-on: windows-latest
     needs: build
@@ -50,7 +59,7 @@ jobs:
         uses: actions/download-artifact@v7
         with:
           name: .net-app
-      
+
       - name: Login to Azure
         uses: azure/login@v3
         with:
@@ -65,4 +74,32 @@ jobs:
           app-name: 'app-scranhub-api'
           slot-name: 'Production'
           package: .
-          
+
+  deploy-functions:
+    runs-on: windows-latest
+    needs: build
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - name: Download Functions artifact
+        uses: actions/download-artifact@v7
+        with:
+          name: .net-functions
+
+      - name: Login to Azure
+        uses: azure/login@v3
+        with:
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_3D360B6928404065B366574D57E71C2B }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_9A87DB98DE6B4CFFB58CB5F754BEE3E8 }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_443E238A1ECC43A7ABA3C70067E7DF61 }}
+
+      - name: Deploy to Azure Function App
+        id: deploy-to-function
+        uses: Azure/functions-action@v1
+        with:
+          app-name: 'scranhubfunctions'
+          slot-name: 'Production'
+          package: .
+
