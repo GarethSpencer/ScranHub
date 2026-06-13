@@ -88,6 +88,9 @@ jobs:
         with:
           name: .net-functions
 
+      - name: List downloaded artifact contents
+        run: Get-ChildItem -Force -Recurse | Select-Object FullName
+
       - name: Login to Azure
         uses: azure/login@v3
         with:
