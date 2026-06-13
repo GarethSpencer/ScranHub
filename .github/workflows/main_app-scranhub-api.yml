@@ -46,6 +46,7 @@ jobs:
         with:
           name: .net-functions
           path: ${{env.DOTNET_ROOT}}/myfunctions
+          include-hidden-files: true
 
   deploy:
     runs-on: windows-latest
