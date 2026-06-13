@@ -266,4 +266,15 @@ public sealed class UserRepository(ScranHubDbContext dbContext) : EFRepository<U
         var user = await _dbSet.FindAsync([userId], ct);
         user?.AuthId = authId;
     }
+
+    public async Task<IEnumerable<UserResult>> GetAllInactiveAsync(CancellationToken ct)
+    {
+        return await _dbSet.Where(x => x.Active)
+            .Select(u => new UserResult
+            {
+             UserId = u.UserId,
+             Active = u.Active,
+             DisplayName = u.DisplayName
+            }).ToListAsync(ct);
+    }
 }
