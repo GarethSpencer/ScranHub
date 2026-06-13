@@ -433,6 +433,23 @@ public class UserServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
         var result = await _service!.UpdateUserAsync(TestUser2NonAdminId, request, ct);
         _checks.OutputSuccessCheck(result, "success", "UpdateUserAsync", HttpStatusCode.OK);
         _context!.Users.Should().ContainSingle(e => e.UserId == TestUser2NonAdminId && e.DisplayName == "New Test User" && e.Admin == false && e.Active == true);
+        result.Message.Should().Contain("updated");
+    }
+
+    [Fact]
+    public async Task UpdateUserAsync_NonAdminDeactivatingSelf_ReturnsOK()
+    {
+        var request = new UpdateUserRequest
+        {
+            DisplayName = "New Test User",
+            Admin = false,
+            Active = false
+        };
+
+        var result = await _service!.UpdateUserAsync(TestUser2NonAdminId, request, ct);
+        _checks.OutputSuccessCheck(result, "success", "UpdateUserAsync", HttpStatusCode.OK);
+        _context!.Users.Should().ContainSingle(e => e.UserId == TestUser2NonAdminId && e.DisplayName == "New Test User" && e.Admin == false && e.Active == false);
+        result.Message.Should().Contain("deactivated");
     }
 
     [Fact]

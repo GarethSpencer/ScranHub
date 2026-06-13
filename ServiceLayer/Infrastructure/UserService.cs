@@ -186,14 +186,20 @@ public class UserService(ITokenData tokenData,
             }.WithResponseLog(_logger, callingUserId);
         }
 
+        var userDeactivated = false;
+        if (userToUpdate.Active && !request.Active)
+        {
+            userDeactivated = true;
+        }
+
         await _userRepository.UpdateAsync(userId, request, ct);
         await _unitOfWork.SaveChangesAsync(ct);
 
         return new CommonResponse
         {
             StatusCode = HttpStatusCode.OK,
-            Message = "User updated successfully."
-        }.WithResponseLog(_logger, callingUserId, $"User [{userId}] created successfully.");
+            Message = userDeactivated ? "User deactivated successfully." : "User updated successfully."
+        }.WithResponseLog(_logger, callingUserId, $"User [{userId}] {(userDeactivated ? "deactivated" : "updated")} successfully.");
     }
 
     public async Task<CommonResponse> GetCurrentUserAsync(CancellationToken ct)
