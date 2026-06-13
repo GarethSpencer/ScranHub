@@ -39,7 +39,7 @@ jobs:
           path: ${{env.DOTNET_ROOT}}/myapp
 
       - name: Publish Functions
-        run: dotnet publish ./Functions/Functions.csproj -c Release --no-build -o "${{env.DOTNET_ROOT}}/myfunctions"
+        run: dotnet publish ./Functions/Functions.csproj -c Release -o "${{env.DOTNET_ROOT}}/myfunctions"
 
       - name: Upload Functions artifact
         uses: actions/upload-artifact@v6
