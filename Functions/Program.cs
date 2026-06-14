@@ -5,6 +5,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using RepositoryLayer;
+using Utilities;
 
 var builder = FunctionsApplication.CreateBuilder(args);
 
@@ -22,6 +23,7 @@ builder.Services
     .AddApplicationInsightsTelemetryWorkerService()
     .ConfigureFunctionsApplicationInsights();
 
+builder.Services.AddUtilities();
 builder.Services.AddRepositoryLayer(builder.Configuration);
 
 builder.Build().Run();
