@@ -84,14 +84,11 @@ jobs:
       contents: read
 
     steps:
-      - name: Download Functions artifact
+      - name: Download artifact
         uses: actions/download-artifact@v7
         with:
           name: .net-functions
-
-      - name: List downloaded artifact contents
-        run: Get-ChildItem -Force -Recurse | Select-Object FullName
-
+          
       - name: Login to Azure
         uses: azure/login@v3
         with:
