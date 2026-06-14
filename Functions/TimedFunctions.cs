@@ -7,7 +7,7 @@ public class TimedFunctions(ILoggerFactory loggerFactory)
 {
     private readonly ILogger _logger = loggerFactory.CreateLogger<TimedFunctions>();
 
-    [Function("Delete Inactive Users")]
+    [Function("DeleteInactiveUsers")]
     public Task Run([TimerTrigger("0 2 * * * *")] CancellationToken ct)
     {
         if (_logger.IsEnabled(LogLevel.Information))
