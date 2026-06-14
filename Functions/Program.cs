@@ -1,4 +1,5 @@
 using Azure.Identity;
+using Functions.ProgramExtensions;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Builder;
 using Microsoft.Extensions.Configuration;
@@ -19,10 +20,10 @@ if (!builder.Environment.IsDevelopment())
         new DefaultAzureCredential());
 }
 
-builder.Services
-    .AddApplicationInsightsTelemetryWorkerService()
+builder.Services.AddApplicationInsightsTelemetryWorkerService()
     .ConfigureFunctionsApplicationInsights();
 
+builder.Services.AddAuth0(builder.Configuration);
 builder.Services.AddUtilities();
 builder.Services.AddRepositoryLayer(builder.Configuration);
 

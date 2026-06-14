@@ -2,10 +2,11 @@ using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
 using RepositoryLayer.Abstractions;
 using RepositoryLayer.Abstractions.Generic;
+using Utilities.Auth0;
 
 namespace Functions;
 
-public class TimedFunctions(ILoggerFactory loggerFactory, IUserRepository userRepository, IUnitOfWork unitOfWork)
+public class TimedFunctions(ILoggerFactory loggerFactory, IUserRepository userRepository, IUnitOfWork unitOfWork, IAuth0UserService auth0UserService)
 {
     private readonly ILogger _logger = loggerFactory.CreateLogger<TimedFunctions>();
 
@@ -14,35 +15,58 @@ public class TimedFunctions(ILoggerFactory loggerFactory, IUserRepository userRe
     {
         if (_logger.IsEnabled(LogLevel.Information))
         {
-            _logger.LogInformation("C# Timer trigger function executed at: {executionTime}", DateTime.UtcNow);
+            _logger.LogInformation("C# Timer trigger function executed at: {executionTime}.", DateTime.UtcNow);
         }
 
         try
         {
-            var inactiveUsers = await userRepository.GetAllLongTermInactiveAsync(30, ct); //users made inactive at least 30 days ago
+            var inactiveUsers = await userRepository.GetAllLongTermInactiveAsync(30, ct);
 
             var count = inactiveUsers.Count();
             if (count == 0)
             {
-                _logger.LogInformation("No inactive users to delete");
+                _logger.LogInformation("No inactive users to delete.");
                 return;
             }
 
+            var staged = 0;
+            var failed = 0;
+
             foreach (var user in inactiveUsers)
             {
+                ct.ThrowIfCancellationRequested();
+
+                if (user.AuthId is not null)
+                {
+                    try
+                    {
+                        await auth0UserService.DeleteUserAsync(user.AuthId, ct);
+                    }
+                    catch (Exception ex) when (ex is not OperationCanceledException)
+                    {
+                        _logger.LogError(ex, "Failed to delete user {UserId} from Auth0; skipping DB delete, will retry next run.", user.UserId);
+                        failed++;
+                        continue;
+                    }
+                }
+
                 await userRepository.DeleteAsync(user.UserId, ct);
+                staged++;
             }
 
-            await unitOfWork.SaveChangesAsync(ct);
+            if (staged > 0)
+            {
+                await unitOfWork.SaveChangesAsync(ct);
+            }
 
             if (_logger.IsEnabled(LogLevel.Information))
             {
-                _logger.LogInformation("Successfully deleted {count} inactive users", count);
+                _logger.LogInformation("Deleted {Staged} inactive users. Skipped {Failed} due to Auth0 errors.", staged, failed);
             }
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to delete inactive users");
+            _logger.LogError(ex, "Failed to delete inactive users.");
             throw;
         }
     }
