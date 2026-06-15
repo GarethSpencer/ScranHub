@@ -167,7 +167,7 @@ public class UserController(
     /// <param name="friendId"></param>
     /// <param name="ct"></param>
     [HttpPost("me/friends/{friendId}")]
-    [ProducesResponseType(typeof(AddUserFriendResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(AddUserFriendResponse), StatusCodes.Status201Created)]
     public async Task<IActionResult> AddFriend([FromRoute] Guid friendId, CancellationToken ct)
     {
         var response = await _userService.AddUserFriendAsync(friendId, ct);
