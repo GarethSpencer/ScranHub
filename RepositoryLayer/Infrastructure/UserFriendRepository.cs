@@ -25,6 +25,19 @@ public sealed class UserFriendRepository(ScranHubDbContext dbContext) : EFReposi
         } : null;
     }
 
+    public async Task<UserFriendResult?> GetUserFriendAsync(Guid userFriendId, CancellationToken ct)
+    {
+        var userFriend = await _dbSet.FindAsync([userFriendId], ct);
+
+        return userFriend != null ? new UserFriendResult
+        {
+            UserFriendId = userFriend.UserFriendId,
+            UserId = userFriend.UserId,
+            FriendId = userFriend.FriendId,
+            Status = userFriend.Status
+        } : null;
+    }
+
     public async Task<bool> IsFriendshipAcceptedAsync(Guid userId1, Guid userId2, CancellationToken ct)
     {
         return await _dbSet.AnyAsync(uf =>
@@ -62,5 +75,15 @@ public sealed class UserFriendRepository(ScranHubDbContext dbContext) : EFReposi
     {
         var userFriend = await _dbSet.FindAsync([userFriendId], ct);
         userFriend?.Status = newStatus;
+    }
+
+    public async Task DeleteAsync(Guid userFriendId, CancellationToken ct)
+    {
+        var userFriend = await _dbSet.FindAsync([userFriendId], ct);
+
+        if (userFriend is not null)
+        {
+            _dbSet.Remove(userFriend);
+        }
     }
 }

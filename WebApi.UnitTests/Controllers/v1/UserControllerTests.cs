@@ -476,4 +476,33 @@ public class UserControllerTests
 
         _userServiceMock.Verify(s => s.UpdateUserFriendAsync(friendId, request, ct), Times.Once);
     }
+
+    [Fact]
+    public async Task DeleteUserFriend_ValidRequest_ReturnsCorrectResult()
+    {
+        var userFriendId = Guid.NewGuid();
+        var expectedResponse = new CommonResponse { StatusCode = HttpStatusCode.OK };
+        _userServiceMock.Setup(s => s.DeleteUserFriendAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(expectedResponse);
+
+        var result = await _sut.DeleteFriend(userFriendId, ct);
+
+        var statusCodeResult = Assert.IsType<ObjectResult>(result);
+        Assert.IsType<CommonResponse>(statusCodeResult.Value);
+        Assert.Equal(StatusCodes.Status200OK, statusCodeResult.StatusCode);
+        Assert.Equal(expectedResponse, statusCodeResult.Value);
+    }
+
+    [Fact]
+    public async Task DeleteUserFriend_ValidRequest_CallsServiceCorrectly()
+    {
+        var userFriendId = Guid.NewGuid();
+        var expectedResponse = new CommonResponse { StatusCode = HttpStatusCode.OK };
+        _userServiceMock.Setup(s => s.DeleteUserFriendAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(expectedResponse);
+
+        await _sut.DeleteFriend(userFriendId, ct);
+
+        _userServiceMock.Verify(s => s.DeleteUserFriendAsync(userFriendId, ct), Times.Once);
+    }
 }

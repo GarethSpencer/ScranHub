@@ -510,4 +510,55 @@ public class UserService(ITokenData tokenData,
             TotalCount = totalCount,
         }.WithResponseLog(_logger, callingUserId);
     }
+
+    public async Task<CommonResponse> DeleteUserFriendAsync(Guid userFriendId, CancellationToken ct)
+    {
+        if (!_tokenData.UserId.HasValue)
+        {
+            return new CommonResponse
+            {
+                StatusCode = HttpStatusCode.Unauthorized,
+                Message = "Unauthorized."
+            }.WithResponseLog(_logger);
+        }
+
+        var callingUserId = _tokenData.UserId!.Value;
+        var userFriend = await _userFriendRepository.GetUserFriendAsync(userFriendId, ct);
+
+        if (userFriend is null)
+        {
+            return new CommonResponse
+            {
+                StatusCode = HttpStatusCode.NotFound,
+                Message = "Friendship not found."
+            }.WithResponseLog(_logger, callingUserId);
+        }
+
+        if (userFriend.UserId != callingUserId && userFriend.FriendId != callingUserId)
+        {
+            return new CommonResponse
+            {
+                StatusCode = HttpStatusCode.Forbidden,
+                Message = "You do not have permission to delete this friendship."
+            }.WithResponseLog(_logger, callingUserId);
+        }
+
+        if (userFriend.Status != FriendshipStatus.Accepted)
+        {
+            return new CommonResponse
+            {
+                StatusCode = HttpStatusCode.Forbidden,
+                Message = "You cannot delete a friendship that has not been accepted."
+            }.WithResponseLog(_logger, callingUserId);
+        }
+
+        await _userFriendRepository.DeleteAsync(userFriendId, ct);
+        await _unitOfWork.SaveChangesAsync(ct);
+
+        return new CommonResponse
+        {
+            StatusCode = HttpStatusCode.OK,
+            Message = "Friendship deleted successfully."
+        }.WithResponseLog(_logger, callingUserId, $"Friendship [{userFriendId}] deleted successfully.");
+    }
 }

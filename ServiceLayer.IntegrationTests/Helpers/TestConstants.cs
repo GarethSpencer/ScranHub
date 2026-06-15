@@ -23,6 +23,11 @@ public class TestConstants
     public const string TestAuth2Id = "auth2|abc123";
     public const string TestAuth5Id = "auth5|abc123";
 
+    public static readonly Guid TestUserFriend12Id = Guid.Parse("00000000-0000-0000-0000-100000000000");
+    public static readonly Guid TestUserFriend31Id = Guid.Parse("00000000-0000-0000-0000-200000000000");
+    public static readonly Guid TestUserFriend14Id = Guid.Parse("00000000-0000-0000-0000-300000000000");
+    public static readonly Guid TestUserFriend15Id = Guid.Parse("00000000-0000-0000-0000-400000000000");
+
     public static readonly Guid TestGroup1Id = Guid.Parse("10000000-0000-0000-0000-000000000000");
     public static readonly Guid TestGroup2Id = Guid.Parse("20000000-0000-0000-0000-000000000000");
     public static readonly Guid TestGroup3Id = Guid.Parse("30000000-0000-0000-0000-000000000000");

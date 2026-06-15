@@ -78,24 +78,28 @@ public class DatabaseFixture : IAsyncLifetime
 
         context.UserFriends.AddRange(new UserFriend
         {
+            UserFriendId = TestUserFriend12Id,
             UserId = TestUser1AdminId,
             FriendId = TestUser2NonAdminId,
             Status = FriendshipStatus.Accepted
         },
         new UserFriend
         {
+            UserFriendId = TestUserFriend31Id,
             UserId = TestUser3AdminId,
             FriendId = TestUser1AdminId,
             Status = FriendshipStatus.Pending
         },
         new UserFriend
         {
+            UserFriendId = TestUserFriend14Id,
             UserId = TestUser1AdminId,
             FriendId = TestUser4NonAdminId,
             Status = FriendshipStatus.Declined
         },
         new UserFriend
         {
+            UserFriendId = TestUserFriend15Id,
             UserId = TestUser1AdminId,
             FriendId = TestUser5NonAdminId,
             Status = FriendshipStatus.Accepted

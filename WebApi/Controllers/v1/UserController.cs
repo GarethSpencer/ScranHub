@@ -240,4 +240,18 @@ public class UserController(
         var response = await _userService.UpdateUserFriendAsync(friendId, request, ct);
         return StatusCode((int)response.StatusCode, response);
     }
+
+    /// <summary>
+    /// Delete a friendship with another user.
+    /// Either friend can perform this action once the friendship status is Accepted.
+    /// </summary>
+    /// <param name="userFriendId"></param>
+    /// <param name="ct"></param>
+    [HttpDelete("me/friends/{userFriendId}")]
+    [ProducesResponseType(typeof(CommonResponse), StatusCodes.Status200OK)]
+    public async Task<IActionResult> DeleteFriend([FromRoute] Guid userFriendId, CancellationToken ct)
+    {
+        var response = await _userService.DeleteUserFriendAsync(userFriendId, ct);
+        return StatusCode((int)response.StatusCode, response);
+    }
 }

@@ -907,6 +907,48 @@ public class UserServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
     }
     #endregion
 
+    #region DeleteUserFriendAsync
+    [Fact]
+    public async Task DeleteUserFriendAsync_NotAuthenticated_ReturnsUnauthorized()
+    {
+        _tokenData.Setup(x => x.UserId).Returns((Guid?)null);
+
+        var result = await _service!.DeleteUserFriendAsync(TestUserFriend12Id, ct);
+        _checks.OutputFailureCheck(result, "unauthorized", "DeleteUserFriendAsync", HttpStatusCode.Unauthorized);
+    }
+
+    [Fact]
+    public async Task DeleteUserFriendAsync_InvalidUserId_ReturnsNotFound()
+    {
+        var result = await _service!.DeleteUserFriendAsync(Guid.Empty, ct);
+        _checks.OutputFailureCheck(result, "not found", "DeleteUserFriendAsync", HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    public async Task DeleteUserFriendAsync_UserNotPartOfFriendship_ReturnsForbidden()
+    {
+        var result = await _service!.DeleteUserFriendAsync(TestUserFriend15Id, ct);
+        _checks.OutputFailureCheck(result, "not have permission", "DeleteUserFriendAsync", HttpStatusCode.Forbidden);
+    }
+
+    [Fact]
+    public async Task DeleteUserFriendAsync_FriendshipNotAccepted_ReturnsForbidden()
+    {
+        _tokenData.Setup(x => x.UserId).Returns(TestUser1AdminId);
+
+        var result = await _service!.DeleteUserFriendAsync(TestUserFriend31Id, ct);
+        _checks.OutputFailureCheck(result, "not been accepted", "DeleteUserFriendAsync", HttpStatusCode.Forbidden);
+    }
+
+    [Fact]
+    public async Task DeleteUserFriendAsync_ValidRequest_ReturnsOK()
+    {
+        var result = await _service!.DeleteUserFriendAsync(TestUserFriend12Id, ct);
+        _checks.OutputSuccessCheck(result, "success", "DeleteUserFriendAsync", HttpStatusCode.OK);
+        _context!.UserFriends.Should().NotContain(x => x.UserFriendId == TestUserFriend12Id);
+    }
+    #endregion
+
     public async Task DisposeAsync()
     {
         await _transaction!.RollbackAsync();
