@@ -13,7 +13,7 @@ public interface IUserRepository : IEFRepository<User>
     Task<UserAuthResult?> GetByEmailAsync(string email, CancellationToken ct);
     Task<UserDetailedResult?> GetDetailsByIdAsync(Guid id, CancellationToken ct);
     Task<UserResult?> GetByIdAsync(Guid id, CancellationToken ct);
-    Task<IEnumerable<FriendResult>?> GetFriendsForUserAsync(Guid id, CancellationToken ct);
+    Task<(IEnumerable<FriendResult>?, int)> GetFriendsForUserAsync(Guid id, PaginationBaseRequest request, CancellationToken ct);
     Task<User?> GetUserGroupsByIdAsync(Guid userId, CancellationToken ct, bool trackChanges = false);
     Task<bool> IsUserAdminAsync(Guid userId, CancellationToken ct);
     Task<Guid> CreateAsync(CreateUserRequest createRequest, CancellationToken ct);

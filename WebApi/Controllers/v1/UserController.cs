@@ -2,6 +2,7 @@
 using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 using ServiceLayer.Abstractions;
+using Utilities.Models.Requests.Generic;
 using Utilities.Models.Requests.Users;
 using Utilities.Models.Responses.Generic;
 using Utilities.Models.Responses.Users;
@@ -19,6 +20,7 @@ namespace WebApi.Controllers.v1;
 /// <param name="updateUserFriendRequestValidator">Validator for update user friend requests.</param>
 /// <param name="searchUserRequestValidator">Validator for search user requests.</param>
 /// <param name="addFriendRequestValidator">Validator for add friend requests.</param>
+/// <param name="paginationBaseRequestValidator">Validator for pagination requests.</param>
 [ApiController]
 [Route("api/v{version:apiVersion}/[controller]")]
 [ApiVersion("1.0")]
@@ -29,7 +31,8 @@ public class UserController(
     IValidator<UpdateUserRequest> updateUserRequestValidator,
     IValidator<UpdateUserFriendRequest> updateUserFriendRequestValidator,
     IValidator<SearchUserRequest> searchUserRequestValidator,
-    IValidator<AddFriendRequest> addFriendRequestValidator) : ControllerBase
+    IValidator<AddFriendRequest> addFriendRequestValidator,
+    IValidator<PaginationBaseRequest> paginationBaseRequestValidator) : ControllerBase
 {
     private readonly IUserService _userService = userService;
     private readonly IValidator<CreateUserRequest> _createUserRequestValidator = createUserRequestValidator;
@@ -37,6 +40,7 @@ public class UserController(
     private readonly IValidator<UpdateUserFriendRequest> _updateUserFriendRequestValidator = updateUserFriendRequestValidator;
     private readonly IValidator<SearchUserRequest> _searchUserRequestValidator = searchUserRequestValidator;
     private readonly IValidator<AddFriendRequest> _addFriendRequestValidator = addFriendRequestValidator;
+    private readonly IValidator<PaginationBaseRequest> _paginationBaseRequestValidator = paginationBaseRequestValidator;
 
     /// <summary>
     /// Get the details for the current user.
@@ -150,14 +154,26 @@ public class UserController(
     }
 
     /// <summary>
-    /// Get the friends of the current user. Only accepted friends are returned.
+    /// Get the friends of the current user. Only active, accepted friends are returned.
     /// </summary>
+    /// <param name="request"></param>
     /// <param name="ct"></param>
     [HttpGet("me/friends")]
     [ProducesResponseType(typeof(UserFriendsResponse), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetFriends(CancellationToken ct)
+    public async Task<IActionResult> GetFriends([FromQuery] PaginationBaseRequest request, CancellationToken ct)
     {
-        var response = await _userService.GetFriendsForUserAsync(ct);
+        if (request == null)
+        {
+            return BadRequest("Request body is required.");
+        }
+
+        var validation = await _paginationBaseRequestValidator.ValidateAsync(request, ct);
+        if (!validation.IsValid)
+        {
+            return BadRequest(ValidationErrorFormatter.FormatErrors(validation));
+        }
+
+        var response = await _userService.GetFriendsForUserAsync(request, ct);
         return StatusCode((int)response.StatusCode, response);
     }
 

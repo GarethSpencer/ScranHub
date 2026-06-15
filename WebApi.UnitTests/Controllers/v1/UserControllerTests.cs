@@ -5,6 +5,7 @@ using Moq;
 using ServiceLayer.Abstractions;
 using System.Net;
 using Utilities.Enums;
+using Utilities.Models.Requests.Generic;
 using Utilities.Models.Requests.Users;
 using Utilities.Models.Responses.Generic;
 using Utilities.Models.Responses.Users;
@@ -21,6 +22,7 @@ public class UserControllerTests
     private readonly Mock<IValidator<UpdateUserFriendRequest>> _updateUserFriendRequestValidatorMock = new();
     private readonly Mock<IValidator<SearchUserRequest>> _searchUserRequestValidatorMock = new();
     private readonly Mock<IValidator<AddFriendRequest>> _addFriendRequestValidatorMock = new();
+    private readonly Mock<IValidator<PaginationBaseRequest>> _paginationBaseRequestValidatorMock = new();
     private readonly UserController _sut;
     private static readonly CancellationToken ct = CancellationToken.None;
 
@@ -32,7 +34,8 @@ public class UserControllerTests
             _updateUserRequestValidatorMock.Object,
             _updateUserFriendRequestValidatorMock.Object,
             _searchUserRequestValidatorMock.Object,
-            _addFriendRequestValidatorMock.Object
+            _addFriendRequestValidatorMock.Object,
+            _paginationBaseRequestValidatorMock.Object
         );
     }
 
@@ -283,13 +286,37 @@ public class UserControllerTests
     }
 
     [Fact]
+    public async Task GetFriends_NullRequest_ReturnsBadRequest()
+    {
+        var result = await _sut.GetFriends(null!, ct);
+
+        var badRequest = Assert.IsType<BadRequestObjectResult>(result);
+        Assert.Equal("Request body is required.", badRequest.Value);
+    }
+
+    [Fact]
+    public async Task GetFriends_InvalidRequest_ReturnsBadRequest()
+    {
+        SetupHelpers.SetupValidatorFail(_paginationBaseRequestValidatorMock);
+        var request = new PaginationBaseRequest { PageNumber = 0, PageSize = 10 };
+
+        var result = await _sut.GetFriends(request, ct);
+
+        Assert.IsType<BadRequestObjectResult>(result);
+        _userServiceMock.Verify(s => s.GetFriendsForUserAsync(It.IsAny<PaginationBaseRequest>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
     public async Task GetFriends_ValidRequest_ReturnsCorrectResult()
     {
+        SetupHelpers.SetupValidatorPass(_paginationBaseRequestValidatorMock);
+        var request = new PaginationBaseRequest { PageNumber = 0, PageSize = 10 };
+
         var expectedResponse = new UserFriendsResponse { StatusCode = HttpStatusCode.OK };
-        _userServiceMock.Setup(s => s.GetFriendsForUserAsync(It.IsAny<CancellationToken>()))
+        _userServiceMock.Setup(s => s.GetFriendsForUserAsync(It.IsAny<PaginationBaseRequest>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(expectedResponse);
 
-        var result = await _sut.GetFriends(ct);
+        var result = await _sut.GetFriends(request, ct);
 
         var statusCodeResult = Assert.IsType<ObjectResult>(result);
         Assert.IsType<UserFriendsResponse>(statusCodeResult.Value);
@@ -300,13 +327,16 @@ public class UserControllerTests
     [Fact]
     public async Task GetFriends_ValidRequest_CallsServiceCorrectly()
     {
+        SetupHelpers.SetupValidatorPass(_paginationBaseRequestValidatorMock);
+        var request = new PaginationBaseRequest { PageNumber = 0, PageSize = 10 };
+
         var expectedResponse = new UserFriendsResponse { StatusCode = HttpStatusCode.OK };
-        _userServiceMock.Setup(s => s.GetFriendsForUserAsync(It.IsAny<CancellationToken>()))
+        _userServiceMock.Setup(s => s.GetFriendsForUserAsync(It.IsAny<PaginationBaseRequest>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(expectedResponse);
 
-        await _sut.GetFriends(ct);
+        await _sut.GetFriends(request, ct);
 
-        _userServiceMock.Verify(s => s.GetFriendsForUserAsync(ct), Times.Once);
+        _userServiceMock.Verify(s => s.GetFriendsForUserAsync(request, ct), Times.Once);
     }
 
     [Fact]

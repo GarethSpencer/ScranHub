@@ -3,6 +3,7 @@ using DAL.Entities;
 using Microsoft.EntityFrameworkCore;
 using RepositoryLayer.Abstractions;
 using RepositoryLayer.Infrastructure.Generic;
+using Utilities.Enums;
 using Utilities.Models.Requests.Generic;
 using Utilities.Models.Requests.Users;
 using Utilities.Models.Results;
@@ -113,7 +114,7 @@ public sealed class UserRepository(ScranHubDbContext dbContext) : EFRepository<U
         return await query.ToListAsync(ct);
     }
 
-    public async Task<IEnumerable<FriendResult>?> GetFriendsForUserAsync(Guid userId, CancellationToken ct)
+    public async Task<(IEnumerable<FriendResult>?, int)> GetFriendsForUserAsync(Guid userId, PaginationBaseRequest request, CancellationToken ct)
     {
         var friendInfo = await _dbSet
             .Where(x => x.UserId == userId)
@@ -124,8 +125,11 @@ public sealed class UserRepository(ScranHubDbContext dbContext) : EFRepository<U
 
         if (friendInfo == null)
         {
-            return null;
+            return (null, 0);
         }
+
+        var total = friendInfo.InitiatedFriendships.Count(x => x.Friend!.Active && x.Status == FriendshipStatus.Accepted)
+            + friendInfo.ReceivedFriendships.Count(x => x.User!.Active && x.Status == FriendshipStatus.Accepted);
 
         var result = friendInfo.InitiatedFriendships.Select(f => new FriendResult
         {
@@ -145,9 +149,10 @@ public sealed class UserRepository(ScranHubDbContext dbContext) : EFRepository<U
                 Status = f.Status,
                 Initiator = false
             }))
-            .Where(x => x.Active);
+            .Where(x => x.Active && x.Status == FriendshipStatus.Accepted);
 
-        return [.. result];
+        return (result.Skip((request.PageNumber - 1) * request.PageSize)
+            .Take(request.PageSize), total);
     }
 
     public async Task<User?> GetUserGroupsByIdAsync(Guid userId, CancellationToken ct, bool trackChanges = false)

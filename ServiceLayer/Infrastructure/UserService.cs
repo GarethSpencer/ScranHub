@@ -25,7 +25,7 @@ public class UserService(ITokenData tokenData,
     private readonly IUserFriendRepository _userFriendRepository = userFriendRepository;
     private readonly IUnitOfWork _unitOfWork = unitOfWork;
 
-    public async Task<CommonResponse> GetFriendsForUserAsync(CancellationToken ct)
+    public async Task<CommonResponse> GetFriendsForUserAsync(PaginationBaseRequest request, CancellationToken ct)
     {
         if (!_tokenData.UserId.HasValue)
         {
@@ -37,7 +37,7 @@ public class UserService(ITokenData tokenData,
         }
 
         var callingUserId = _tokenData.UserId!.Value;
-        var userFriends = await _userRepository.GetFriendsForUserAsync(callingUserId, ct);
+        var (userFriends, total) = await _userRepository.GetFriendsForUserAsync(callingUserId, request, ct);
         if (userFriends == null)
         {
             return new CommonResponse
@@ -47,14 +47,12 @@ public class UserService(ITokenData tokenData,
             }.WithResponseLog(_logger, callingUserId);
         }
 
-        var friendCount = userFriends.Count(x => x.Status == FriendshipStatus.Accepted);
-
         return new UserFriendsResponse
         {
+            TotalCount = total,
             UserId = callingUserId,
             Friends = userFriends,
-            FriendCount = friendCount,
-            StatusCode = friendCount > 0 ? HttpStatusCode.OK : HttpStatusCode.NoContent,
+            StatusCode = total > 0 ? HttpStatusCode.OK : HttpStatusCode.NoContent,
             Message = "Friends retrieved successfully."
         }.WithResponseLog(_logger, callingUserId);
     }

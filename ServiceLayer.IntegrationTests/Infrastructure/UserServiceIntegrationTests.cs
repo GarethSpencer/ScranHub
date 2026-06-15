@@ -60,7 +60,13 @@ public class UserServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
     {
         _tokenData.Setup(x => x.UserId).Returns((Guid?)null);
 
-        var result = await _service!.GetFriendsForUserAsync(ct);
+        var request = new PaginationBaseRequest
+        {
+            PageNumber = 1,
+            PageSize = 2
+        };
+
+        var result = await _service!.GetFriendsForUserAsync(request, ct);
         _checks.OutputFailureCheck(result, "unauthorized", "GetFriendsForUserAsync", HttpStatusCode.Unauthorized);
     }
 
@@ -69,7 +75,13 @@ public class UserServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
     {
         _tokenData.Setup(x => x.UserId).Returns(Guid.Empty);
 
-        var result = await _service!.GetFriendsForUserAsync(ct);
+        var request = new PaginationBaseRequest
+        {
+            PageNumber = 1,
+            PageSize = 2
+        };
+
+        var result = await _service!.GetFriendsForUserAsync(request, ct);
         _checks.OutputFailureCheck(result, "not found", "GetFriendsForUserAsync", HttpStatusCode.NotFound);
     }
 
@@ -78,13 +90,19 @@ public class UserServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
     {
         _tokenData.Setup(x => x.UserId).Returns(TestUser1AdminId);
 
-        var result = await _service!.GetFriendsForUserAsync(ct);
+        var request = new PaginationBaseRequest
+        {
+            PageNumber = 1,
+            PageSize = 2
+        };
+
+        var result = await _service!.GetFriendsForUserAsync(request, ct);
         _checks.OutputSuccessCheck(result, "success", "GetFriendsForUserAsync", HttpStatusCode.OK);
 
         var typedResult = result.Should().BeOfType<UserFriendsResponse>().Subject;
+        typedResult.TotalCount.Should().Be(1);
         typedResult.UserId.Should().Be(TestUser1AdminId);
-        typedResult.Friends!.Count().Should().Be(3);
-        typedResult.FriendCount.Should().Be(1);
+        typedResult.Friends!.Count().Should().Be(1);
     }
 
     [Fact]
@@ -92,13 +110,19 @@ public class UserServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
     {
         _tokenData.Setup(x => x.UserId).Returns(TestUser2NonAdminId);
 
-        var result = await _service!.GetFriendsForUserAsync(ct);
+        var request = new PaginationBaseRequest
+        {
+            PageNumber = 1,
+            PageSize = 2
+        };
+
+        var result = await _service!.GetFriendsForUserAsync(request, ct);
         _checks.OutputSuccessCheck(result, "success", "GetFriendsForUserAsync", HttpStatusCode.OK);
 
         var typedResult = result.Should().BeOfType<UserFriendsResponse>().Subject;
+        typedResult.TotalCount.Should().Be(1);
         typedResult.UserId.Should().Be(TestUser2NonAdminId);
         typedResult.Friends!.Count().Should().Be(1);
-        typedResult.FriendCount.Should().Be(1);
     }
 
     [Fact]
@@ -106,13 +130,19 @@ public class UserServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
     {
         _tokenData.Setup(x => x.UserId).Returns(TestUser3AdminId);
 
-        var result = await _service!.GetFriendsForUserAsync(ct);
+        var request = new PaginationBaseRequest
+        {
+            PageNumber = 1,
+            PageSize = 2
+        };
+
+        var result = await _service!.GetFriendsForUserAsync(request, ct);
         _checks.OutputSuccessCheck(result, "success", "GetFriendsForUserAsync", HttpStatusCode.NoContent);
 
         var typedResult = result.Should().BeOfType<UserFriendsResponse>().Subject;
+        typedResult.TotalCount.Should().Be(0);
         typedResult.UserId.Should().Be(TestUser3AdminId);
-        typedResult.Friends!.Count().Should().Be(1);
-        typedResult.FriendCount.Should().Be(0);
+        typedResult.Friends!.Count().Should().Be(0);
     }
 
     [Fact]
@@ -120,13 +150,19 @@ public class UserServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
     {
         _tokenData.Setup(x => x.UserId).Returns(TestUser4NonAdminId);
 
-        var result = await _service!.GetFriendsForUserAsync(ct);
+        var request = new PaginationBaseRequest
+        {
+            PageNumber = 1,
+            PageSize = 2
+        };
+
+        var result = await _service!.GetFriendsForUserAsync(request, ct);
         _checks.OutputSuccessCheck(result, "success", "GetFriendsForUserAsync", HttpStatusCode.NoContent);
 
         var typedResult = result.Should().BeOfType<UserFriendsResponse>().Subject;
+        typedResult.TotalCount.Should().Be(0);
         typedResult.UserId.Should().Be(TestUser4NonAdminId);
-        typedResult.Friends!.Count().Should().Be(1);
-        typedResult.FriendCount.Should().Be(0);
+        typedResult.Friends!.Count().Should().Be(0);
     }
 
     [Fact]
@@ -134,13 +170,19 @@ public class UserServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
     {
         _tokenData.Setup(x => x.UserId).Returns(TestUser5NonAdminId);
 
-        var result = await _service!.GetFriendsForUserAsync(ct);
+        var request = new PaginationBaseRequest
+        {
+            PageNumber = 1,
+            PageSize = 2
+        };
+
+        var result = await _service!.GetFriendsForUserAsync(request, ct);
         _checks.OutputSuccessCheck(result, "success", "GetFriendsForUserAsync", HttpStatusCode.OK);
 
         var typedResult = result.Should().BeOfType<UserFriendsResponse>().Subject;
+        typedResult.TotalCount.Should().Be(1);
         typedResult.UserId.Should().Be(TestUser5NonAdminId);
         typedResult.Friends!.Count().Should().Be(1);
-        typedResult.FriendCount.Should().Be(1);
     }
     #endregion
 
