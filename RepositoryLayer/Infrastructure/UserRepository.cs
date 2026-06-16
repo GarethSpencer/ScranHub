@@ -118,8 +118,8 @@ public sealed class UserRepository(ScranHubDbContext dbContext) : EFRepository<U
     {
         var friendInfo = await _dbSet
             .Where(x => x.UserId == userId)
-            .Include(x => x.InitiatedFriendships.Where(f => f.Status == request.FriendshipStatus)).ThenInclude(x => x.Friend)
-            .Include(x => x.ReceivedFriendships.Where(f => f.Status == request.FriendshipStatus)).ThenInclude(x => x.User)
+            .Include(x => x.InitiatedFriendships.Where(f => f.Status == request.Status)).ThenInclude(x => x.Friend)
+            .Include(x => x.ReceivedFriendships.Where(f => f.Status == request.Status)).ThenInclude(x => x.User)
             .AsSplitQuery()
             .FirstOrDefaultAsync(ct);
 

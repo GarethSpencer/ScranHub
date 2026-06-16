@@ -64,7 +64,7 @@ public class UserServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
         {
             PageNumber = 1,
             PageSize = 2,
-            FriendshipStatus = FriendshipStatus.Accepted
+            Status = FriendshipStatus.Accepted
         };
 
         var result = await _service!.GetFriendsForUserAsync(request, ct);
@@ -80,7 +80,7 @@ public class UserServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
         {
             PageNumber = 1,
             PageSize = 2,
-            FriendshipStatus = FriendshipStatus.Accepted
+            Status = FriendshipStatus.Accepted
         };
 
         var result = await _service!.GetFriendsForUserAsync(request, ct);
@@ -96,7 +96,7 @@ public class UserServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
         {
             PageNumber = 1,
             PageSize = 2,
-            FriendshipStatus = FriendshipStatus.Accepted
+            Status = FriendshipStatus.Accepted
         };
 
         var result = await _service!.GetFriendsForUserAsync(request, ct);
@@ -117,7 +117,7 @@ public class UserServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
         {
             PageNumber = 1,
             PageSize = 2,
-            FriendshipStatus = FriendshipStatus.Accepted
+            Status = FriendshipStatus.Accepted
         };
 
         var result = await _service!.GetFriendsForUserAsync(request, ct);
@@ -138,7 +138,7 @@ public class UserServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
         {
             PageNumber = 1,
             PageSize = 2,
-            FriendshipStatus = FriendshipStatus.Accepted
+            Status = FriendshipStatus.Accepted
         };
 
         var result = await _service!.GetFriendsForUserAsync(request, ct);
@@ -159,7 +159,7 @@ public class UserServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
         {
             PageNumber = 1,
             PageSize = 2,
-            FriendshipStatus = FriendshipStatus.Accepted
+            Status = FriendshipStatus.Accepted
         };
 
         var result = await _service!.GetFriendsForUserAsync(request, ct);
@@ -180,7 +180,7 @@ public class UserServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
         {
             PageNumber = 1,
             PageSize = 2,
-            FriendshipStatus = FriendshipStatus.Accepted
+            Status = FriendshipStatus.Accepted
         };
 
         var result = await _service!.GetFriendsForUserAsync(request, ct);

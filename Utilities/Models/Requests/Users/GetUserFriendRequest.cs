@@ -5,5 +5,5 @@ namespace Utilities.Models.Requests.Users;
 
 public record GetUserFriendRequest : PaginationBaseRequest
 {
-    public required FriendshipStatus FriendshipStatus { get; set; }
+    public required FriendshipStatus Status { get; set; }
 }

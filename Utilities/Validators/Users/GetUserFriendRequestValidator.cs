@@ -10,8 +10,8 @@ public class GetUserFriendRequestValidator : AbstractValidator<GetUserFriendRequ
     {
         Include(new PaginationBaseRequestValidator());
 
-        RuleFor(x => x.FriendshipStatus)
+        RuleFor(x => x.Status)
             .IsInEnum()
-            .WithMessage("FriendshipStatus must be a valid status (Pending, Accepted, or Declined).");
+            .WithMessage("Invalid friendship status.");
     }
 }
