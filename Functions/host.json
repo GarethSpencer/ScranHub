@@ -9,7 +9,10 @@
         "isEnabled": true,
         "excludedTypes": "Request"
       },
-      "enableLiveMetricsFilters": true
+      "enableLiveMetricsFilters": true,
+      "logLevel": {
+        "Default": "Information"
+      }
     }
   },
   "functionTimeout": "00:05:00"
