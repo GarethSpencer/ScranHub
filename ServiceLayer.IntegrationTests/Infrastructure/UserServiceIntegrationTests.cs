@@ -939,12 +939,12 @@ public class UserServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
     }
 
     [Fact]
-    public async Task DeleteUserFriendAsync_FriendshipNotAccepted_ReturnsForbidden()
+    public async Task DeleteUserFriendAsync_FriendshipDeclinedByRecipient_ReturnsForbidden()
     {
         _tokenData.Setup(x => x.UserId).Returns(TestUser1AdminId);
 
-        var result = await _service!.DeleteUserFriendAsync(TestUserFriend31Id, ct);
-        _checks.OutputFailureCheck(result, "not been accepted", "DeleteUserFriendAsync", HttpStatusCode.Forbidden);
+        var result = await _service!.DeleteUserFriendAsync(TestUserFriend14Id, ct);
+        _checks.OutputFailureCheck(result, "declined by the recipient", "DeleteUserFriendAsync", HttpStatusCode.Forbidden);
     }
 
     [Fact]

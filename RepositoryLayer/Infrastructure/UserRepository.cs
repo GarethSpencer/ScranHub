@@ -116,10 +116,17 @@ public sealed class UserRepository(ScranHubDbContext dbContext) : EFRepository<U
 
     public async Task<(IEnumerable<FriendResult>?, int)> GetFriendsForUserAsync(Guid userId, GetUserFriendRequest request, CancellationToken ct)
     {
-        var friendInfo = await _dbSet
+        var query = _dbSet
             .Where(x => x.UserId == userId)
-            .Include(x => x.InitiatedFriendships.Where(f => f.Status == request.Status)).ThenInclude(x => x.Friend)
-            .Include(x => x.ReceivedFriendships.Where(f => f.Status == request.Status)).ThenInclude(x => x.User)
+            .Include(x => x.ReceivedFriendships.Where(f => f.Status == request.Status)).ThenInclude(x => x.User);
+
+        // skip initiated friendships if the recipient declined them
+        if (request.Status != FriendshipStatus.Declined)
+        {
+            query = query.Include(x => x.InitiatedFriendships.Where(f => f.Status == request.Status)).ThenInclude(x => x.Friend);
+        }
+
+        var friendInfo = await query
             .AsSplitQuery()
             .FirstOrDefaultAsync(ct);
 
@@ -128,19 +135,26 @@ public sealed class UserRepository(ScranHubDbContext dbContext) : EFRepository<U
             return (null, 0);
         }
 
-        var total = friendInfo.InitiatedFriendships.Count(x => x.Friend!.Active)
-            + friendInfo.ReceivedFriendships.Count(x => x.User!.Active);
+        var resultList = new List<FriendResult>();
 
-        var result = friendInfo.InitiatedFriendships.Select(f => new FriendResult
+        if (request.Status != FriendshipStatus.Declined)
         {
-            UserFriendId = f.UserFriendId,
-            FriendId = f.FriendId,
-            DisplayName = f.Friend!.DisplayName,
-            Active = f.Friend.Active,
-            Status = f.Status,
-            Initiator = true
-        })
-            .Concat(friendInfo.ReceivedFriendships.Select(f => new FriendResult
+            resultList.AddRange(friendInfo.InitiatedFriendships
+                .Where(x => x.Friend!.Active)
+                .Select(f => new FriendResult
+                {
+                    UserFriendId = f.UserFriendId,
+                    FriendId = f.FriendId,
+                    DisplayName = f.Friend!.DisplayName,
+                    Active = f.Friend.Active,
+                    Status = f.Status,
+                    Initiator = true
+                }));
+        }
+
+        resultList.AddRange(friendInfo.ReceivedFriendships
+            .Where(x => x.User!.Active)
+            .Select(f => new FriendResult
             {
                 UserFriendId = f.UserFriendId,
                 FriendId = f.UserId,
@@ -148,10 +162,12 @@ public sealed class UserRepository(ScranHubDbContext dbContext) : EFRepository<U
                 Active = f.User.Active,
                 Status = f.Status,
                 Initiator = false
-            }))
-            .Where(x => x.Active);
+            }));
 
-        return (result.Skip((request.PageNumber - 1) * request.PageSize)
+        var total = resultList.Count;
+
+        return (resultList
+            .Skip((request.PageNumber - 1) * request.PageSize)
             .Take(request.PageSize), total);
     }
 

@@ -543,12 +543,12 @@ public class UserService(ITokenData tokenData,
             }.WithResponseLog(_logger, callingUserId);
         }
 
-        if (userFriend.Status != FriendshipStatus.Accepted)
+        if (userFriend.Status == FriendshipStatus.Declined && userFriend.UserId == callingUserId)
         {
             return new CommonResponse
             {
                 StatusCode = HttpStatusCode.Forbidden,
-                Message = "You cannot delete a friendship that has not been accepted."
+                Message = "You cannot delete a friendship that has been declined by the recipient."
             }.WithResponseLog(_logger, callingUserId);
         }
 
