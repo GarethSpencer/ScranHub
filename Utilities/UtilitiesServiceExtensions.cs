@@ -42,5 +42,6 @@ public static class UtilitiesServiceExtensions
         services.AddScoped<IValidator<SetOptionsRequest>, SetOptionsRequestValidator>();
         services.AddScoped<IValidator<SetOptionRequest>, SetOptionRequestValidator>();
         services.AddScoped<IValidator<UpdateOptionRequest>, UpdateOptionRequestValidator>();
+        services.AddScoped<IValidator<GetUserFriendRequest>, GetUserFriendRequestValidator>();
     }
 }

@@ -1,16 +1,17 @@
 ﻿using FluentAssertions;
+using Utilities.Enums;
 using Utilities.Models.Requests.Users;
 using Utilities.Validators.Users;
 
 namespace Utilities.UnitTests.Validators.Users;
 
 [Trait("Category", "Unit")]
-public class SearchUserRequestValidatorTests
+public class GetUserFriendRequestValidatorTests
 {
     [Fact]
     public async Task ValidateAsync_ReturnsValidWithDefaultRequest()
     {
-        var validator = new SearchUserRequestValidator();
+        var validator = new GetUserFriendRequestValidator();
         var request = CreateValidRequest();
 
         var result = await validator.ValidateAsync(request);
@@ -20,17 +21,14 @@ public class SearchUserRequestValidatorTests
     }
 
     [Theory]
-    [InlineData("Big user name of 30 characters")]
-    [InlineData("Bob")]
-    [InlineData("User1_and_User2 Name?!")]
-    [InlineData("User1 & User2's Name.")]
-    [InlineData("Name ")]
-    [InlineData(" Name")]
-    public async Task ValidateAsync_ReturnsValidUserName(string userName)
+    [InlineData(FriendshipStatus.Pending)]
+    [InlineData(FriendshipStatus.Accepted)]
+    [InlineData(FriendshipStatus.Declined)]
+    public async Task ValidateAsync_ReturnsValidFriendshipStatus(FriendshipStatus status)
     {
-        var validator = new SearchUserRequestValidator();
+        var validator = new GetUserFriendRequestValidator();
         var request = CreateValidRequest();
-        request.SearchText = userName;
+        request.FriendshipStatus = status;
 
         var result = await validator.ValidateAsync(request);
 
@@ -39,30 +37,25 @@ public class SearchUserRequestValidatorTests
     }
 
     [Theory]
-    [InlineData("", "required")]
-    [InlineData("Bo", "3 characters")]
-    [InlineData("Big users name of over 30 chars", "30 characters")]
-    [InlineData("<Test User>", "invalid characters")]
-    [InlineData("{Test User}", "invalid characters")]
-    [InlineData("Test~User", "invalid characters")]
-    [InlineData("Test|User", "invalid characters")]
-    public async Task ValidateAsync_ReturnsInvalidUserName(string userName, string error)
+    [InlineData(3)]
+    [InlineData(-1)]
+    public async Task ValidateAsync_ReturnsInvalidUserName(int status)
     {
-        var validator = new SearchUserRequestValidator();
+        var validator = new GetUserFriendRequestValidator();
         var request = CreateValidRequest();
-        request.SearchText = userName;
+        request.FriendshipStatus = (FriendshipStatus)status;
 
         var result = await validator.ValidateAsync(request);
 
         result.IsValid.Should().BeFalse();
-        result.Errors.Should().HaveCountGreaterThanOrEqualTo(1);
-        result.Errors.Should().Contain(e => e.ErrorMessage.Contains(error, StringComparison.InvariantCultureIgnoreCase));
+        result.Errors.Should().HaveCount(1);
+        result.Errors.Should().Contain(e => e.ErrorMessage.Contains("FriendshipStatus must be a valid status", StringComparison.InvariantCultureIgnoreCase));
     }
 
-    private static SearchUserRequest CreateValidRequest() => new()
+    private static GetUserFriendRequest CreateValidRequest() => new()
     {
         PageNumber = 1,
         PageSize = 10,
-        SearchText = "Test User"
+        FriendshipStatus = FriendshipStatus.Pending
     };
 }

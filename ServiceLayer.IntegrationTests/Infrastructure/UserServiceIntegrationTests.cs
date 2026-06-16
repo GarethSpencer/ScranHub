@@ -60,10 +60,11 @@ public class UserServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
     {
         _tokenData.Setup(x => x.UserId).Returns((Guid?)null);
 
-        var request = new PaginationBaseRequest
+        var request = new GetUserFriendRequest
         {
             PageNumber = 1,
-            PageSize = 2
+            PageSize = 2,
+            FriendshipStatus = FriendshipStatus.Accepted
         };
 
         var result = await _service!.GetFriendsForUserAsync(request, ct);
@@ -75,10 +76,11 @@ public class UserServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
     {
         _tokenData.Setup(x => x.UserId).Returns(Guid.Empty);
 
-        var request = new PaginationBaseRequest
+        var request = new GetUserFriendRequest
         {
             PageNumber = 1,
-            PageSize = 2
+            PageSize = 2,
+            FriendshipStatus = FriendshipStatus.Accepted
         };
 
         var result = await _service!.GetFriendsForUserAsync(request, ct);
@@ -90,10 +92,11 @@ public class UserServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
     {
         _tokenData.Setup(x => x.UserId).Returns(TestUser1AdminId);
 
-        var request = new PaginationBaseRequest
+        var request = new GetUserFriendRequest
         {
             PageNumber = 1,
-            PageSize = 2
+            PageSize = 2,
+            FriendshipStatus = FriendshipStatus.Accepted
         };
 
         var result = await _service!.GetFriendsForUserAsync(request, ct);
@@ -110,10 +113,11 @@ public class UserServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
     {
         _tokenData.Setup(x => x.UserId).Returns(TestUser2NonAdminId);
 
-        var request = new PaginationBaseRequest
+        var request = new GetUserFriendRequest
         {
             PageNumber = 1,
-            PageSize = 2
+            PageSize = 2,
+            FriendshipStatus = FriendshipStatus.Accepted
         };
 
         var result = await _service!.GetFriendsForUserAsync(request, ct);
@@ -130,10 +134,11 @@ public class UserServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
     {
         _tokenData.Setup(x => x.UserId).Returns(TestUser3AdminId);
 
-        var request = new PaginationBaseRequest
+        var request = new GetUserFriendRequest
         {
             PageNumber = 1,
-            PageSize = 2
+            PageSize = 2,
+            FriendshipStatus = FriendshipStatus.Accepted
         };
 
         var result = await _service!.GetFriendsForUserAsync(request, ct);
@@ -150,10 +155,11 @@ public class UserServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
     {
         _tokenData.Setup(x => x.UserId).Returns(TestUser4NonAdminId);
 
-        var request = new PaginationBaseRequest
+        var request = new GetUserFriendRequest
         {
             PageNumber = 1,
-            PageSize = 2
+            PageSize = 2,
+            FriendshipStatus = FriendshipStatus.Accepted
         };
 
         var result = await _service!.GetFriendsForUserAsync(request, ct);
@@ -170,10 +176,11 @@ public class UserServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
     {
         _tokenData.Setup(x => x.UserId).Returns(TestUser5NonAdminId);
 
-        var request = new PaginationBaseRequest
+        var request = new GetUserFriendRequest
         {
             PageNumber = 1,
-            PageSize = 2
+            PageSize = 2,
+            FriendshipStatus = FriendshipStatus.Accepted
         };
 
         var result = await _service!.GetFriendsForUserAsync(request, ct);

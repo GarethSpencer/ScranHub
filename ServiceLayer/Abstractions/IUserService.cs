@@ -6,7 +6,7 @@ namespace ServiceLayer.Abstractions;
 
 public interface IUserService
 {
-    Task<CommonResponse> GetFriendsForUserAsync(PaginationBaseRequest request, CancellationToken ct);
+    Task<CommonResponse> GetFriendsForUserAsync(GetUserFriendRequest request, CancellationToken ct);
 
     Task<CommonResponse> CreateUserAsync(CreateUserRequest request, CancellationToken ct);
 

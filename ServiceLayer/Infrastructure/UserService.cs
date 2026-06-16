@@ -25,7 +25,7 @@ public class UserService(ITokenData tokenData,
     private readonly IUserFriendRepository _userFriendRepository = userFriendRepository;
     private readonly IUnitOfWork _unitOfWork = unitOfWork;
 
-    public async Task<CommonResponse> GetFriendsForUserAsync(PaginationBaseRequest request, CancellationToken ct)
+    public async Task<CommonResponse> GetFriendsForUserAsync(GetUserFriendRequest request, CancellationToken ct)
     {
         if (!_tokenData.UserId.HasValue)
         {

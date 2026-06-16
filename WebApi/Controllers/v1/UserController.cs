@@ -20,7 +20,7 @@ namespace WebApi.Controllers.v1;
 /// <param name="updateUserFriendRequestValidator">Validator for update user friend requests.</param>
 /// <param name="searchUserRequestValidator">Validator for search user requests.</param>
 /// <param name="addFriendRequestValidator">Validator for add friend requests.</param>
-/// <param name="paginationBaseRequestValidator">Validator for pagination requests.</param>
+/// <param name="getUserFriendRequestValidator">Validator for get user friend requests.</param>
 [ApiController]
 [Route("api/v{version:apiVersion}/[controller]")]
 [ApiVersion("1.0")]
@@ -32,7 +32,7 @@ public class UserController(
     IValidator<UpdateUserFriendRequest> updateUserFriendRequestValidator,
     IValidator<SearchUserRequest> searchUserRequestValidator,
     IValidator<AddFriendRequest> addFriendRequestValidator,
-    IValidator<PaginationBaseRequest> paginationBaseRequestValidator) : ControllerBase
+    IValidator<GetUserFriendRequest> getUserFriendRequestValidator) : ControllerBase
 {
     private readonly IUserService _userService = userService;
     private readonly IValidator<CreateUserRequest> _createUserRequestValidator = createUserRequestValidator;
@@ -40,7 +40,7 @@ public class UserController(
     private readonly IValidator<UpdateUserFriendRequest> _updateUserFriendRequestValidator = updateUserFriendRequestValidator;
     private readonly IValidator<SearchUserRequest> _searchUserRequestValidator = searchUserRequestValidator;
     private readonly IValidator<AddFriendRequest> _addFriendRequestValidator = addFriendRequestValidator;
-    private readonly IValidator<PaginationBaseRequest> _paginationBaseRequestValidator = paginationBaseRequestValidator;
+    private readonly IValidator<GetUserFriendRequest> _getUserFriendRequestValidator = getUserFriendRequestValidator;
 
     /// <summary>
     /// Get the details for the current user.
@@ -160,14 +160,14 @@ public class UserController(
     /// <param name="ct"></param>
     [HttpGet("me/friends")]
     [ProducesResponseType(typeof(UserFriendsResponse), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetFriends([FromQuery] PaginationBaseRequest request, CancellationToken ct)
+    public async Task<IActionResult> GetFriends([FromQuery] GetUserFriendRequest request, CancellationToken ct)
     {
         if (request == null)
         {
             return BadRequest("Request body is required.");
         }
 
-        var validation = await _paginationBaseRequestValidator.ValidateAsync(request, ct);
+        var validation = await _getUserFriendRequestValidator.ValidateAsync(request, ct);
         if (!validation.IsValid)
         {
             return BadRequest(ValidationErrorFormatter.FormatErrors(validation));

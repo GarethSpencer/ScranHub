@@ -114,12 +114,12 @@ public sealed class UserRepository(ScranHubDbContext dbContext) : EFRepository<U
         return await query.ToListAsync(ct);
     }
 
-    public async Task<(IEnumerable<FriendResult>?, int)> GetFriendsForUserAsync(Guid userId, PaginationBaseRequest request, CancellationToken ct)
+    public async Task<(IEnumerable<FriendResult>?, int)> GetFriendsForUserAsync(Guid userId, GetUserFriendRequest request, CancellationToken ct)
     {
         var friendInfo = await _dbSet
             .Where(x => x.UserId == userId)
-            .Include(x => x.InitiatedFriendships).ThenInclude(x => x.Friend)
-            .Include(x => x.ReceivedFriendships).ThenInclude(x => x.User)
+            .Include(x => x.InitiatedFriendships.Where(f => f.Status == request.FriendshipStatus)).ThenInclude(x => x.Friend)
+            .Include(x => x.ReceivedFriendships.Where(f => f.Status == request.FriendshipStatus)).ThenInclude(x => x.User)
             .AsSplitQuery()
             .FirstOrDefaultAsync(ct);
 
@@ -128,8 +128,8 @@ public sealed class UserRepository(ScranHubDbContext dbContext) : EFRepository<U
             return (null, 0);
         }
 
-        var total = friendInfo.InitiatedFriendships.Count(x => x.Friend!.Active && x.Status == FriendshipStatus.Accepted)
-            + friendInfo.ReceivedFriendships.Count(x => x.User!.Active && x.Status == FriendshipStatus.Accepted);
+        var total = friendInfo.InitiatedFriendships.Count(x => x.Friend!.Active)
+            + friendInfo.ReceivedFriendships.Count(x => x.User!.Active);
 
         var result = friendInfo.InitiatedFriendships.Select(f => new FriendResult
         {
@@ -149,7 +149,7 @@ public sealed class UserRepository(ScranHubDbContext dbContext) : EFRepository<U
                 Status = f.Status,
                 Initiator = false
             }))
-            .Where(x => x.Active && x.Status == FriendshipStatus.Accepted);
+            .Where(x => x.Active);
 
         return (result.Skip((request.PageNumber - 1) * request.PageSize)
             .Take(request.PageSize), total);
