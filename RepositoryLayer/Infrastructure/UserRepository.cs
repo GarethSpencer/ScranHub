@@ -15,6 +15,7 @@ public sealed class UserRepository(ScranHubDbContext dbContext) : EFRepository<U
     public async Task<(IEnumerable<UserDetailedResult>, int)> GetAllAsync(PaginationBaseRequest request, CancellationToken ct)
     {
         var query = _dbSet
+            .Include(u => u.ReceivedFriendships)
             .OrderBy(u => u.DisplayName);
 
         var total = await query.CountAsync(ct);
@@ -31,6 +32,7 @@ public sealed class UserRepository(ScranHubDbContext dbContext) : EFRepository<U
                 Email = u.Email,
                 Admin = u.Admin,
                 FriendCount = u.InitiatedFriendships.Count() + u.ReceivedFriendships.Count(),
+                PendingReceivedFriendshipCount = u.ReceivedFriendships.Count(uf => uf.Status == FriendshipStatus.Pending),
                 CreatedOn = u.CreatedOn,
                 CreatedBy = u.CreatedBy,
                 UpdatedOn = u.UpdatedOn,
@@ -43,7 +45,9 @@ public sealed class UserRepository(ScranHubDbContext dbContext) : EFRepository<U
 
     public async Task<UserDetailedResult?> GetDetailsByIdAsync(Guid id, CancellationToken ct)
     {
-        var user = await _dbSet.FindAsync([id], ct);
+        var user = await _dbSet
+            .Include(u => u.ReceivedFriendships)
+            .FirstOrDefaultAsync(u => u.UserId == id, ct);
 
         if (user == null)
         {
@@ -59,6 +63,7 @@ public sealed class UserRepository(ScranHubDbContext dbContext) : EFRepository<U
             Active = user.Active,
             Admin = user.Admin,
             FriendCount = user.InitiatedFriendships.Count + user.ReceivedFriendships.Count,
+            PendingReceivedFriendshipCount = user.ReceivedFriendships.Count(uf => uf.Status == FriendshipStatus.Pending),
             CreatedOn = user.CreatedOn,
             CreatedBy = user.CreatedBy,
             UpdatedOn = user.UpdatedOn,

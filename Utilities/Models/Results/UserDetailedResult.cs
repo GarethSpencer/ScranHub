@@ -9,6 +9,7 @@ public record UserDetailedResult
     public required bool Active { get; init; }
     public required bool Admin { get; init; }
     public required int FriendCount { get; init; }
+    public required int PendingReceivedFriendshipCount { get; init; }
     public required DateTime CreatedOn { get; init; }
     public required Guid CreatedBy { get; init; }
     public required DateTime? UpdatedOn { get; init; }
