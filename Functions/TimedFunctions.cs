@@ -11,7 +11,7 @@ public class TimedFunctions(ILoggerFactory loggerFactory, IUserRepository userRe
     private readonly ILogger _logger = loggerFactory.CreateLogger<TimedFunctions>();
 
     [Function("DeleteInactiveUsers")]
-    public async Task Run([TimerTrigger("0 */5 * * * *")] TimerInfo timer, CancellationToken ct)
+    public async Task Run([TimerTrigger("0 0 2 * * *")] TimerInfo timer, CancellationToken ct)
     {
         if (_logger.IsEnabled(LogLevel.Information))
         {
