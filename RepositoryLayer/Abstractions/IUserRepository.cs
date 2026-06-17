@@ -8,7 +8,7 @@ namespace RepositoryLayer.Abstractions;
 
 public interface IUserRepository : IEFRepository<User>
 {
-    Task<(IEnumerable<UserDetailedResult>, int)> GetAllAsync(PaginationBaseRequest request, CancellationToken ct);
+    Task<(IEnumerable<UserAdminResult>, int)> GetAllAsync(PaginationBaseRequest request, CancellationToken ct);
     Task<IEnumerable<User>> GetAllActiveAdminsAsync(CancellationToken ct, bool trackChanges = false);
     Task<UserAuthResult?> GetByEmailAsync(string email, CancellationToken ct);
     Task<UserDetailedResult?> GetDetailsByIdAsync(Guid id, CancellationToken ct);

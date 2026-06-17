@@ -5,5 +5,5 @@ namespace Utilities.Models.Responses.Users;
 
 public class GetUsersDetailedResponse : CommonPaginationResponse
 {
-    public IEnumerable<UserDetailedResult>? Users { get; set; }
+    public IEnumerable<UserAdminResult>? Users { get; set; }
 }

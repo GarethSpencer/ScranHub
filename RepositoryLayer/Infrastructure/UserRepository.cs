@@ -12,27 +12,22 @@ namespace RepositoryLayer.Infrastructure;
 
 public sealed class UserRepository(ScranHubDbContext dbContext) : EFRepository<User>(dbContext), IUserRepository
 {
-    public async Task<(IEnumerable<UserDetailedResult>, int)> GetAllAsync(PaginationBaseRequest request, CancellationToken ct)
+    public async Task<(IEnumerable<UserAdminResult>, int)> GetAllAsync(PaginationBaseRequest request, CancellationToken ct)
     {
-        var query = _dbSet
-            .Include(u => u.ReceivedFriendships)
-            .OrderBy(u => u.DisplayName);
+        var query = _dbSet.OrderBy(u => u.DisplayName);
 
         var total = await query.CountAsync(ct);
 
         var results = await query
             .Skip((request.PageNumber - 1) * request.PageSize)
             .Take(request.PageSize)
-            .Select(u => new UserDetailedResult
+            .Select(u => new UserAdminResult
             {
                 UserId = u.UserId,
                 AuthId = u.AuthId,
                 DisplayName = u.DisplayName,
                 Active = u.Active,
-                Email = u.Email,
                 Admin = u.Admin,
-                FriendCount = u.InitiatedFriendships.Count() + u.ReceivedFriendships.Count(),
-                PendingReceivedFriendshipCount = u.ReceivedFriendships.Count(uf => uf.Status == FriendshipStatus.Pending),
                 CreatedOn = u.CreatedOn,
                 CreatedBy = u.CreatedBy,
                 UpdatedOn = u.UpdatedOn,
