@@ -469,10 +469,12 @@ public class GroupServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifet
     }
 
     [Fact]
-    public async Task DeleteGroupAsync_NotAdmin_ReturnsForbidden()
+    public async Task DeleteGroupAsync_NotAdminOrCreator_ReturnsForbidden()
     {
+        _tokenData.Setup(x => x.UserId).Returns(TestUser2NonAdminId);
+
         var result = await _service!.DeleteGroupAsync(TestGroup1Id, ct);
-        _checks.OutputFailureCheck(result, "admin", "DeleteGroupAsync", HttpStatusCode.Forbidden);
+        _checks.OutputFailureCheck(result, "permission", "DeleteGroupAsync", HttpStatusCode.Forbidden);
     }
 
     [Fact]

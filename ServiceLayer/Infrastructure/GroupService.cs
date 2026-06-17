@@ -319,8 +319,8 @@ public class GroupService(ITokenData tokenData,
         }
 
         var callingUserId = _tokenData.UserId!.Value;
-        var groupExists = await _groupRepository.ExistsAsync(x => x.GroupId == groupId, ct);
-        if (!groupExists)
+        var group = await _groupRepository.GetDetailsByIdAsync(groupId, ct);
+        if (group is null)
         {
             return new CommonResponse
             {
@@ -330,12 +330,12 @@ public class GroupService(ITokenData tokenData,
         }
 
         var isAdmin = await _userRepository.IsUserAdminAsync(callingUserId, ct);
-        if (!isAdmin)
+        if (!isAdmin && group.CreatedBy != callingUserId)
         {
             return new CommonResponse
             {
                 StatusCode = HttpStatusCode.Forbidden,
-                Message = "You are not an admin and cannot delete groups."
+                Message = "You do not have permission to delete this group."
             }.WithResponseLog(_logger, callingUserId);
         }
 
