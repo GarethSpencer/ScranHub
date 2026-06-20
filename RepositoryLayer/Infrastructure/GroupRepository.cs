@@ -46,6 +46,8 @@ public sealed class GroupRepository(ScranHubDbContext dbContext) : EFRepository<
     {
         var group = await _dbSet
             .Include(x => x.CreatedByUser)
+            .Include(x => x.UserGroups)
+            .Include(x => x.GroupVenues)
             .FirstOrDefaultAsync(g => g.GroupId == id, ct);
 
         if (group == null)
@@ -60,13 +62,19 @@ public sealed class GroupRepository(ScranHubDbContext dbContext) : EFRepository<
             Active = group.Active,
             CreatedBy = group.CreatedBy,
             CreatedOn = group.CreatedOn,
-            DisplayName = group.CreatedByUser.DisplayName
+            DisplayName = group.CreatedByUser.DisplayName,
+            UserCount = group.UserGroups.Count,
+            VenueCount = group.GroupVenues.Count
         };
     }
 
     public async Task<GroupResult?> GetByNameAsync(string name, CancellationToken ct)
     {
-        var group = await _dbSet.Include(x => x.CreatedByUser).FirstOrDefaultAsync(x => x.GroupName == name, ct);
+        var group = await _dbSet
+            .Include(x => x.CreatedByUser)
+            .Include(x => x.UserGroups)
+            .Include(x => x.GroupVenues)
+            .FirstOrDefaultAsync(x => x.GroupName == name, ct);
 
         if (group == null)
         {
@@ -80,7 +88,9 @@ public sealed class GroupRepository(ScranHubDbContext dbContext) : EFRepository<
             Active = group.Active,
             CreatedBy = group.CreatedBy,
             CreatedOn = group.CreatedOn,
-            DisplayName = group.CreatedByUser.DisplayName
+            DisplayName = group.CreatedByUser.DisplayName,
+            UserCount = group.UserGroups.Count,
+            VenueCount = group.GroupVenues.Count
         };
     }
 
@@ -103,6 +113,8 @@ public sealed class GroupRepository(ScranHubDbContext dbContext) : EFRepository<
 
         var groups = await groupsQuery
             .Include(x => x.CreatedByUser)
+            .Include(x => x.UserGroups)
+            .Include(x => x.GroupVenues)
             .OrderBy(x => x.GroupName)
             .Skip((request.PageNumber - 1) * request.PageSize)
             .Take(request.PageSize)
@@ -115,7 +127,9 @@ public sealed class GroupRepository(ScranHubDbContext dbContext) : EFRepository<
             Active = g.Active,
             CreatedBy = g.CreatedBy,
             CreatedOn = g.CreatedOn,
-            DisplayName = g.CreatedByUser.DisplayName
+            DisplayName = g.CreatedByUser.DisplayName,
+            UserCount = g.UserGroups.Count,
+            VenueCount = g.GroupVenues.Count
         });
 
         return (groupResults, totalCount);
