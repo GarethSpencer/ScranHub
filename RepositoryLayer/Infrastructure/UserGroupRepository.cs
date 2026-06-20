@@ -22,8 +22,7 @@ public sealed class UserGroupRepository(ScranHubDbContext dbContext) : EFReposit
 
     public async Task<IEnumerable<GroupResult>> GetGroupsForUserAsync(Guid userId, CancellationToken ct)
     {
-        var query = _dbSet.Where(ug => ug.UserId == userId
-            && ug.Group != null && ug.Group.Active);
+        var query = _dbSet.Where(ug => ug.UserId == userId);
 
         var userGroups = await query
             .Select(ug => new GroupResult
