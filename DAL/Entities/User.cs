@@ -16,4 +16,5 @@ public class User : AuditableEntity
     public ICollection<CostRating> CostRatings { get; set; } = [];
     public ICollection<QualityRating> QualityRatings { get; set; } = [];
     public ICollection<UserGroup> UserGroups { get; set; } = [];
+    public ICollection<Group> CreatedGroups {  get; set; } = [];
 }

@@ -337,9 +337,8 @@ public class GroupServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifet
 
         var typedResult = result.Should().BeOfType<UserGroupsResponse>().Subject;
         typedResult.UserId.Should().Be(TestUser2NonAdminId);
-        typedResult.UserGroups.Should().HaveCount(2);
+        typedResult.UserGroups.Should().HaveCount(1);
         typedResult.UserGroups.Should().Contain(e => e.GroupId == TestGroup1Id);
-        typedResult.UserGroups.Should().Contain(e => e.GroupId == TestGroup2Id);
     }
 
     [Fact]

@@ -22,7 +22,8 @@ public sealed class UserGroupRepository(ScranHubDbContext dbContext) : EFReposit
 
     public async Task<IEnumerable<GroupResult>> GetGroupsForUserAsync(Guid userId, CancellationToken ct)
     {
-        var query = _dbSet.Where(ug => ug.UserId == userId);
+        var query = _dbSet.Where(ug => ug.UserId == userId
+            && ug.Group != null && ug.Group.Active);
 
         var userGroups = await query
             .Select(ug => new GroupResult
@@ -32,6 +33,7 @@ public sealed class UserGroupRepository(ScranHubDbContext dbContext) : EFReposit
                 Active = ug.Group.Active,
                 CreatedBy = ug.Group.CreatedBy,
                 CreatedOn = ug.Group.CreatedOn,
+                DisplayName = ug.Group.CreatedByUser.DisplayName
             })
             .ToListAsync(ct);
 

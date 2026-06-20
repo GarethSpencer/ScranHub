@@ -14,4 +14,5 @@ public class Group : AuditableEntity
     public ICollection<QualityOption> RatingOptions { get; set; } = [];
     public ICollection<FoodTypeOption> FoodTypeOptions { get; set; } = [];
     public ICollection<VenueTypeOption> VenueTypeOptions { get; set; } = [];
+    public User CreatedByUser { get; set; } = null!;
 }
