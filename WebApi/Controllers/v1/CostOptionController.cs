@@ -123,7 +123,6 @@ public class CostOptionController(
         return StatusCode((int)response.StatusCode, response);
     }
 
-
     /// <summary>
     /// Remove a single custom cost rating option from a specific group.
     /// This is used when custom options have been set up for the group, to make incremental changes.

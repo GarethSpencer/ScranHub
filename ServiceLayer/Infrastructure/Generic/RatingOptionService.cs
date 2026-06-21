@@ -107,6 +107,12 @@ public abstract class RatingOptionService<TRatingRepository, TRatingOptionReposi
             await _ratingRepository.RemapRatingsMaintainDisplayOrderAsync(request.GroupId, optionIds, ct);
             return RemapStrategy.MaintainOrder;
         }
+        else if (!ratingOptionsInUse.Any())
+        {
+            //We have no ratings being used so we don't need to squash anything
+            await _ratingRepository.RemapRatingsMaintainDisplayOrderAsync(request.GroupId, optionIds, ct);
+            return RemapStrategy.MaintainOrder;
+        }
         else if (ratingOptionsInUse.Count() == request.Labels.Length)
         {
             // We have as many default ratings being used as new ratings so we can map if we don't leave gaps
@@ -200,6 +206,12 @@ public abstract class RatingOptionService<TRatingRepository, TRatingOptionReposi
         if (currentOptions.Count() == defaultOptions.Count())
         {
             // We have as many default options as current options, so we can map cleanly
+            await _ratingRepository.RemapRatingsMaintainDisplayOrderAsync(groupId, defaultOptions.Select(x => x.OptionId), ct);
+            return RemapStrategy.MaintainOrder;
+        }
+        else if (!ratingOptionsInUse.Any())
+        {
+            //We have no ratings being used so we don't need to squash anything
             await _ratingRepository.RemapRatingsMaintainDisplayOrderAsync(groupId, defaultOptions.Select(x => x.OptionId), ct);
             return RemapStrategy.MaintainOrder;
         }
