@@ -77,7 +77,10 @@ public sealed class GroupVenueRepository(ScranHubDbContext dbContext) : EFReposi
         var groupVenueQuery = _dbSet
             .Include(x => x.VenueTypeOption)
             .Include(x => x.FoodTypeOption)
-            .Where(x => x.GroupId == groupId && EF.Functions.Like(x.VenueName, $"%{request.SearchText}%"));
+            .Where(x => x.GroupId == groupId && (EF.Functions.Like(x.VenueName, $"%{request.SearchText}%")
+                || EF.Functions.Like((x.VenueTypeOption == null ? "" : x.VenueTypeOption!.Label), $"%{request.SearchText}%")
+                || EF.Functions.Like((x.FoodTypeOption == null ? "" : x.FoodTypeOption!.Label), $"%{request.SearchText}%"))
+            );
 
         var totalCount = await groupVenueQuery.CountAsync(ct);
 
