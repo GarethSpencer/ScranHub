@@ -9,6 +9,7 @@ using ServiceLayer.Infrastructure;
 using ServiceLayer.IntegrationTests.Fixtures;
 using ServiceLayer.IntegrationTests.Helpers;
 using System.Net;
+using Utilities.Enums;
 using Utilities.Models.Requests.Generic;
 using Utilities.Models.Requests.GroupVenues;
 using Utilities.Models.Responses.GroupVenues;
@@ -110,10 +111,12 @@ public class GroupVenueServiceIntegrationTests(DatabaseFixture fixture) : IAsync
     {
         _tokenData.Setup(x => x.UserId).Returns((Guid?)null);
 
-        var request = new PaginationBaseRequest
+        var request = new SortableGroupVenueRequest
         {
             PageNumber = 1,
             PageSize = 3,
+            SortBy = GroupVenueSortParameters.VenueName,
+            SortDescending = false,
         };
 
             var result = await _service!.GetAllVenuesForGroupAsync(TestGroup1Id, request, ct);
@@ -123,10 +126,12 @@ public class GroupVenueServiceIntegrationTests(DatabaseFixture fixture) : IAsync
     [Fact]
     public async Task GetAllVenuesForGroupAsync_InvalidGroupId_ReturnsNotFound()
     {
-        var request = new PaginationBaseRequest
+        var request = new SortableGroupVenueRequest
         {
             PageNumber = 1,
             PageSize = 3,
+            SortBy = GroupVenueSortParameters.VenueName,
+            SortDescending = false,
         };
 
         var result = await _service!.GetAllVenuesForGroupAsync(Guid.Empty, request, ct);
@@ -136,10 +141,12 @@ public class GroupVenueServiceIntegrationTests(DatabaseFixture fixture) : IAsync
     [Fact]
     public async Task GetAllVenuesForGroupAsync_NonAdminNotInGroup_ReturnsForbidden()
     {
-        var request = new PaginationBaseRequest
+        var request = new SortableGroupVenueRequest
         {
             PageNumber = 1,
             PageSize = 3,
+            SortBy = GroupVenueSortParameters.VenueName,
+            SortDescending = false,
         };
 
         var result = await _service!.GetAllVenuesForGroupAsync(TestGroup3Id, request, ct);
@@ -149,10 +156,12 @@ public class GroupVenueServiceIntegrationTests(DatabaseFixture fixture) : IAsync
     [Fact]
     public async Task GetAllVenuesForGroupAsync_NonAdminInGroup_ReturnsOK()
     {
-        var request = new PaginationBaseRequest
+        var request = new SortableGroupVenueRequest
         {
             PageNumber = 1,
             PageSize = 3,
+            SortBy = GroupVenueSortParameters.VenueName,
+            SortDescending = false,
         };
 
         var result = await _service!.GetAllVenuesForGroupAsync(TestGroup1Id, request, ct);
@@ -171,10 +180,12 @@ public class GroupVenueServiceIntegrationTests(DatabaseFixture fixture) : IAsync
     {
         _tokenData.Setup(x => x.UserId).Returns(TestUser3AdminId);
 
-        var request = new PaginationBaseRequest
+        var request = new SortableGroupVenueRequest
         {
             PageNumber = 1,
             PageSize = 3,
+            SortBy = GroupVenueSortParameters.VenueName,
+            SortDescending = false,
         };
 
         var result = await _service!.GetAllVenuesForGroupAsync(TestGroup3Id, request, ct);

@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Moq;
 using ServiceLayer.Abstractions;
 using System.Net;
+using Utilities.Enums;
 using Utilities.Models.Requests.Generic;
 using Utilities.Models.Requests.GroupVenues;
 using Utilities.Models.Responses.Generic;
@@ -79,12 +80,12 @@ public class GroupVenueControllerTests
     {
         var groupId = Guid.NewGuid();
         SetupHelpers.SetupValidatorFail(_paginationBaseRequestValidatorMock);
-        var request = new PaginationBaseRequest { PageNumber = 0, PageSize = 10 };
+        var request = new SortableGroupVenueRequest { PageNumber = 0, PageSize = 10, SortBy = GroupVenueSortParameters.VenueName, SortDescending = false };
 
         var result = await _sut.GetVenuesForGroup(groupId, request, ct);
 
         Assert.IsType<BadRequestObjectResult>(result);
-        _groupVenueServiceMock.Verify(s => s.GetAllVenuesForGroupAsync(It.IsAny<Guid>(), It.IsAny<PaginationBaseRequest>(), It.IsAny<CancellationToken>()), Times.Never);
+        _groupVenueServiceMock.Verify(s => s.GetAllVenuesForGroupAsync(It.IsAny<Guid>(), It.IsAny<SortableGroupVenueRequest>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
@@ -92,9 +93,9 @@ public class GroupVenueControllerTests
     {
         var groupId = Guid.NewGuid();
         SetupHelpers.SetupValidatorPass(_paginationBaseRequestValidatorMock);
-        var request = new PaginationBaseRequest { PageNumber = 0, PageSize = 10 };
+        var request = new SortableGroupVenueRequest { PageNumber = 0, PageSize = 10, SortBy = GroupVenueSortParameters.VenueName, SortDescending = false };
         var expectedResponse = new GetGroupVenuesResponse { StatusCode = HttpStatusCode.OK };
-        _groupVenueServiceMock.Setup(s => s.GetAllVenuesForGroupAsync(It.IsAny<Guid>(), It.IsAny<PaginationBaseRequest>(), It.IsAny<CancellationToken>()))
+        _groupVenueServiceMock.Setup(s => s.GetAllVenuesForGroupAsync(It.IsAny<Guid>(), It.IsAny<SortableGroupVenueRequest>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(expectedResponse);
 
         var result = await _sut.GetVenuesForGroup(groupId, request, ct);
@@ -110,9 +111,9 @@ public class GroupVenueControllerTests
     {
         var groupId = Guid.NewGuid();
         SetupHelpers.SetupValidatorPass(_paginationBaseRequestValidatorMock);
-        var request = new PaginationBaseRequest { PageNumber = 0, PageSize = 10 };
+        var request = new SortableGroupVenueRequest { PageNumber = 0, PageSize = 10, SortBy = GroupVenueSortParameters.VenueName, SortDescending = false };
         var expectedResponse = new GetGroupVenuesResponse { StatusCode = HttpStatusCode.OK };
-        _groupVenueServiceMock.Setup(s => s.GetAllVenuesForGroupAsync(It.IsAny<Guid>(), It.IsAny<PaginationBaseRequest>(), It.IsAny<CancellationToken>()))
+        _groupVenueServiceMock.Setup(s => s.GetAllVenuesForGroupAsync(It.IsAny<Guid>(), It.IsAny<SortableGroupVenueRequest>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(expectedResponse);
 
         await _sut.GetVenuesForGroup(groupId, request, ct);

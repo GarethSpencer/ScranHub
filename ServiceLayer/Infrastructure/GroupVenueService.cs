@@ -4,7 +4,6 @@ using RepositoryLayer.Abstractions.Generic;
 using ServiceLayer.Abstractions;
 using System.Net;
 using Utilities.Helpers;
-using Utilities.Models.Requests.Generic;
 using Utilities.Models.Requests.GroupVenues;
 using Utilities.Models.Responses.Generic;
 using Utilities.Models.Responses.GroupVenues;
@@ -73,7 +72,7 @@ public class GroupVenueService(ITokenData tokenData,
         }.WithResponseLog(_logger, callingUserId);
     }
 
-    public async Task<CommonResponse> GetAllVenuesForGroupAsync(Guid groupId, PaginationBaseRequest request, CancellationToken ct)
+    public async Task<CommonResponse> GetAllVenuesForGroupAsync(Guid groupId, SortableGroupVenueRequest request, CancellationToken ct)
     {
         if (!_tokenData.UserId.HasValue)
         {

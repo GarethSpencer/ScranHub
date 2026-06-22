@@ -1,5 +1,4 @@
-﻿using Utilities.Models.Requests.Generic;
-using Utilities.Models.Requests.GroupVenues;
+﻿using Utilities.Models.Requests.GroupVenues;
 using Utilities.Models.Responses.Generic;
 
 namespace ServiceLayer.Abstractions;
@@ -8,7 +7,7 @@ public interface IGroupVenueService
 {
     Task<CommonResponse> GetGroupVenueAsync(Guid groupVenueId, CancellationToken ct);
 
-    Task<CommonResponse> GetAllVenuesForGroupAsync(Guid groupId, PaginationBaseRequest request, CancellationToken ct);
+    Task<CommonResponse> GetAllVenuesForGroupAsync(Guid groupId, SortableGroupVenueRequest request, CancellationToken ct);
 
     Task<CommonResponse> SearchGroupVenuesAsync(Guid groupId, SearchGroupVenueRequest request, CancellationToken ct);
 

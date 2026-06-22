@@ -3,9 +3,10 @@ using DAL.Entities;
 using Microsoft.EntityFrameworkCore;
 using RepositoryLayer.Abstractions;
 using RepositoryLayer.Infrastructure.Generic;
-using Utilities.Models.Requests.Generic;
+using Utilities.Enums;
 using Utilities.Models.Requests.GroupVenues;
 using Utilities.Models.Results;
+using static Utilities.Enums.GroupVenueSortParameters;
 
 namespace RepositoryLayer.Infrastructure;
 
@@ -19,14 +20,14 @@ public sealed class GroupVenueRepository(ScranHubDbContext dbContext) : EFReposi
             .Include(x => x.Group)
             .Where(x => x.Group!.Active)
             .Select(x => new GroupVenueResult
-        {
-            GroupVenueId = x.GroupVenueId,
-            GroupId = x.GroupId,
-            VenueName = x.VenueName,
-            Visited = x.Visited,
-            VenueType = x.VenueTypeOption!.Label,
-            FoodType = x.FoodTypeOption!.Label
-        }).FirstOrDefaultAsync(x => x.GroupVenueId == groupVenueId, ct);
+            {
+                GroupVenueId = x.GroupVenueId,
+                GroupId = x.GroupId,
+                VenueName = x.VenueName,
+                Visited = x.Visited,
+                VenueType = x.VenueTypeOption!.Label,
+                FoodType = x.FoodTypeOption!.Label
+            }).FirstOrDefaultAsync(x => x.GroupVenueId == groupVenueId, ct);
     }
 
     public async Task<IEnumerable<GroupVenueResult>> GetAllVenuesWithInfoByGroupIdAsync(Guid groupId, CancellationToken ct)
@@ -47,7 +48,7 @@ public sealed class GroupVenueRepository(ScranHubDbContext dbContext) : EFReposi
         }).ToListAsync(ct);
     }
 
-    public async Task<(IEnumerable<GroupVenueResult>, int)> GetByGroupIdAsync(Guid groupId, PaginationBaseRequest request, CancellationToken ct)
+    public async Task<(IEnumerable<GroupVenueResult>, int)> GetByGroupIdAsync(Guid groupId, SortableGroupVenueRequest request, CancellationToken ct)
     {
         var groupVenueQuery = _dbSet
             .Include(x => x.VenueTypeOption)
@@ -56,18 +57,17 @@ public sealed class GroupVenueRepository(ScranHubDbContext dbContext) : EFReposi
 
         var totalCount = await groupVenueQuery.CountAsync(ct);
 
-        var results = await groupVenueQuery
+        var results = await ApplySorting(groupVenueQuery, request.SortBy, request.SortDescending)
             .Skip((request.PageNumber - 1) * request.PageSize)
             .Take(request.PageSize)
-            .OrderBy(x => x.VenueName)
             .Select(x => new GroupVenueResult
             {
                 GroupVenueId = x.GroupVenueId,
                 GroupId = x.GroupId,
                 VenueName = x.VenueName,
                 Visited = x.Visited,
-                VenueType = x.VenueTypeOption!.Label,
-                FoodType = x.FoodTypeOption!.Label
+                VenueType = x.VenueTypeOption == null ? "" : x.VenueTypeOption.Label,
+                FoodType = x.FoodTypeOption == null ? "" : x.FoodTypeOption.Label
             }).ToListAsync(ct);
         return (results, totalCount);
     }
@@ -131,5 +131,21 @@ public sealed class GroupVenueRepository(ScranHubDbContext dbContext) : EFReposi
         {
             _dbSet.Remove(groupVenue);
         }
+    }
+
+    private static IQueryable<GroupVenue> ApplySorting(IQueryable<GroupVenue> query, GroupVenueSortParameters sortBy, bool sortDescending)
+    {
+        return (sortBy, sortDescending) switch
+        {
+            (VenueName, false) => query.OrderBy(x => x.VenueName),
+            (VenueName, true) => query.OrderByDescending(x => x.VenueName),
+            (Visited, false) => query.OrderBy(x => x.Visited),
+            (Visited, true) => query.OrderByDescending(x => x.Visited),
+            (FoodType, false) => query.OrderBy(x => x.FoodTypeOption == null ? "" : x.FoodTypeOption.Label),
+            (FoodType, true) => query.OrderByDescending(x => x.FoodTypeOption == null ? "" : x.FoodTypeOption.Label),
+            (VenueType, false) => query.OrderBy(x => x.VenueTypeOption == null ? "" : x.VenueTypeOption.Label),
+            (VenueType, true) => query.OrderByDescending(x => x.VenueTypeOption == null ? "" : x.VenueTypeOption.Label),
+            _ => query.OrderBy(x => x.VenueName) // Default sorting
+        };
     }
 }
