@@ -8,4 +8,6 @@ public record GroupVenueResult
     public required string VenueType { get; init; }
     public required string FoodType { get; init; }
     public required bool Visited { get; init; }
+    public required decimal? AverageCostRating { get; init; }
+    public required decimal? AverageQualityRating { get; init; }
 }

@@ -3,6 +3,7 @@ using DAL.Entities;
 using Microsoft.EntityFrameworkCore;
 using RepositoryLayer.Abstractions;
 using RepositoryLayer.Infrastructure.Generic;
+using System.Linq.Expressions;
 using Utilities.Enums;
 using Utilities.Models.Requests.GroupVenues;
 using Utilities.Models.Results;
@@ -19,15 +20,8 @@ public sealed class GroupVenueRepository(ScranHubDbContext dbContext) : EFReposi
             .Include(x => x.FoodTypeOption)
             .Include(x => x.Group)
             .Where(x => x.Group!.Active)
-            .Select(x => new GroupVenueResult
-            {
-                GroupVenueId = x.GroupVenueId,
-                GroupId = x.GroupId,
-                VenueName = x.VenueName,
-                Visited = x.Visited,
-                VenueType = x.VenueTypeOption!.Label,
-                FoodType = x.FoodTypeOption!.Label
-            }).FirstOrDefaultAsync(x => x.GroupVenueId == groupVenueId, ct);
+            .Select(ToResult)
+            .FirstOrDefaultAsync(x => x.GroupVenueId == groupVenueId, ct);
     }
 
     public async Task<IEnumerable<GroupVenueResult>> GetAllVenuesWithInfoByGroupIdAsync(Guid groupId, CancellationToken ct)
@@ -37,15 +31,7 @@ public sealed class GroupVenueRepository(ScranHubDbContext dbContext) : EFReposi
             .Include(x => x.FoodTypeOption)
             .Include(x => x.VenueTypeOption);
 
-        return await query.Select(x => new GroupVenueResult
-        {
-            GroupVenueId = x.GroupVenueId,
-            GroupId = x.GroupId,
-            VenueName = x.VenueName,
-            Visited = x.Visited,
-            VenueType = x.VenueTypeOption!.Label,
-            FoodType = x.FoodTypeOption!.Label
-        }).ToListAsync(ct);
+        return await query.Select(ToResult).ToListAsync(ct);
     }
 
     public async Task<(IEnumerable<GroupVenueResult>, int)> GetByGroupIdAsync(Guid groupId, SortableGroupVenueRequest request, CancellationToken ct)
@@ -60,15 +46,8 @@ public sealed class GroupVenueRepository(ScranHubDbContext dbContext) : EFReposi
         var results = await ApplySorting(groupVenueQuery, request.SortBy, request.SortDescending)
             .Skip((request.PageNumber - 1) * request.PageSize)
             .Take(request.PageSize)
-            .Select(x => new GroupVenueResult
-            {
-                GroupVenueId = x.GroupVenueId,
-                GroupId = x.GroupId,
-                VenueName = x.VenueName,
-                Visited = x.Visited,
-                VenueType = x.VenueTypeOption == null ? "" : x.VenueTypeOption.Label,
-                FoodType = x.FoodTypeOption == null ? "" : x.FoodTypeOption.Label
-            }).ToListAsync(ct);
+            .Select(ToResult)
+            .ToListAsync(ct);
         return (results, totalCount);
     }
 
@@ -88,15 +67,8 @@ public sealed class GroupVenueRepository(ScranHubDbContext dbContext) : EFReposi
             .Skip((request.PageNumber - 1) * request.PageSize)
             .Take(request.PageSize)
             .OrderBy(x => x.VenueName)
-            .Select(x => new GroupVenueResult
-            {
-                GroupVenueId = x.GroupVenueId,
-                GroupId = x.GroupId,
-                VenueName = x.VenueName,
-                Visited = x.Visited,
-                VenueType = x.VenueTypeOption!.Label,
-                FoodType = x.FoodTypeOption!.Label
-            }).ToListAsync(ct);
+            .Select(ToResult)
+            .ToListAsync(ct);
         return (results, totalCount);
     }
 
@@ -148,7 +120,24 @@ public sealed class GroupVenueRepository(ScranHubDbContext dbContext) : EFReposi
             (FoodType, true) => query.OrderByDescending(x => x.FoodTypeOption == null ? "" : x.FoodTypeOption.Label),
             (VenueType, false) => query.OrderBy(x => x.VenueTypeOption == null ? "" : x.VenueTypeOption.Label),
             (VenueType, true) => query.OrderByDescending(x => x.VenueTypeOption == null ? "" : x.VenueTypeOption.Label),
-            _ => query.OrderBy(x => x.VenueName) // Default sorting
+            (AvgCostRating, false) => query.OrderBy(x => x.CostRatings.Any() ? (decimal?)x.CostRatings.Average(r => (decimal)r.CostOption!.DisplayOrder) : null),
+            (AvgCostRating, true) => query.OrderByDescending(x => x.CostRatings.Any() ? (decimal?)x.CostRatings.Average(r => (decimal)r.CostOption!.DisplayOrder) : null),
+            (AvgQualityRating, false) => query.OrderBy(x => x.QualityRatings.Any() ? (decimal?)x.QualityRatings.Average(r => (decimal)r.QualityOption!.DisplayOrder) : null),
+            (AvgQualityRating, true) => query.OrderByDescending(x => x.QualityRatings.Any() ? (decimal?)x.QualityRatings.Average(r => (decimal)r.QualityOption!.DisplayOrder) : null),
+            _ => query.OrderBy(x => x.VenueName)
         };
     }
+
+    private static readonly Expression<Func<GroupVenue, GroupVenueResult>> ToResult =
+    x => new GroupVenueResult
+    {
+        GroupVenueId = x.GroupVenueId,
+        GroupId = x.GroupId,
+        VenueName = x.VenueName,
+        Visited = x.Visited,
+        VenueType = x.VenueTypeOption == null ? "" : x.VenueTypeOption.Label,
+        FoodType = x.FoodTypeOption == null ? "" : x.FoodTypeOption.Label,
+        AverageCostRating = x.CostRatings.Average(r => (decimal?)r.CostOption!.DisplayOrder),
+        AverageQualityRating = x.QualityRatings.Average(r => (decimal?)r.QualityOption!.DisplayOrder),
+    };
 }

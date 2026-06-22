@@ -9,4 +9,6 @@ public enum GroupVenueSortParameters
     Visited = 1,
     FoodType = 2,
     VenueType = 3,
+    AvgCostRating = 4,
+    AvgQualityRating = 5,
 }
