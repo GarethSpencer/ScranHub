@@ -9,6 +9,7 @@ using ServiceLayer.Infrastructure;
 using ServiceLayer.IntegrationTests.Fixtures;
 using ServiceLayer.IntegrationTests.Helpers;
 using System.Net;
+using Utilities.Models.Requests.Generic;
 using Utilities.Models.Requests.GroupVenues;
 using Utilities.Models.Responses.GroupVenues;
 using Utilities.Token;
@@ -100,6 +101,91 @@ public class GroupVenueServiceIntegrationTests(DatabaseFixture fixture) : IAsync
 
         var typedResult = result.Should().BeOfType<GetGroupVenueResponse>().Subject;
         typedResult.GroupVenue!.GroupVenueId.Should().Be(TestGroupVenue5Id);
+    }
+    #endregion
+
+    #region GetAllVenuesForGroupAsync
+    [Fact]
+    public async Task GetAllVenuesForGroupAsync_NotAuthenticated_ReturnsUnauthorized()
+    {
+        _tokenData.Setup(x => x.UserId).Returns((Guid?)null);
+
+        var request = new PaginationBaseRequest
+        {
+            PageNumber = 1,
+            PageSize = 3,
+        };
+
+            var result = await _service!.GetAllVenuesForGroupAsync(TestGroup1Id, request, ct);
+        _checks.OutputFailureCheck(result, "unauthorized", "GetAllVenuesForGroupAsync", HttpStatusCode.Unauthorized);
+    }
+
+    [Fact]
+    public async Task GetAllVenuesForGroupAsync_InvalidGroupId_ReturnsNotFound()
+    {
+        var request = new PaginationBaseRequest
+        {
+            PageNumber = 1,
+            PageSize = 3,
+        };
+
+        var result = await _service!.GetAllVenuesForGroupAsync(Guid.Empty, request, ct);
+        _checks.OutputFailureCheck(result, "not found", "GetAllVenuesForGroupAsync", HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    public async Task GetAllVenuesForGroupAsync_NonAdminNotInGroup_ReturnsForbidden()
+    {
+        var request = new PaginationBaseRequest
+        {
+            PageNumber = 1,
+            PageSize = 3,
+        };
+
+        var result = await _service!.GetAllVenuesForGroupAsync(TestGroup3Id, request, ct);
+        _checks.OutputFailureCheck(result, "in this group", "GetAllVenuesForGroupAsync", HttpStatusCode.Forbidden);
+    }
+
+    [Fact]
+    public async Task GetAllVenuesForGroupAsync_NonAdminInGroup_ReturnsOK()
+    {
+        var request = new PaginationBaseRequest
+        {
+            PageNumber = 1,
+            PageSize = 3,
+        };
+
+        var result = await _service!.GetAllVenuesForGroupAsync(TestGroup1Id, request, ct);
+        _checks.OutputSuccessCheck(result, "success", "GetAllVenuesForGroupAsync", HttpStatusCode.OK);
+
+        var typedResult = result.Should().BeOfType<GetGroupVenuesResponse>().Subject;
+        typedResult.TotalCount.Should().Be(4);
+        typedResult.GroupVenues!.Count().Should().Be(3);
+        typedResult.GroupVenues.Should().Contain(x => x.GroupVenueId == TestGroupVenue1Id);
+        typedResult.GroupVenues.Should().Contain(x => x.GroupVenueId == TestGroupVenue2Id);
+        typedResult.GroupVenues.Should().Contain(x => x.GroupVenueId == TestGroupVenue3Id);
+    }
+
+    [Fact]
+    public async Task GetAllVenuesForGroupAsync_AdminNotInGroup_ReturnsOK()
+    {
+        _tokenData.Setup(x => x.UserId).Returns(TestUser3AdminId);
+
+        var request = new PaginationBaseRequest
+        {
+            PageNumber = 1,
+            PageSize = 3,
+        };
+
+        var result = await _service!.GetAllVenuesForGroupAsync(TestGroup3Id, request, ct);
+        _checks.OutputSuccessCheck(result, "success", "GetAllVenuesForGroupAsync", HttpStatusCode.OK);
+
+        var typedResult = result.Should().BeOfType<GetGroupVenuesResponse>().Subject;
+        typedResult.TotalCount.Should().Be(5);
+        typedResult.GroupVenues!.Count().Should().Be(3);
+        typedResult.GroupVenues.Should().Contain(x => x.GroupVenueId == TestGroupVenue5Id);
+        typedResult.GroupVenues.Should().Contain(x => x.GroupVenueId == TestGroupVenue6Id);
+        typedResult.GroupVenues.Should().Contain(x => x.GroupVenueId == TestGroupVenue7Id);
     }
     #endregion
 

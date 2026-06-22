@@ -2,6 +2,7 @@
 using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 using ServiceLayer.Abstractions;
+using Utilities.Models.Requests.Generic;
 using Utilities.Models.Requests.GroupVenues;
 using Utilities.Models.Responses.Generic;
 using Utilities.Models.Responses.GroupVenues;
@@ -17,6 +18,7 @@ namespace WebApi.Controllers.v1;
 /// <param name="createGroupVenueRequestValidator">Validator for create group venue requests.</param>
 /// <param name="updateGroupVenueRequestValidator">Validator for update group venue requests.</param>
 /// <param name="searchGroupVenueRequestValidator">Validator for search group venue requests.</param>
+/// <param name="paginationBaseRequestValidator">Validator for pagination base requests.</param>
 [ApiController]
 [Route("api/v{version:apiVersion}/[controller]")]
 [ApiVersion("1.0")]
@@ -25,12 +27,14 @@ public class GroupVenueController(
     IGroupVenueService groupVenueService,
     IValidator<CreateGroupVenueRequest> createGroupVenueRequestValidator,
     IValidator<UpdateGroupVenueRequest> updateGroupVenueRequestValidator,
-    IValidator<SearchGroupVenueRequest> searchGroupVenueRequestValidator) : ControllerBase
+    IValidator<SearchGroupVenueRequest> searchGroupVenueRequestValidator,
+    IValidator<PaginationBaseRequest> paginationBaseRequestValidator) : ControllerBase
 {
     private readonly IGroupVenueService _groupVenueService = groupVenueService;
     private readonly IValidator<CreateGroupVenueRequest> _createGroupVenueRequestValidator = createGroupVenueRequestValidator;
     private readonly IValidator<UpdateGroupVenueRequest> _updateGroupVenueRequestValidator = updateGroupVenueRequestValidator;
     private readonly IValidator<SearchGroupVenueRequest> _searchGroupVenueRequestValidator = searchGroupVenueRequestValidator;
+    private readonly IValidator<PaginationBaseRequest> _paginationBaseRequestValidator = paginationBaseRequestValidator;
 
     /// <summary>
     /// Retrieve a group's venue by its ID.
@@ -46,12 +50,37 @@ public class GroupVenueController(
     }
 
     /// <summary>
-    /// Search and retrieve a list of a group's venues using optional search text, with pagination support.
+    /// Retrieve all venues for a given group by ID.
     /// </summary>
     /// <param name="groupId"></param>
     /// <param name="request"></param>
     /// <param name="ct"></param>
     [HttpGet("group/{groupId}")]
+    [ProducesResponseType(typeof(GetGroupVenuesResponse), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetVenuesForGroup([FromRoute] Guid groupId, [FromQuery] PaginationBaseRequest request, CancellationToken ct)
+    {
+        if (request == null)
+        {
+            return BadRequest("Request body is required.");
+        }
+
+        var validation = await _paginationBaseRequestValidator.ValidateAsync(request, ct);
+        if (!validation.IsValid)
+        {
+            return BadRequest(ValidationErrorFormatter.FormatErrors(validation));
+        }
+
+        var response = await _groupVenueService.GetAllVenuesForGroupAsync(groupId, request, ct);
+        return StatusCode((int)response.StatusCode, response);
+    }
+
+    /// <summary>
+    /// Search and retrieve a list of a group's venues using optional search text, with pagination support.
+    /// </summary>
+    /// <param name="groupId"></param>
+    /// <param name="request"></param>
+    /// <param name="ct"></param>
+    [HttpGet("search/{groupId}")]
     [ProducesResponseType(typeof(GetGroupVenuesResponse), StatusCodes.Status200OK)]
     public async Task<IActionResult> SearchGroupVenues([FromRoute] Guid groupId, [FromQuery] SearchGroupVenueRequest request, CancellationToken ct)
     {

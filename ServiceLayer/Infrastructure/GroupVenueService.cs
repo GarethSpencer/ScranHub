@@ -4,6 +4,7 @@ using RepositoryLayer.Abstractions.Generic;
 using ServiceLayer.Abstractions;
 using System.Net;
 using Utilities.Helpers;
+using Utilities.Models.Requests.Generic;
 using Utilities.Models.Requests.GroupVenues;
 using Utilities.Models.Responses.Generic;
 using Utilities.Models.Responses.GroupVenues;
@@ -69,6 +70,50 @@ public class GroupVenueService(ITokenData tokenData,
             StatusCode = HttpStatusCode.OK,
             Message = "Venue returned successfully.",
             GroupVenue = groupVenue
+        }.WithResponseLog(_logger, callingUserId);
+    }
+
+    public async Task<CommonResponse> GetAllVenuesForGroupAsync(Guid groupId, PaginationBaseRequest request, CancellationToken ct)
+    {
+        if (!_tokenData.UserId.HasValue)
+        {
+            return new CommonResponse
+            {
+                StatusCode = HttpStatusCode.Unauthorized,
+                Message = "Unauthorized."
+            }.WithResponseLog(_logger);
+        }
+
+        var callingUserId = _tokenData.UserId!.Value;
+        var isGroupActive = await _groupRepository.ExistsAsync(x => x.GroupId == groupId && x.Active, ct);
+        if (!isGroupActive)
+        {
+            return new CommonResponse
+            {
+                StatusCode = HttpStatusCode.NotFound,
+                Message = "Group not found or inactive."
+            }.WithResponseLog(_logger, callingUserId);
+        }
+
+        var isAdmin = await _userRepository.IsUserAdminAsync(callingUserId, ct);
+        var isUserInGroup = await _userGroupRepository.IsUserInGroupAsync(groupId, callingUserId, ct);
+        if (!isAdmin && !isUserInGroup)
+        {
+            return new CommonResponse
+            {
+                StatusCode = HttpStatusCode.Forbidden,
+                Message = "You cannot retrieve venues in this group."
+            }.WithResponseLog(_logger, callingUserId);
+        }
+
+        var (groupVenues, totalCount) = await _groupVenueRepository.GetByGroupIdAsync(groupId, request, ct);
+
+        return new GetGroupVenuesResponse
+        {
+            StatusCode = HttpStatusCode.OK,
+            Message = "Venues returned successfully.",
+            GroupVenues = groupVenues,
+            TotalCount = totalCount
         }.WithResponseLog(_logger, callingUserId);
     }
 
@@ -168,7 +213,7 @@ public class GroupVenueService(ITokenData tokenData,
             }.WithResponseLog(_logger, callingUserId);
         }
 
-        var doesGroupVenueNameExist = await _groupVenueRepository.ExistsAsync(x => x.GroupId == request.GroupId && x.VenueName.ToLower() == request.VenueName.ToLower(), ct);
+        var doesGroupVenueNameExist = await _groupVenueRepository.ExistsAsync(x => x.GroupId == request.GroupId && x.VenueName == request.VenueName, ct);
         if (doesGroupVenueNameExist)
         {
             return new CommonResponse
