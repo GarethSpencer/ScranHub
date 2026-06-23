@@ -438,6 +438,22 @@ public class UserServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
     }
 
     [Fact]
+    public async Task UpdateUserAsync_AdminUpdatingSelfToNotAdmin_ReturnsUnauthorized()
+    {
+        _tokenData.Setup(x => x.UserId).Returns(TestUser1AdminId);
+
+        var request = new UpdateUserRequest
+        {
+            DisplayName = "New Test User",
+            Admin = false,
+            Active = true
+        };
+
+        var result = await _service!.UpdateUserAsync(TestUser1AdminId, request, ct);
+        _checks.OutputFailureCheck(result, "cannot remove", "UpdateUserAsync", HttpStatusCode.Unauthorized);
+    }
+
+    [Fact]
     public async Task UpdateUserAsync_UpdatingInvalidUser_ReturnsNotFound()
     {
         _tokenData.Setup(x => x.UserId).Returns(TestUser1AdminId);
@@ -502,7 +518,7 @@ public class UserServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
     }
 
     [Fact]
-    public async Task UpdateUserAsync_AdminUpdatingNonAdmin_ReturnsOK()
+    public async Task UpdateUserAsync_AdminUpdatingNonAdminCantUpdateName_ReturnsOK()
     {
         _tokenData.Setup(x => x.UserId).Returns(TestUser1AdminId);
 
@@ -515,7 +531,7 @@ public class UserServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
 
         var result = await _service!.UpdateUserAsync(TestUser2NonAdminId, request, ct);
         _checks.OutputSuccessCheck(result, "success", "UpdateUserAsync", HttpStatusCode.OK);
-        _context!.Users.Should().ContainSingle(e => e.UserId == TestUser2NonAdminId && e.DisplayName == "New Test User" && e.Admin == true && e.Active == true);
+        _context!.Users.Should().ContainSingle(e => e.UserId == TestUser2NonAdminId && e.DisplayName == TestUser2NonAdminName && e.Admin == true && e.Active == true);
     }
     #endregion
 

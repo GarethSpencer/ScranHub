@@ -164,6 +164,15 @@ public class UserService(ITokenData tokenData,
             }.WithResponseLog(_logger, callingUserId);
         }
 
+        if (callingUserId == userId && isAdmin && !request.Admin)
+        {
+            return new CommonResponse
+            {
+                StatusCode = HttpStatusCode.Unauthorized,
+                Message = "You cannot remove your own admin access."
+            }.WithResponseLog(_logger, callingUserId);
+        }
+
         var userToUpdate = await _userRepository.GetByIdAsync(userId, ct);
         if (userToUpdate == null)
         {
@@ -190,7 +199,7 @@ public class UserService(ITokenData tokenData,
             userDeactivated = true;
         }
 
-        await _userRepository.UpdateAsync(userId, request, ct);
+        await _userRepository.UpdateAsync(userId, callingUserId, request, ct);
         await _unitOfWork.SaveChangesAsync(ct);
 
         return new CommonResponse

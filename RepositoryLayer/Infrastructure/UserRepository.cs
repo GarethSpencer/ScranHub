@@ -205,12 +205,18 @@ public sealed class UserRepository(ScranHubDbContext dbContext) : EFRepository<U
         return newUser.UserId;
     }
 
-    public async Task UpdateAsync(Guid userId, UpdateUserRequest userRequest, CancellationToken ct)
+    public async Task UpdateAsync(Guid userId, Guid callingUserId, UpdateUserRequest userRequest, CancellationToken ct)
     {
         var user = await _dbSet.FindAsync([userId], ct);
-        if (user != null)
+
+        if (user != null && user.UserId == callingUserId)
         {
             user.DisplayName = userRequest.DisplayName;
+            user.Admin = userRequest.Admin;
+            user.Active = userRequest.Active;
+        }
+        else if (user != null)
+        {
             user.Admin = userRequest.Admin;
             user.Active = userRequest.Active;
         }
