@@ -976,7 +976,7 @@ public class UserServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
         var result = await _service!.SearchAllUsersAsync(request, ct);
         _checks.OutputSuccessCheck(result, "success", "SearchAllUsersAsync", HttpStatusCode.OK);
 
-        var typedResult = result.Should().BeOfType<GetUsersResponse>().Subject;
+        var typedResult = result.Should().BeOfType<GetUsersDetailedResponse>().Subject;
         typedResult.TotalCount.Should().Be(2);
         typedResult.Users.Should().Contain(e => e.UserId == TestUser1AdminId);
         typedResult.Users.Should().Contain(e => e.UserId == TestUser2NonAdminId);
@@ -997,7 +997,7 @@ public class UserServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
         var result = await _service!.SearchAllUsersAsync(request, ct);
         _checks.OutputSuccessCheck(result, "success", "SearchAllUsersAsync", HttpStatusCode.OK);
 
-        var typedResult = result.Should().BeOfType<GetUsersResponse>().Subject;
+        var typedResult = result.Should().BeOfType<GetUsersDetailedResponse>().Subject;
         typedResult.TotalCount.Should().Be(1);
         typedResult.Users.Should().Contain(e => e.UserId == TestUser5NonAdminId);
         typedResult.Users.First().Active.Should().BeFalse();

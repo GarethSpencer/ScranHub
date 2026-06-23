@@ -21,7 +21,7 @@ public interface IUserRepository : IEFRepository<User>
     Task UpdateAsync(Guid userId, Guid callindUserId, UpdateUserRequest userRequest, CancellationToken ct);
     Task SetActiveAsync(Guid userId, CancellationToken ct);
     Task UpdateEmailAsync(Guid userId, string email, CancellationToken ct);
-    Task<(IEnumerable<UserResult>, int)> SearchAllByDisplayNameAsync(SearchUserRequest request, CancellationToken ct);
+    Task<(IEnumerable<UserAdminResult>, int)> SearchAllByDisplayNameAsync(SearchUserRequest request, CancellationToken ct);
     Task<(IEnumerable<UserResult>, int)> SearchByDisplayNameAsync(SearchUserRequest request, CancellationToken ct);
     Task<UserAuthResult?> GetByAuthIdAsync(string authId, CancellationToken ct);
     Task SetAuthIdAsync(Guid userId, string authId, CancellationToken ct);

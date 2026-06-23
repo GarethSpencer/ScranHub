@@ -406,7 +406,7 @@ public class GroupService(ITokenData tokenData,
 
         var (groups, totalCount) = await _groupRepository.SearchAllByNameAsync(request, callingUserId, ct);
 
-        return new GetGroupsResponse
+        return new GetGroupsDetailedResponse
         {
             StatusCode = HttpStatusCode.OK,
             Message = $"Groups returned successfully.",

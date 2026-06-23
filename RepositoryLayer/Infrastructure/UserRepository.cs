@@ -257,7 +257,7 @@ public sealed class UserRepository(ScranHubDbContext dbContext) : EFRepository<U
         return (userResults, totalCount);
     }
 
-    public async Task<(IEnumerable<UserResult>, int)> SearchAllByDisplayNameAsync(SearchUserRequest request, CancellationToken ct)
+    public async Task<(IEnumerable<UserAdminResult>, int)> SearchAllByDisplayNameAsync(SearchUserRequest request, CancellationToken ct)
     {
         var usersQuery = _dbSet
             .Where(x => EF.Functions.Like(x.DisplayName, $"%{request.SearchText}%"));
@@ -270,11 +270,17 @@ public sealed class UserRepository(ScranHubDbContext dbContext) : EFRepository<U
             .Take(request.PageSize)
             .ToListAsync(ct);
 
-        var userResults = users.Select(u => new UserResult
+        var userResults = users.Select(u => new UserAdminResult
         {
             UserId = u.UserId,
+            AuthId = u.AuthId,
             DisplayName = u.DisplayName,
             Active = u.Active,
+            Admin = u.Admin,
+            CreatedOn = u.CreatedOn,
+            CreatedBy = u.CreatedBy,
+            UpdatedOn = u.UpdatedOn,
+            UpdatedBy = u.UpdatedBy
         });
 
         return (userResults, totalCount);

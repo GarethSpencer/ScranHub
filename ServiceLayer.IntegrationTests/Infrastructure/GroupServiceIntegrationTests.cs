@@ -583,7 +583,7 @@ public class GroupServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifet
         var result = await _service!.SearchAllGroupsAsync(request, ct);
         _checks.OutputSuccessCheck(result, "success", "SearchAllGroupsAsync", HttpStatusCode.OK);
 
-        var typedResult = result.Should().BeOfType<GetGroupsResponse>().Subject;
+        var typedResult = result.Should().BeOfType<GetGroupsDetailedResponse>().Subject;
         typedResult.TotalCount.Should().Be(3);
         typedResult.Groups.Should().Contain(e => e.GroupId == TestGroup1Id);
         typedResult.Groups.Should().Contain(e => e.GroupId == TestGroup2Id);

@@ -36,6 +36,7 @@ public sealed class GroupRepository(ScranHubDbContext dbContext) : EFRepository<
                 CreatedBy = g.CreatedBy,
                 UpdatedOn = g.UpdatedOn,
                 UpdatedBy = g.UpdatedBy,
+                DisplayName = g.CreatedByUser.DisplayName,
             })
             .ToListAsync(ct);
 
@@ -94,7 +95,7 @@ public sealed class GroupRepository(ScranHubDbContext dbContext) : EFRepository<
         };
     }
 
-    public async Task<(IEnumerable<GroupResult>, int)> SearchAllByNameAsync(SearchGroupRequest request, Guid userId, CancellationToken ct)
+    public async Task<(IEnumerable<GroupDetailedResult>, int)> SearchAllByNameAsync(SearchGroupRequest request, Guid userId, CancellationToken ct)
     {
         var groupsQuery = _dbSet
             .Where(x => EF.Functions.Like(x.GroupName, $"%{request.SearchText}%"));
@@ -110,16 +111,18 @@ public sealed class GroupRepository(ScranHubDbContext dbContext) : EFRepository<
             .Take(request.PageSize)
             .ToListAsync(ct);
 
-        var groupResults = groups.Select(g => new GroupResult
+        var groupResults = groups.Select(g => new GroupDetailedResult
         {
             GroupId = g.GroupId,
             GroupName = g.GroupName,
             Active = g.Active,
-            CreatedBy = g.CreatedBy,
-            CreatedOn = g.CreatedOn,
-            DisplayName = g.CreatedByUser.DisplayName,
             UserCount = g.UserGroups.Count,
-            VenueCount = g.GroupVenues.Count
+            VenueCount = g.GroupVenues.Count,
+            CreatedOn = g.CreatedOn,
+            CreatedBy = g.CreatedBy,
+            UpdatedOn = g.UpdatedOn,
+            UpdatedBy = g.UpdatedBy,
+            DisplayName = g.CreatedByUser.DisplayName,
         });
 
         return (groupResults, totalCount);

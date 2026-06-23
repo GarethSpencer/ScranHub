@@ -544,7 +544,7 @@ public class UserService(ITokenData tokenData,
 
         var (users, totalCount) = await _userRepository.SearchAllByDisplayNameAsync(request, ct);
 
-        return new GetUsersResponse
+        return new GetUsersDetailedResponse
         {
             StatusCode = HttpStatusCode.OK,
             Message = "Users returned successfully.",

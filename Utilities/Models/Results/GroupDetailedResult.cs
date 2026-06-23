@@ -11,4 +11,5 @@ public record GroupDetailedResult
     public required Guid CreatedBy { get; init; }
     public required DateTime? UpdatedOn { get; init; }
     public required Guid? UpdatedBy { get; init; }
+    public required string DisplayName { get; init; }
 }
