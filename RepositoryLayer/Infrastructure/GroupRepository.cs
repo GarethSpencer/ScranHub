@@ -15,10 +15,7 @@ public sealed class GroupRepository(ScranHubDbContext dbContext) : EFRepository<
 {
     public async Task<(IEnumerable<GroupDetailedResult>, int)> GetAllAsync(PaginationBaseRequest request, CancellationToken ct)
     {
-        var query = _dbSet
-            .Include(x => x.UserGroups)
-            .Include(x => x.GroupVenues)
-            .OrderBy(g => g.GroupName);
+        var query = _dbSet.OrderBy(g => g.GroupName);
 
         var total = await query.CountAsync(ct);
 
@@ -49,6 +46,7 @@ public sealed class GroupRepository(ScranHubDbContext dbContext) : EFRepository<
             .Include(x => x.CreatedByUser)
             .Include(x => x.UserGroups)
             .Include(x => x.GroupVenues)
+            .AsSplitQuery()
             .FirstOrDefaultAsync(g => g.GroupId == id, ct);
 
         if (group == null)
@@ -75,6 +73,7 @@ public sealed class GroupRepository(ScranHubDbContext dbContext) : EFRepository<
             .Include(x => x.CreatedByUser)
             .Include(x => x.UserGroups)
             .Include(x => x.GroupVenues)
+            .AsSplitQuery()
             .FirstOrDefaultAsync(x => x.GroupName == name, ct);
 
         if (group == null)
@@ -106,6 +105,7 @@ public sealed class GroupRepository(ScranHubDbContext dbContext) : EFRepository<
             .Include(x => x.CreatedByUser)
             .Include(x => x.UserGroups)
             .Include(x => x.GroupVenues)
+            .AsSplitQuery()
             .OrderBy(x => x.GroupName)
             .Skip((request.PageNumber - 1) * request.PageSize)
             .Take(request.PageSize)
@@ -142,6 +142,7 @@ public sealed class GroupRepository(ScranHubDbContext dbContext) : EFRepository<
             .Include(x => x.CreatedByUser)
             .Include(x => x.UserGroups)
             .Include(x => x.GroupVenues)
+            .AsSplitQuery()
             .OrderBy(x => x.GroupName)
             .Skip((request.PageNumber - 1) * request.PageSize)
             .Take(request.PageSize)
@@ -221,6 +222,7 @@ public sealed class GroupRepository(ScranHubDbContext dbContext) : EFRepository<
             .Include(x => x.GroupVenues)
                 .ThenInclude(x => x.CostRatings)
                 .ThenInclude(x => x.User)
+            .AsSplitQuery()
             .FirstOrDefaultAsync(x => x.GroupId == groupId, ct);
 
         if (group == null || group.GroupVenues.Count == 0)
@@ -253,6 +255,7 @@ public sealed class GroupRepository(ScranHubDbContext dbContext) : EFRepository<
             .Include(x => x.GroupVenues)
                 .ThenInclude(x => x.QualityRatings)
                 .ThenInclude(x => x.User)
+            .AsSplitQuery()
             .FirstOrDefaultAsync(x => x.GroupId == groupId, ct);
 
         if (group == null || group.GroupVenues.Count == 0)
