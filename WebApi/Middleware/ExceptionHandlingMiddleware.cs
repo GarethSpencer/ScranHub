@@ -19,6 +19,14 @@ internal class ExceptionHandlingMiddleware(ILogger<ExceptionHandlingMiddleware> 
         {
             await next(context);
         }
+        catch (OperationCanceledException) when (context.RequestAborted.IsCancellationRequested)
+        {
+            // The client disconnected before the request finished. This is expected, not a server error.
+            if (_logger.IsEnabled(LogLevel.Debug))
+            {
+                _logger.LogDebug("Request aborted by the client for {Method} {Path}.", context.Request.Method, context.Request.Path);
+            }
+        }
         catch (Exception ex)
         {
             _logger.LogError(ex, "An unhandled exception occurred for {Method} {Path}.", context.Request.Method, context.Request.Path);
