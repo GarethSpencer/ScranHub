@@ -216,8 +216,11 @@ public sealed class GroupRepository(ScranHubDbContext dbContext) : EFRepository<
     {
         var group = await _dbSet
             .Include(x => x.GroupVenues)
-            .ThenInclude(x => x.CostRatings)
-            .ThenInclude(x => x.CostOption)
+                .ThenInclude(x => x.CostRatings)
+                .ThenInclude(x => x.CostOption)
+            .Include(x => x.GroupVenues)
+                .ThenInclude(x => x.CostRatings)
+                .ThenInclude(x => x.User)
             .FirstOrDefaultAsync(x => x.GroupId == groupId, ct);
 
         if (group == null || group.GroupVenues.Count == 0)
@@ -235,7 +238,8 @@ public sealed class GroupRepository(ScranHubDbContext dbContext) : EFRepository<
                 RatingId = cr.CostRatingId,
                 UserId = cr.UserId,
                 OptionId = cr.CostOptionId,
-                Label = cr.CostOption!.Label
+                Label = cr.CostOption!.Label,
+                DisplayName = cr.User!.DisplayName
             })
         });
     }
@@ -244,8 +248,11 @@ public sealed class GroupRepository(ScranHubDbContext dbContext) : EFRepository<
     {
         var group = await _dbSet
             .Include(x => x.GroupVenues)
-            .ThenInclude(x => x.QualityRatings)
-            .ThenInclude(x => x.QualityOption)
+                .ThenInclude(x => x.QualityRatings)
+                .ThenInclude(x => x.QualityOption)
+            .Include(x => x.GroupVenues)
+                .ThenInclude(x => x.QualityRatings)
+                .ThenInclude(x => x.User)
             .FirstOrDefaultAsync(x => x.GroupId == groupId, ct);
 
         if (group == null || group.GroupVenues.Count == 0)
@@ -263,7 +270,8 @@ public sealed class GroupRepository(ScranHubDbContext dbContext) : EFRepository<
                 RatingId = qr.QualityRatingId,
                 UserId = qr.UserId,
                 OptionId = qr.QualityOptionId,
-                Label = qr.QualityOption!.Label
+                Label = qr.QualityOption!.Label,
+                DisplayName = qr.User!.DisplayName
             })
         });
     }
