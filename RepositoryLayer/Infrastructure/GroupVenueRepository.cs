@@ -64,9 +64,9 @@ public sealed class GroupVenueRepository(ScranHubDbContext dbContext) : EFReposi
         var totalCount = await groupVenueQuery.CountAsync(ct);
 
         var results = await groupVenueQuery
+            .OrderBy(x => x.VenueName)
             .Skip((request.PageNumber - 1) * request.PageSize)
             .Take(request.PageSize)
-            .OrderBy(x => x.VenueName)
             .Select(ToResult)
             .ToListAsync(ct);
         return (results, totalCount);

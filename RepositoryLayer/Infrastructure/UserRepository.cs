@@ -167,6 +167,7 @@ public sealed class UserRepository(ScranHubDbContext dbContext) : EFRepository<U
         var total = resultList.Count;
 
         return (resultList
+            .OrderBy(x => x.DisplayName)
             .Skip((request.PageNumber - 1) * request.PageSize)
             .Take(request.PageSize), total);
     }
