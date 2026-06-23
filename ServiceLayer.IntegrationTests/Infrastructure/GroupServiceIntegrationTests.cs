@@ -12,6 +12,7 @@ using System.Net;
 using Utilities.Models.Requests.Generic;
 using Utilities.Models.Requests.Groups;
 using Utilities.Models.Responses.Groups;
+using Utilities.Models.Responses.Users;
 using Utilities.Token;
 using static ServiceLayer.IntegrationTests.Helpers.TestConstants;
 
@@ -588,6 +589,70 @@ public class GroupServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifet
         typedResult.Groups.Should().Contain(e => e.GroupId == TestGroup1Id);
         typedResult.Groups.Should().Contain(e => e.GroupId == TestGroup2Id);
         typedResult.Groups.Should().Contain(e => e.GroupId == TestGroup3Id);
+    }
+    #endregion
+
+    #region GetGroupMembersAsync
+    [Fact]
+    public async Task GetGroupMembersAsync_NotAuthenticated_ReturnsUnauthorized()
+    {
+        _tokenData.Setup(x => x.UserId).Returns((Guid?)null);
+
+        var request = new PaginationBaseRequest
+        {
+            PageNumber = 1,
+            PageSize = 10,
+        };
+
+        var result = await _service!.GetGroupMembersAsync(TestGroup1Id, request, ct);
+        _checks.OutputFailureCheck(result, "unauthorized", "GetGroupMembersAsync", HttpStatusCode.Unauthorized);
+    }
+
+    [Fact]
+    public async Task GetGroupMembersAsync_InvalidGroup_ReturnsNotFound()
+    {
+        var request = new PaginationBaseRequest
+        {
+            PageNumber = 1,
+            PageSize = 10,
+        };
+
+        var result = await _service!.GetGroupMembersAsync(Guid.Empty, request, ct);
+        _checks.OutputFailureCheck(result, "not found", "GetGroupMembersAsync", HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    public async Task GetGroupMembersAsync_UserNotInGroup_ReturnsForbidden()
+    {
+        var request = new PaginationBaseRequest
+        {
+            PageNumber = 1,
+            PageSize = 10,
+        };
+
+        var result = await _service!.GetGroupMembersAsync(TestGroup3Id, request, ct);
+        _checks.OutputFailureCheck(result, "only group members", "GetGroupMembersAsync", HttpStatusCode.Forbidden);
+    }
+
+    [Fact]
+    public async Task GetGroupMembersAsync_UserInGroup_ReturnsOK()
+    {
+        var request = new PaginationBaseRequest
+        {
+            PageNumber = 1,
+            PageSize = 10,
+        };
+
+        var result = await _service!.GetGroupMembersAsync(TestGroup1Id, request, ct);
+        _checks.OutputSuccessCheck(result, "success", "GetGroupMembersAsync", HttpStatusCode.OK);
+
+        var typedResult = result.Should().BeOfType<GetUsersResponse>().Subject;
+        typedResult.TotalCount.Should().Be(5);
+        typedResult.Users.Should().Contain(e => e.UserId == TestUser1AdminId);
+        typedResult.Users.Should().Contain(e => e.UserId == TestUser2NonAdminId);
+        typedResult.Users.Should().Contain(e => e.UserId == TestUser3AdminId);
+        typedResult.Users.Should().Contain(e => e.UserId == TestUser4NonAdminId);
+        typedResult.Users.Should().Contain(e => e.UserId == TestUser5NonAdminId);
     }
     #endregion
 

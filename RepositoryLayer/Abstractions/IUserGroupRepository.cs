@@ -1,5 +1,6 @@
 ﻿using DAL.Entities;
 using RepositoryLayer.Abstractions.Generic;
+using Utilities.Models.Requests.Generic;
 using Utilities.Models.Results;
 
 namespace RepositoryLayer.Abstractions;
@@ -15,4 +16,6 @@ public interface IUserGroupRepository : IEFRepository<UserGroup>
     Task<int> GetGroupMemberCountAsync(Guid groupId, CancellationToken ct);
 
     Task RemoveUserFromGroupAsync(Guid groupId, Guid userId, CancellationToken ct);
+
+    Task<(IEnumerable<UserResult>, int)> GetMembersByIdAsync(Guid groupId, PaginationBaseRequest request, CancellationToken ct);
 }

@@ -25,4 +25,6 @@ public interface IGroupService
     Task<CommonResponse> GetAllGroupsAsync(PaginationBaseRequest request, CancellationToken ct);
 
     Task<CommonResponse> SearchAllGroupsAsync(SearchGroupRequest request, CancellationToken ct);
+
+    Task<CommonResponse> GetGroupMembersAsync(Guid groupId, PaginationBaseRequest request, CancellationToken ct);
 }

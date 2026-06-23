@@ -3,6 +3,7 @@ using DAL.Entities;
 using Microsoft.EntityFrameworkCore;
 using RepositoryLayer.Abstractions;
 using RepositoryLayer.Infrastructure.Generic;
+using Utilities.Models.Requests.Generic;
 using Utilities.Models.Results;
 
 namespace RepositoryLayer.Infrastructure;
@@ -58,5 +59,27 @@ public sealed class UserGroupRepository(ScranHubDbContext dbContext) : EFReposit
         {
             _dbSet.Remove(userGroup);
         }
+    }
+
+    public async Task<(IEnumerable<UserResult>, int)> GetMembersByIdAsync(Guid groupId, PaginationBaseRequest request, CancellationToken ct)
+    {
+        var usersQuery = _dbSet
+            .Where(x => x.GroupId == groupId);
+
+        var users = usersQuery.Select(g => new UserResult
+        {
+            UserId = g.User!.UserId,
+            DisplayName = g.User.DisplayName,
+            Active = g.User.Active,
+        });
+
+        var count = await users.CountAsync(ct);
+
+        var output = await users.OrderBy(x => x.DisplayName)
+            .Skip((request.PageNumber - 1) * request.PageSize)
+            .Take(request.PageSize)
+            .ToListAsync(ct);
+
+        return (output, count);
     }
 }

@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Azure.Core;
+using Microsoft.Extensions.Logging;
 using RepositoryLayer.Abstractions;
 using RepositoryLayer.Abstractions.Generic;
 using ServiceLayer.Abstractions;
@@ -8,6 +9,7 @@ using Utilities.Models.Requests.Generic;
 using Utilities.Models.Requests.Groups;
 using Utilities.Models.Responses.Generic;
 using Utilities.Models.Responses.Groups;
+using Utilities.Models.Responses.Users;
 using Utilities.Token;
 
 namespace ServiceLayer.Infrastructure;
@@ -414,4 +416,49 @@ public class GroupService(ITokenData tokenData,
             TotalCount = totalCount
         }.WithResponseLog(_logger, callingUserId);
     }
+
+    public async Task<CommonResponse> GetGroupMembersAsync(Guid groupId, PaginationBaseRequest request, CancellationToken ct)
+    {
+        if (!_tokenData.UserId.HasValue)
+        {
+            return new CommonResponse
+            {
+                StatusCode = HttpStatusCode.Unauthorized,
+                Message = "Unauthorized."
+            }.WithResponseLog(_logger);
+        }
+
+        var callingUserId = _tokenData.UserId!.Value;
+        var group = await _groupRepository.GetDetailsByIdAsync(groupId, ct);
+        if (group == null)
+        {
+            return new CommonResponse
+            {
+                StatusCode = HttpStatusCode.NotFound,
+                Message = $"Group not found."
+            }.WithResponseLog(_logger, callingUserId);
+        }
+
+        var isMember = await _userGroupRepository.IsUserInGroupAsync(groupId, callingUserId, ct);
+
+        if (!isMember)
+        {
+            return new CommonResponse
+            {
+                StatusCode = HttpStatusCode.Forbidden,
+                Message = "Only group members can view the users in a group."
+            }.WithResponseLog(_logger, callingUserId);
+        }
+
+        var (members, totalCount) = await _userGroupRepository.GetMembersByIdAsync(groupId, request, ct);
+
+        return new GetUsersResponse
+        {
+            StatusCode = HttpStatusCode.OK,
+            Message = $"Groups returned successfully.",
+            Users = members,
+            TotalCount = totalCount
+        }.WithResponseLog(_logger, callingUserId);
+    }
+
 }

@@ -4,9 +4,11 @@ using Microsoft.AspNetCore.Mvc;
 using Moq;
 using ServiceLayer.Abstractions;
 using System.Net;
+using Utilities.Models.Requests.Generic;
 using Utilities.Models.Requests.Groups;
 using Utilities.Models.Responses.Generic;
 using Utilities.Models.Responses.Groups;
+using Utilities.Models.Responses.Users;
 using WebApi.Controllers.v1;
 using WebApi.UnitTests.Helpers;
 
@@ -18,6 +20,7 @@ public class GroupControllerTests
     private readonly Mock<IValidator<CreateGroupRequest>> _createGroupRequestValidatorMock = new();
     private readonly Mock<IValidator<UpdateGroupRequest>> _updateGroupRequestValidatorMock = new();
     private readonly Mock<IValidator<SearchGroupRequest>> _searchGroupRequestValidatorMock = new();
+    private readonly Mock<IValidator<PaginationBaseRequest>> _paginationBaseRequestValidatorMock = new();
     private readonly GroupController _sut;
     private static readonly CancellationToken ct = CancellationToken.None;
 
@@ -27,7 +30,8 @@ public class GroupControllerTests
             _groupServiceMock.Object,
             _createGroupRequestValidatorMock.Object,
             _updateGroupRequestValidatorMock.Object,
-            _searchGroupRequestValidatorMock.Object
+            _searchGroupRequestValidatorMock.Object,
+            _paginationBaseRequestValidatorMock.Object
         );
     }
 
@@ -333,5 +337,62 @@ public class GroupControllerTests
         await _sut.LeaveGroup(groupId, ct);
 
         _groupServiceMock.Verify(s => s.LeaveGroupAsync(groupId, ct), Times.Once);
+    }
+
+    [Fact]
+    public async Task GetGroupMembers_NullRequest_ReturnsBadRequest()
+    {
+        var groupId = Guid.NewGuid();
+
+        var result = await _sut.GetGroupMembers(groupId, null!, ct);
+
+        var badRequest = Assert.IsType<BadRequestObjectResult>(result);
+        Assert.Equal("Request body is required.", badRequest.Value);
+    }
+
+    [Fact]
+    public async Task GetGroupMembers_InvalidRequest_ReturnsBadRequest()
+    {
+        var groupId = Guid.NewGuid();
+        SetupHelpers.SetupValidatorFail(_paginationBaseRequestValidatorMock);
+        var request = new PaginationBaseRequest { PageNumber = 1, PageSize = 10 };
+
+        var result = await _sut.GetGroupMembers(groupId, request, ct);
+
+        Assert.IsType<BadRequestObjectResult>(result);
+        _groupServiceMock.Verify(s => s.GetGroupMembersAsync(It.IsAny<Guid>(), It.IsAny<PaginationBaseRequest>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task GetGroupMembers_ValidRequest_ReturnsCorrectResult()
+    {
+        var groupId = Guid.NewGuid();
+        SetupHelpers.SetupValidatorPass(_paginationBaseRequestValidatorMock);
+        var request = new PaginationBaseRequest { PageNumber = 1, PageSize = 10 }; 
+        var expectedResponse = new GetUsersResponse { StatusCode = HttpStatusCode.OK };
+        _groupServiceMock.Setup(s => s.GetGroupMembersAsync(It.IsAny<Guid>(), It.IsAny<PaginationBaseRequest>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(expectedResponse);
+
+        var result = await _sut.GetGroupMembers(groupId, request, ct);
+
+        var statusCodeResult = Assert.IsType<ObjectResult>(result);
+        Assert.IsType<GetUsersResponse>(statusCodeResult.Value);
+        Assert.Equal(StatusCodes.Status200OK, statusCodeResult.StatusCode);
+        Assert.Equal(expectedResponse, statusCodeResult.Value);
+    }
+
+    [Fact]
+    public async Task GetGroupMembers_ValidRequest_CallsServiceCorrectly()
+    {
+        var groupId = Guid.NewGuid();
+        SetupHelpers.SetupValidatorPass(_paginationBaseRequestValidatorMock);
+        var request = new PaginationBaseRequest { PageNumber = 1, PageSize = 10 };
+        var expectedResponse = new GetUsersResponse { StatusCode = HttpStatusCode.OK };
+        _groupServiceMock.Setup(s => s.GetGroupMembersAsync(It.IsAny<Guid>(), It.IsAny<PaginationBaseRequest>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(expectedResponse);
+
+        await _sut.GetGroupMembers(groupId, request, ct);
+
+        _groupServiceMock.Verify(s => s.GetGroupMembersAsync(groupId, request, ct), Times.Once);
     }
 }

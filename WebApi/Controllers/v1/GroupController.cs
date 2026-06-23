@@ -2,9 +2,11 @@
 using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 using ServiceLayer.Abstractions;
+using Utilities.Models.Requests.Generic;
 using Utilities.Models.Requests.Groups;
 using Utilities.Models.Responses.Generic;
 using Utilities.Models.Responses.Groups;
+using Utilities.Models.Responses.Users;
 using Utilities.Validators;
 
 namespace WebApi.Controllers.v1;
@@ -16,6 +18,7 @@ namespace WebApi.Controllers.v1;
 /// <param name="createGroupRequestValidator">Validator for create group requests.</param>
 /// <param name="updateGroupRequestValidator">Validator for update group requests.</param>
 /// <param name="searchGroupRequestValidator">Validator for search group requests.</param>
+/// <param name="paginationBaseRequestValidator">Validator for pagination requests.</param>
 [ApiController]
 [Route("api/v{version:apiVersion}/[controller]")]
 [ApiVersion("1.0")]
@@ -24,12 +27,14 @@ public class GroupController(
     IGroupService groupService,
     IValidator<CreateGroupRequest> createGroupRequestValidator,
     IValidator<UpdateGroupRequest> updateGroupRequestValidator,
-    IValidator<SearchGroupRequest> searchGroupRequestValidator) : ControllerBase
+    IValidator<SearchGroupRequest> searchGroupRequestValidator,
+    IValidator<PaginationBaseRequest> paginationBaseRequestValidator) : ControllerBase
 {
     private readonly IGroupService _groupService = groupService;
     private readonly IValidator<CreateGroupRequest> _createGroupRequestValidator = createGroupRequestValidator;
     private readonly IValidator<UpdateGroupRequest> _updateGroupRequestValidator = updateGroupRequestValidator;
     private readonly IValidator<SearchGroupRequest> _searchGroupRequestValidator = searchGroupRequestValidator;
+    private readonly IValidator<PaginationBaseRequest> _paginationBaseRequestValidator = paginationBaseRequestValidator;
 
     /// <summary>
     /// Get a group by its ID.
@@ -165,6 +170,31 @@ public class GroupController(
     public async Task<IActionResult> LeaveGroup([FromRoute] Guid groupId, CancellationToken ct)
     {
         var response = await _groupService.LeaveGroupAsync(groupId, ct);
+        return StatusCode((int)response.StatusCode, response);
+    }
+
+    /// <summary>
+    /// Get a paginated list of users in the given group.
+    /// </summary>
+    /// <param name="groupId"></param>
+    /// <param name="request"></param>
+    /// <param name="ct"></param>
+    [HttpGet("{groupId}/members")]
+    [ProducesResponseType(typeof(GetUsersResponse), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetGroupMembers([FromRoute] Guid groupId, [FromQuery] PaginationBaseRequest request, CancellationToken ct)
+    {
+        if (request == null)
+        {
+            return BadRequest("Request body is required.");
+        }
+
+        var validation = await _paginationBaseRequestValidator.ValidateAsync(request, ct);
+        if (!validation.IsValid)
+        {
+            return BadRequest(ValidationErrorFormatter.FormatErrors(validation));
+        }
+
+        var response = await _groupService.GetGroupMembersAsync(groupId, request, ct);
         return StatusCode((int)response.StatusCode, response);
     }
 }
