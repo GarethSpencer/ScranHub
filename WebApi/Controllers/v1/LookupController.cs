@@ -25,10 +25,26 @@ public class LookupController : ControllerBase
                 Name = s.ToString()
             })]);
 
+    private static readonly Lazy<List<GroupVenueSortParametersResult>> Parameters = new(() =>
+        [.. Enum.GetValues<GroupVenueSortParameters>()
+            .Cast<GroupVenueSortParameters>()
+            .Select(s => new GroupVenueSortParametersResult
+            {
+                Value = (int)s,
+                Name = s.ToString()
+            })]);
+
     /// <summary>
     /// Get all friendship status values and corresponding names.
     /// </summary>
     [HttpGet("friendship-statuses")]
     [ProducesResponseType(typeof(List<FriendshipStatusResult>), StatusCodes.Status200OK)]
     public IActionResult GetFriendshipStatuses() => Ok(Statuses.Value);
+
+    /// <summary>
+    /// Get all group venue sort parameter values and corresponding names.
+    /// </summary>
+    [HttpGet("group-value-sort-parameters")]
+    [ProducesResponseType(typeof(List<GroupVenueSortParametersResult>), StatusCodes.Status200OK)]
+    public IActionResult GetGroupVenueSortParameters() => Ok(Parameters.Value);
 }
