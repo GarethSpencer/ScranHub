@@ -28,5 +28,7 @@ public interface IUserService
 
     Task<CommonResponse> GetAllUsersAsync(PaginationBaseRequest request, CancellationToken ct);
 
+    Task<CommonResponse> SearchAllUsersAsync(SearchUserRequest request, CancellationToken ct);
+
     Task<CommonResponse> DeleteUserFriendAsync(Guid userFriendId, CancellationToken ct);
 }

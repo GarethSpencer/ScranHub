@@ -914,6 +914,80 @@ public class UserServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifeti
     }
     #endregion
 
+    #region SearchAllUsersAsync
+    [Fact]
+    public async Task SearchAllUsersAsync_NotAuthenticated_ReturnsUnauthorized()
+    {
+        _tokenData.Setup(x => x.UserId).Returns((Guid?)null);
+
+        var request = new SearchUserRequest
+        {
+            SearchText = "user",
+            PageNumber = 1,
+            PageSize = 10
+        };
+
+        var result = await _service!.SearchAllUsersAsync(request, ct);
+        _checks.OutputFailureCheck(result, "unauthorized", "SearchAllUsersAsync", HttpStatusCode.Unauthorized);
+    }
+
+    [Fact]
+    public async Task SearchAllUsersAsync_NonAdminSearch_ReturnsForbidden()
+    {
+        var request = new SearchUserRequest
+        {
+            SearchText = "user",
+            PageNumber = 1,
+            PageSize = 10
+        };
+
+        var result = await _service!.SearchAllUsersAsync(request, ct);
+        _checks.OutputFailureCheck(result, "admin", "SearchAllUsersAsync", HttpStatusCode.Forbidden);
+    }
+
+    [Fact]
+    public async Task SearchAllUsersAsync_ValidSearchRequestForMultipleResults_ReturnsOk()
+    {
+        _tokenData.Setup(x => x.UserId).Returns(TestUser1AdminId);
+
+        var request = new SearchUserRequest
+        {
+            SearchText = "user",
+            PageNumber = 1,
+            PageSize = 10
+        };
+
+        var result = await _service!.SearchAllUsersAsync(request, ct);
+        _checks.OutputSuccessCheck(result, "success", "SearchAllUsersAsync", HttpStatusCode.OK);
+
+        var typedResult = result.Should().BeOfType<GetUsersResponse>().Subject;
+        typedResult.TotalCount.Should().Be(2);
+        typedResult.Users.Should().Contain(e => e.UserId == TestUser1AdminId);
+        typedResult.Users.Should().Contain(e => e.UserId == TestUser2NonAdminId);
+    }
+
+    [Fact]
+    public async Task SearchAllUsersAsync_ValidSearchRequestForOneInactiveResult_ReturnsOk()
+    {
+        _tokenData.Setup(x => x.UserId).Returns(TestUser1AdminId);
+
+        var request = new SearchUserRequest
+        {
+            SearchText = "len",
+            PageNumber = 1,
+            PageSize = 10
+        };
+
+        var result = await _service!.SearchAllUsersAsync(request, ct);
+        _checks.OutputSuccessCheck(result, "success", "SearchAllUsersAsync", HttpStatusCode.OK);
+
+        var typedResult = result.Should().BeOfType<GetUsersResponse>().Subject;
+        typedResult.TotalCount.Should().Be(1);
+        typedResult.Users.Should().Contain(e => e.UserId == TestUser5NonAdminId);
+        typedResult.Users.First().Active.Should().BeFalse();
+    }
+    #endregion
+
     #region DeleteUserFriendAsync
     [Fact]
     public async Task DeleteUserFriendAsync_NotAuthenticated_ReturnsUnauthorized()

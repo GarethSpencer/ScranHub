@@ -15,6 +15,8 @@ public interface IGroupRepository : IEFRepository<Group>
 
     Task<GroupResult?> GetByNameAsync(string name, CancellationToken ct);
 
+    Task<(IEnumerable<GroupResult>, int)> SearchAllByNameAsync(SearchGroupRequest request, Guid userId, CancellationToken ct);
+
     Task<(IEnumerable<GroupResult>, int)> SearchByNameAsync(SearchGroupRequest request, Guid userId, CancellationToken ct);
 
     Task<Guid> CreateAsync(string groupName, CancellationToken ct);

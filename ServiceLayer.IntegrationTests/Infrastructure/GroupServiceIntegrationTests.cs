@@ -201,10 +201,8 @@ public class GroupServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifet
         _checks.OutputSuccessCheck(result, "success", "SearchGroupsAsync", HttpStatusCode.OK);
 
         var typedResult = result.Should().BeOfType<GetGroupsResponse>().Subject;
-        typedResult.TotalCount.Should().Be(3);
+        typedResult.TotalCount.Should().Be(1);
         typedResult.Groups.Should().Contain(e => e.GroupId == TestGroup1Id);
-        typedResult.Groups.Should().Contain(e => e.GroupId == TestGroup2Id);
-        typedResult.Groups.Should().Contain(e => e.GroupId == TestGroup3Id);
     }
 
     [Fact]
@@ -536,6 +534,60 @@ public class GroupServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifet
         typedResult.Groups!.Count().Should().Be(2); //ordered by name
         typedResult.Groups.Should().Contain(e => e.GroupId == TestGroup1Id);
         typedResult.Groups.Should().Contain(e => e.GroupId == TestGroup2Id);
+    }
+    #endregion
+
+    #region SearchAllGroupsAsync
+    [Fact]
+    public async Task SearchAllGroupsAsync_NotAuthenticated_ReturnsUnauthorized()
+    {
+        _tokenData.Setup(x => x.UserId).Returns((Guid?)null);
+
+        var request = new SearchGroupRequest
+        {
+            PageNumber = 1,
+            PageSize = 10,
+            SearchText = "test"
+        };
+
+        var result = await _service!.SearchAllGroupsAsync(request, ct);
+        _checks.OutputFailureCheck(result, "unauthorized", "SearchAllGroupsAsync", HttpStatusCode.Unauthorized);
+    }
+
+    [Fact]
+    public async Task SearchAllGroupsAsync_NonAdminSearch_ReturnsForbidden()
+    {
+        var request = new SearchGroupRequest
+        {
+            PageNumber = 1,
+            PageSize = 10,
+            SearchText = "test"
+        };
+
+        var result = await _service!.SearchAllGroupsAsync(request, ct);
+        _checks.OutputFailureCheck(result, "admin", "SearchAllGroupsAsync", HttpStatusCode.Forbidden);
+    }
+
+    [Fact]
+    public async Task SearchAllGroupsAsync_ValidAdminSearch_ReturnsOk()
+    {
+        _tokenData.Setup(x => x.UserId).Returns(TestUser1AdminId);
+
+        var request = new SearchGroupRequest
+        {
+            PageNumber = 1,
+            PageSize = 10,
+            SearchText = "test"
+        };
+
+        var result = await _service!.SearchAllGroupsAsync(request, ct);
+        _checks.OutputSuccessCheck(result, "success", "SearchAllGroupsAsync", HttpStatusCode.OK);
+
+        var typedResult = result.Should().BeOfType<GetGroupsResponse>().Subject;
+        typedResult.TotalCount.Should().Be(3);
+        typedResult.Groups.Should().Contain(e => e.GroupId == TestGroup1Id);
+        typedResult.Groups.Should().Contain(e => e.GroupId == TestGroup2Id);
+        typedResult.Groups.Should().Contain(e => e.GroupId == TestGroup3Id);
     }
     #endregion
 

@@ -511,6 +511,39 @@ public class UserService(ITokenData tokenData,
         }.WithResponseLog(_logger, callingUserId);
     }
 
+    public async Task<CommonResponse> SearchAllUsersAsync(SearchUserRequest request, CancellationToken ct)
+    {
+        if (!_tokenData.UserId.HasValue)
+        {
+            return new CommonResponse
+            {
+                StatusCode = HttpStatusCode.Unauthorized,
+                Message = "Unauthorized."
+            }.WithResponseLog(_logger);
+        }
+
+        var callingUserId = _tokenData.UserId!.Value;
+        var isAdmin = await _userRepository.IsUserAdminAsync(callingUserId, ct);
+        if (!isAdmin)
+        {
+            return new CommonResponse
+            {
+                StatusCode = HttpStatusCode.Forbidden,
+                Message = "You are not an admin."
+            }.WithResponseLog(_logger, callingUserId);
+        }
+
+        var (users, totalCount) = await _userRepository.SearchAllByDisplayNameAsync(request, ct);
+
+        return new GetUsersResponse
+        {
+            StatusCode = HttpStatusCode.OK,
+            Message = "Users returned successfully.",
+            Users = users,
+            TotalCount = totalCount
+        }.WithResponseLog(_logger, callingUserId);
+    }
+
     public async Task<CommonResponse> DeleteUserFriendAsync(Guid userFriendId, CancellationToken ct)
     {
         if (!_tokenData.UserId.HasValue)

@@ -94,20 +94,44 @@ public sealed class GroupRepository(ScranHubDbContext dbContext) : EFRepository<
         };
     }
 
-    public async Task<(IEnumerable<GroupResult>, int)> SearchByNameAsync(SearchGroupRequest request, Guid userId, CancellationToken ct)
+    public async Task<(IEnumerable<GroupResult>, int)> SearchAllByNameAsync(SearchGroupRequest request, Guid userId, CancellationToken ct)
     {
         var groupsQuery = _dbSet
             .Where(x => EF.Functions.Like(x.GroupName, $"%{request.SearchText}%"));
 
-        var user = await _dbContext.Users.FindAsync([userId], ct);
-        var isAdmin = user != null && user.Admin;
+        var totalCount = await groupsQuery.CountAsync(ct);
 
-        if (!isAdmin)
+        var groups = await groupsQuery
+            .Include(x => x.CreatedByUser)
+            .Include(x => x.UserGroups)
+            .Include(x => x.GroupVenues)
+            .OrderBy(x => x.GroupName)
+            .Skip((request.PageNumber - 1) * request.PageSize)
+            .Take(request.PageSize)
+            .ToListAsync(ct);
+
+        var groupResults = groups.Select(g => new GroupResult
         {
-            groupsQuery = groupsQuery.Where(g => g.Active
-                && (g.UserGroups.Any(ug => ug.User!.InitiatedFriendships.Any(f => f.FriendId == userId && f.Status == FriendshipStatus.Accepted))
-                || g.UserGroups.Any(ug => ug.User!.ReceivedFriendships.Any(f => f.UserId == userId && f.Status == FriendshipStatus.Accepted))));
-        }
+            GroupId = g.GroupId,
+            GroupName = g.GroupName,
+            Active = g.Active,
+            CreatedBy = g.CreatedBy,
+            CreatedOn = g.CreatedOn,
+            DisplayName = g.CreatedByUser.DisplayName,
+            UserCount = g.UserGroups.Count,
+            VenueCount = g.GroupVenues.Count
+        });
+
+        return (groupResults, totalCount);
+    }
+
+    public async Task<(IEnumerable<GroupResult>, int)> SearchByNameAsync(SearchGroupRequest request, Guid userId, CancellationToken ct)
+    {
+        var groupsQuery = _dbSet
+            .Where(x => EF.Functions.Like(x.GroupName, $"%{request.SearchText}%")
+            && x.Active
+            && (x.UserGroups.Any(ug => ug.User!.InitiatedFriendships.Any(f => f.FriendId == userId && f.Status == FriendshipStatus.Accepted))
+            || x.UserGroups.Any(ug => ug.User!.ReceivedFriendships.Any(f => f.UserId == userId && f.Status == FriendshipStatus.Accepted))));
 
         var totalCount = await groupsQuery.CountAsync(ct);
 

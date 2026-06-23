@@ -251,6 +251,29 @@ public sealed class UserRepository(ScranHubDbContext dbContext) : EFRepository<U
         return (userResults, totalCount);
     }
 
+    public async Task<(IEnumerable<UserResult>, int)> SearchAllByDisplayNameAsync(SearchUserRequest request, CancellationToken ct)
+    {
+        var usersQuery = _dbSet
+            .Where(x => EF.Functions.Like(x.DisplayName, $"%{request.SearchText}%"));
+
+        var totalCount = await usersQuery.CountAsync(ct);
+
+        var users = await usersQuery
+            .OrderBy(x => x.DisplayName)
+            .Skip((request.PageNumber - 1) * request.PageSize)
+            .Take(request.PageSize)
+            .ToListAsync(ct);
+
+        var userResults = users.Select(u => new UserResult
+        {
+            UserId = u.UserId,
+            DisplayName = u.DisplayName,
+            Active = u.Active,
+        });
+
+        return (userResults, totalCount);
+    }
+
     public async Task DeleteAsync(Guid userId, CancellationToken ct)
     {
         var user = await _dbSet.FindAsync([userId], ct);

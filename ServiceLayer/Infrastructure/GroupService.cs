@@ -381,4 +381,37 @@ public class GroupService(ITokenData tokenData,
             TotalCount = totalCount,
         }.WithResponseLog(_logger, callingUserId);
     }
+
+    public async Task<CommonResponse> SearchAllGroupsAsync(SearchGroupRequest request, CancellationToken ct)
+    {
+        if (!_tokenData.UserId.HasValue)
+        {
+            return new CommonResponse
+            {
+                StatusCode = HttpStatusCode.Unauthorized,
+                Message = "Unauthorized."
+            }.WithResponseLog(_logger);
+        }
+
+        var callingUserId = _tokenData.UserId!.Value;
+        var isAdmin = await _userRepository.IsUserAdminAsync(callingUserId, ct);
+        if (!isAdmin)
+        {
+            return new CommonResponse
+            {
+                StatusCode = HttpStatusCode.Forbidden,
+                Message = "You are not an admin."
+            }.WithResponseLog(_logger, callingUserId);
+        }
+
+        var (groups, totalCount) = await _groupRepository.SearchAllByNameAsync(request, callingUserId, ct);
+
+        return new GetGroupsResponse
+        {
+            StatusCode = HttpStatusCode.OK,
+            Message = $"Groups returned successfully.",
+            Groups = groups,
+            TotalCount = totalCount
+        }.WithResponseLog(_logger, callingUserId);
+    }
 }
