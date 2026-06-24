@@ -12,4 +12,6 @@ public record GroupVenueResult
     public required decimal? AverageQualityRating { get; init; }
     public required decimal? MyCostRating { get; init; }
     public required decimal? MyQualityRating { get; init; }
+    public required int? CostRatingVotes { get; init; }
+    public required int? QualityRatingVotes { get; init; }
 }

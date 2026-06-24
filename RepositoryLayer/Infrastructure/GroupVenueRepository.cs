@@ -142,6 +142,15 @@ public sealed class GroupVenueRepository(ScranHubDbContext dbContext) : EFReposi
                 .ThenBy(x => x.VenueName),
             (MyQualityRating, true) => query.OrderByDescending(x => x.QualityRatings.Where(r => r.UserId == currentUserId).Select(r => (int?)r.QualityOption!.DisplayOrder).FirstOrDefault())
                 .ThenBy(x => x.VenueName),
+            (CostRatingVotes, false) => query.OrderBy(x => x.CostRatings.Count())
+                .ThenBy(x => x.VenueName),
+            (CostRatingVotes, true) => query.OrderByDescending(x => x.CostRatings.Count())
+                .ThenBy(x => x.VenueName),
+            (QualityRatingVotes, false) => query.OrderBy(x => x.QualityRatings.Count())
+                .ThenBy(x => x.VenueName),
+            (QualityRatingVotes, true) => query.OrderByDescending(x => x.QualityRatings.Count())
+                .ThenBy(x => x.VenueName),
+
             _ => query.OrderBy(x => x.VenueName)
         };
     }
@@ -165,6 +174,7 @@ public sealed class GroupVenueRepository(ScranHubDbContext dbContext) : EFReposi
                 .Where(r => r.UserId == currentUserId)
                 .Select(r => (decimal?)r.QualityOption!.DisplayOrder)
                 .FirstOrDefault(),
+            CostRatingVotes = x.CostRatings.Count,
+            QualityRatingVotes = x.QualityRatings.Count
         };
-
 }

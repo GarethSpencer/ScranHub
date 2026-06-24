@@ -13,4 +13,6 @@ public enum GroupVenueSortParameters
     AvgQualityRating = 5,
     MyCostRating = 6,
     MyQualityRating = 7,
+    CostRatingVotes = 8,
+    QualityRatingVotes = 9
 }
