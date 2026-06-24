@@ -117,31 +117,31 @@ public sealed class GroupVenueRepository(ScranHubDbContext dbContext) : EFReposi
             (Visited, false) => query.OrderBy(x => x.Visited)
                 .ThenBy(x => x.VenueName),
             (Visited, true) => query.OrderByDescending(x => x.Visited)
-                .ThenByDescending(x => x.VenueName),
+                .ThenBy(x => x.VenueName),
             (FoodType, false) => query.OrderBy(x => x.FoodTypeOption == null ? "" : x.FoodTypeOption.Label)
                 .ThenBy(x => x.VenueName),
             (FoodType, true) => query.OrderByDescending(x => x.FoodTypeOption == null ? "" : x.FoodTypeOption.Label)
-                .ThenByDescending(x => x.VenueName),
+                .ThenBy(x => x.VenueName),
             (VenueType, false) => query.OrderBy(x => x.VenueTypeOption == null ? "" : x.VenueTypeOption.Label)
                 .ThenBy(x => x.VenueName),
             (VenueType, true) => query.OrderByDescending(x => x.VenueTypeOption == null ? "" : x.VenueTypeOption.Label)
-                .ThenByDescending(x => x.VenueName),
+                .ThenBy(x => x.VenueName),
             (AvgCostRating, false) => query.OrderBy(x => x.CostRatings.Any() ? (decimal?)x.CostRatings.Average(r => (decimal)r.CostOption!.DisplayOrder) : null)
                 .ThenBy(x => x.VenueName),
             (AvgCostRating, true) => query.OrderByDescending(x => x.CostRatings.Any() ? (decimal?)x.CostRatings.Average(r => (decimal)r.CostOption!.DisplayOrder) : null)
-                .ThenByDescending(x => x.VenueName),
+                .ThenBy(x => x.VenueName),
             (AvgQualityRating, false) => query.OrderBy(x => x.QualityRatings.Any() ? (decimal?)x.QualityRatings.Average(r => (decimal)r.QualityOption!.DisplayOrder) : null)
                 .ThenBy(x => x.VenueName),
             (AvgQualityRating, true) => query.OrderByDescending(x => x.QualityRatings.Any() ? (decimal?)x.QualityRatings.Average(r => (decimal)r.QualityOption!.DisplayOrder) : null)
-                .ThenByDescending(x => x.VenueName),
+                .ThenBy(x => x.VenueName),
             (MyCostRating, false) => query.OrderBy(x => x.CostRatings.Where(r => r.UserId == currentUserId).Select(r => (int?)r.CostOption!.DisplayOrder).FirstOrDefault())
                 .ThenBy(x => x.VenueName),
             (MyCostRating, true) => query.OrderByDescending(x => x.CostRatings.Where(r => r.UserId == currentUserId).Select(r => (int?)r.CostOption!.DisplayOrder).FirstOrDefault())
-                .ThenByDescending(x => x.VenueName),
+                .ThenBy(x => x.VenueName),
             (MyQualityRating, false) => query.OrderBy(x => x.QualityRatings.Where(r => r.UserId == currentUserId).Select(r => (int?)r.QualityOption!.DisplayOrder).FirstOrDefault())
                 .ThenBy(x => x.VenueName),
             (MyQualityRating, true) => query.OrderByDescending(x => x.QualityRatings.Where(r => r.UserId == currentUserId).Select(r => (int?)r.QualityOption!.DisplayOrder).FirstOrDefault())
-                .ThenByDescending(x => x.VenueName),
+                .ThenBy(x => x.VenueName),
             _ => query.OrderBy(x => x.VenueName)
         };
     }
