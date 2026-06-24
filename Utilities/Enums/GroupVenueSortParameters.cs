@@ -11,4 +11,6 @@ public enum GroupVenueSortParameters
     VenueType = 3,
     AvgCostRating = 4,
     AvgQualityRating = 5,
+    MyCostRating = 6,
+    MyQualityRating = 7,
 }

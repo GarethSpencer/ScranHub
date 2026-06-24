@@ -43,7 +43,7 @@ public class GroupVenueService(ITokenData tokenData,
         }
 
         var callingUserId = _tokenData.UserId.Value;
-        var groupVenue = await _groupVenueRepository.GetByIdAsync(groupVenueId, ct);
+        var groupVenue = await _groupVenueRepository.GetByIdAsync(groupVenueId, callingUserId, ct);
         if (groupVenue == null)
         {
             return new CommonResponse
@@ -105,7 +105,7 @@ public class GroupVenueService(ITokenData tokenData,
             }.WithResponseLog(_logger, callingUserId);
         }
 
-        var (groupVenues, totalCount) = await _groupVenueRepository.GetByGroupIdAsync(groupId, request, ct);
+        var (groupVenues, totalCount) = await _groupVenueRepository.GetByGroupIdAsync(groupId, request, callingUserId, ct);
 
         return new GetGroupVenuesResponse
         {
@@ -149,7 +149,7 @@ public class GroupVenueService(ITokenData tokenData,
             }.WithResponseLog(_logger, callingUserId);
         }
 
-        var (groupVenues, totalCount) = await _groupVenueRepository.SearchByNameAsync(groupId, request, ct);
+        var (groupVenues, totalCount) = await _groupVenueRepository.SearchByNameAsync(groupId, request, callingUserId,  ct);
 
         return new GetGroupVenuesResponse
         {
@@ -246,7 +246,7 @@ public class GroupVenueService(ITokenData tokenData,
         }
 
         var callingUserId = _tokenData.UserId.Value;
-        var groupVenue = await _groupVenueRepository.GetByIdAsync(groupVenueId, ct);
+        var groupVenue = await _groupVenueRepository.GetByIdAsync(groupVenueId, callingUserId, ct);
         if (groupVenue == null)
         {
             return new CommonResponse
@@ -321,7 +321,7 @@ public class GroupVenueService(ITokenData tokenData,
         }
 
         var callingUserId = _tokenData.UserId!.Value;
-        var groupVenue = await _groupVenueRepository.GetByIdAsync(groupVenueId, ct);
+        var groupVenue = await _groupVenueRepository.GetByIdAsync(groupVenueId, callingUserId, ct);
         if (groupVenue == null)
         {
             return new CommonResponse

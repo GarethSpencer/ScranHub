@@ -45,7 +45,7 @@ public abstract class RatingService<TRatingRepository, TRatingOptionRepository>(
         }
 
         var callingUserId = _tokenData.UserId!.Value;
-        var groupVenue = await _groupVenueRepository.GetByIdAsync(request.GroupVenueId, ct);
+        var groupVenue = await _groupVenueRepository.GetByIdAsync(request.GroupVenueId, callingUserId, ct);
         if (groupVenue == null)
         {
             return new CommonResponse
@@ -118,7 +118,7 @@ public abstract class RatingService<TRatingRepository, TRatingOptionRepository>(
             }.WithResponseLog(_logger, callingUserId);
         }
 
-        var groupVenue = await _groupVenueRepository.GetByIdAsync(currentRating.GroupVenueId, ct);
+        var groupVenue = await _groupVenueRepository.GetByIdAsync(currentRating.GroupVenueId, callingUserId, ct);
         if (groupVenue == null)
         {
             return new CommonResponse
@@ -222,7 +222,7 @@ public abstract class RatingService<TRatingRepository, TRatingOptionRepository>(
         }
 
         var callingUserId = _tokenData.UserId!.Value;
-        var groupVenue = await _groupVenueRepository.GetByIdAsync(groupVenueId, ct);
+        var groupVenue = await _groupVenueRepository.GetByIdAsync(groupVenueId, callingUserId, ct);
         if (groupVenue == null)
         {
             return new CommonResponse

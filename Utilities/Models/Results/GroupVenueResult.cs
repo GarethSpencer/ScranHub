@@ -10,4 +10,6 @@ public record GroupVenueResult
     public required bool Visited { get; init; }
     public required decimal? AverageCostRating { get; init; }
     public required decimal? AverageQualityRating { get; init; }
+    public required decimal? MyCostRating { get; init; }
+    public required decimal? MyQualityRating { get; init; }
 }
