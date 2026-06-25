@@ -80,7 +80,11 @@ public sealed class GroupVenueRepository(ScranHubDbContext dbContext) : EFReposi
             VenueName = request.VenueName,
             VenueTypeOptionId = request.VenueTypeOptionId,
             FoodTypeOptionId = request.FoodTypeOptionId,
-            Visited = false
+            Visited = false,
+            GooglePlaceId = request.GooglePlaceId,
+            FormattedAddress = request.FormattedAddress,
+            Latitude = request.Latitude,
+            Longitude = request.Longitude,
         };
 
         await _dbSet.AddAsync(newGroupVenue, ct);
@@ -96,6 +100,10 @@ public sealed class GroupVenueRepository(ScranHubDbContext dbContext) : EFReposi
             groupVenue.VenueTypeOptionId = request.VenueTypeOptionId;
             groupVenue.FoodTypeOptionId = request.FoodTypeOptionId;
             groupVenue.Visited = request.Visited;
+            groupVenue.GooglePlaceId = request.GooglePlaceId;
+            groupVenue.FormattedAddress = request.FormattedAddress;
+            groupVenue.Latitude = request.Latitude;
+            groupVenue.Longitude = request.Longitude;
         }
     }
 
@@ -175,6 +183,10 @@ public sealed class GroupVenueRepository(ScranHubDbContext dbContext) : EFReposi
                 .Select(r => (decimal?)r.QualityOption!.DisplayOrder)
                 .FirstOrDefault(),
             CostRatingVotes = x.CostRatings.Count,
-            QualityRatingVotes = x.QualityRatings.Count
+            QualityRatingVotes = x.QualityRatings.Count,
+            FormattedAddress = x.FormattedAddress,
+            GooglePlaceId = x.GooglePlaceId,
+            Latitude = x.Latitude,
+            Longitude = x.Longitude,
         };
 }

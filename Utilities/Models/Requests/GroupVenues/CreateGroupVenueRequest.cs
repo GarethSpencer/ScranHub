@@ -6,4 +6,8 @@ public record CreateGroupVenueRequest
     public required Guid GroupId { get; set; }
     public Guid? FoodTypeOptionId { get; set; } = null;
     public Guid? VenueTypeOptionId { get; set; } = null;
+    public string? GooglePlaceId { get; set; }
+    public string? FormattedAddress { get; set; }
+    public decimal? Latitude { get; set; }
+    public decimal? Longitude { get; set; }
 }

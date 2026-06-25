@@ -10,6 +10,10 @@ public class GroupVenue : AuditableEntity
     public required bool Visited { get; set; }
     public Guid? FoodTypeOptionId { get; set; }
     public Guid? VenueTypeOptionId { get; set; }
+    public string? GooglePlaceId { get; set; }
+    public string? FormattedAddress { get; set; }
+    public decimal? Latitude { get; set; }
+    public decimal? Longitude { get; set; }
 
     public Group? Group { get; set; }
     public ICollection<CostRating> CostRatings { get; set; } = [];
