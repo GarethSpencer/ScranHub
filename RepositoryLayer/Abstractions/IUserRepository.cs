@@ -9,12 +9,11 @@ namespace RepositoryLayer.Abstractions;
 public interface IUserRepository : IEFRepository<User>
 {
     Task<(IEnumerable<UserAdminResult>, int)> GetAllAsync(PaginationBaseRequest request, CancellationToken ct);
-    Task<IEnumerable<User>> GetAllActiveAdminsAsync(CancellationToken ct, bool trackChanges = false);
     Task<UserAuthResult?> GetByEmailAsync(string email, CancellationToken ct);
     Task<UserDetailedResult?> GetDetailsByIdAsync(Guid id, CancellationToken ct);
     Task<UserResult?> GetByIdAsync(Guid id, CancellationToken ct);
     Task<(IEnumerable<FriendResult>?, int)> GetFriendsForUserAsync(Guid id, GetUserFriendRequest request, CancellationToken ct);
-    Task<User?> GetUserGroupsByIdAsync(Guid userId, CancellationToken ct, bool trackChanges = false);
+    Task<List<Guid>> GetAllAcceptedFriendIds(Guid callingUserId, CancellationToken ct);
     Task<bool> IsUserAdminAsync(Guid userId, CancellationToken ct);
     Task<Guid> CreateAsync(CreateUserRequest createRequest, CancellationToken ct);
     Task DeleteAsync(Guid userId, CancellationToken ct);

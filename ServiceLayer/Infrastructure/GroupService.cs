@@ -1,4 +1,5 @@
 ﻿using Azure.Core;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using RepositoryLayer.Abstractions;
 using RepositoryLayer.Abstractions.Generic;
@@ -7,6 +8,7 @@ using System.Net;
 using Utilities.Helpers;
 using Utilities.Models.Requests.Generic;
 using Utilities.Models.Requests.Groups;
+using Utilities.Models.Requests.Users;
 using Utilities.Models.Responses.Generic;
 using Utilities.Models.Responses.Groups;
 using Utilities.Models.Responses.Users;
@@ -50,8 +52,32 @@ public class GroupService(ITokenData tokenData,
             }.WithResponseLog(_logger, callingUserId);
         }
 
+        var userFriends = (await _userRepository.GetAllAcceptedFriendIds(callingUserId, ct)).ToHashSet();
+        var initialMemberIds = (groupRequest.InitialMemberIds ?? [])
+            .Where(id => id != callingUserId)
+            .Distinct()
+            .ToList();
+
+        var invalidId = initialMemberIds
+            .Select(id => (Guid?)id)
+            .FirstOrDefault(id => !userFriends.Contains(id!.Value));
+        if (invalidId is not null)
+        {
+            return new CommonResponse
+            {
+                StatusCode = HttpStatusCode.Forbidden,
+                Message = "One of the users to add to the group is not friends with the creator."
+            }.WithResponseLog(_logger, callingUserId, $"One of the users to add to the group [{invalidId}] is not friends with the creator.");
+        }
+
         var groupId = await _groupRepository.CreateAsync(groupRequest.GroupName, ct);
         _ = await _userGroupRepository.AddUserToGroupAsync(groupId, callingUserId, ct);
+
+        foreach (var memberId in initialMemberIds)
+        {
+            _ = await _userGroupRepository.AddUserToGroupAsync(groupId, memberId, ct);
+        }
+
         await _unitOfWork.SaveChangesAsync(ct);
 
         return new AddGroupResponse

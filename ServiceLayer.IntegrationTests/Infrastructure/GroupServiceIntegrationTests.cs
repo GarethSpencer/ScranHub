@@ -83,6 +83,19 @@ public class GroupServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifet
     }
 
     [Fact]
+    public async Task CreateGroupAsync_MemberNotFriendOfCreator_ReturnsForbidden()
+    {
+        var request = new CreateGroupRequest
+        {
+            GroupName = "New Test Group",
+            InitialMemberIds = [TestUser3AdminId]
+        };
+
+        var result = await _service!.CreateGroupAsync(request, ct);
+        _checks.OutputFailureCheck(result, "not friends", "CreateGroupAsync", HttpStatusCode.Forbidden);
+    }
+
+    [Fact]
     public async Task CreateGroupAsync_ValidNewName_ReturnsCreated()
     {
         var request = new CreateGroupRequest
@@ -96,6 +109,23 @@ public class GroupServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifet
         var typedResult = result.Should().BeOfType<AddGroupResponse>().Subject;
         _logger.Entries.Should().ContainSingle(e => e.Message.Contains(request.GroupName, StringComparison.InvariantCultureIgnoreCase));
         _context!.UserGroups.Should().ContainSingle(e => e.UserId == TestUser2NonAdminId && e.GroupId == typedResult.GroupId);
+    }
+
+    [Fact]
+    public async Task CreateGroupAsync_ValidMember_ReturnsCreated()
+    {
+        var request = new CreateGroupRequest
+        {
+            GroupName = "New Test Group",
+            InitialMemberIds = [TestUser1AdminId]
+        };
+
+        var result = await _service!.CreateGroupAsync(request, ct);
+        _checks.OutputSuccessCheck(result, "success", "CreateGroupAsync", HttpStatusCode.Created);
+
+        var typedResult = result.Should().BeOfType<AddGroupResponse>().Subject;
+        _context!.UserGroups.Should().Contain(e => e.UserId == TestUser2NonAdminId && e.GroupId == typedResult.GroupId);
+        _context!.UserGroups.Should().Contain(e => e.UserId == TestUser1AdminId && e.GroupId == typedResult.GroupId);
     }
     #endregion
 

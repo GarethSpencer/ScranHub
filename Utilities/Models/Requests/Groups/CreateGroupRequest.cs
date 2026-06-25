@@ -3,4 +3,5 @@
 public record CreateGroupRequest
 {
     public required string GroupName { get; set; }
+    public Guid[] InitialMemberIds { get; set; } = [];
 }

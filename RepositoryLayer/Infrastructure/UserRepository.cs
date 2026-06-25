@@ -1,4 +1,5 @@
-﻿using DAL.Data;
+﻿using Azure.Core;
+using DAL.Data;
 using DAL.Entities;
 using Microsoft.EntityFrameworkCore;
 using RepositoryLayer.Abstractions;
@@ -102,18 +103,6 @@ public sealed class UserRepository(ScranHubDbContext dbContext) : EFRepository<U
         };
     }
 
-    public async Task<IEnumerable<User>> GetAllActiveAdminsAsync(CancellationToken ct, bool trackChanges = false)
-    {
-        IQueryable<User> query = _dbSet.Where(x => x.Admin && x.Active);
-
-        if (!trackChanges)
-        {
-            query = query.AsNoTracking();
-        }
-
-        return await query.ToListAsync(ct);
-    }
-
     public async Task<(IEnumerable<FriendResult>?, int)> GetFriendsForUserAsync(Guid userId, GetUserFriendRequest request, CancellationToken ct)
     {
         var query = _dbSet
@@ -172,19 +161,33 @@ public sealed class UserRepository(ScranHubDbContext dbContext) : EFRepository<U
             .Take(request.PageSize), total);
     }
 
-    public async Task<User?> GetUserGroupsByIdAsync(Guid userId, CancellationToken ct, bool trackChanges = false)
+    public async Task<List<Guid>> GetAllAcceptedFriendIds(Guid callingUserId, CancellationToken ct)
     {
-        IQueryable<User> query = _dbSet
-            .Where(x => x.UserId == userId)
-            .Include(x => x.UserGroups).ThenInclude(x => x.Group);
+        var friendInfo = await _dbSet
+            .Where(x => x.UserId == callingUserId)
+            .Include(x => x.ReceivedFriendships.Where(f => f.Status == FriendshipStatus.Accepted)).ThenInclude(x => x.User)
+            .Include(x => x.InitiatedFriendships.Where(f => f.Status == FriendshipStatus.Accepted)).ThenInclude(x => x.Friend)
+            .AsSplitQuery()
+            .FirstOrDefaultAsync(ct);
 
-        if (!trackChanges)
+        if (friendInfo == null)
         {
-            query = query.AsNoTracking();
+            return [];
         }
 
-        return await query.FirstOrDefaultAsync(ct);
+        var friendUserIds = new List<Guid>();
+
+        friendUserIds.AddRange(friendInfo.InitiatedFriendships
+            .Where(x => x.Friend!.Active)
+            .Select(x => x.FriendId));
+
+        friendUserIds.AddRange(friendInfo.ReceivedFriendships
+            .Where(x => x.User!.Active)
+            .Select(x => x.UserId));
+
+        return friendUserIds;
     }
+
 
     public async Task<bool> IsUserAdminAsync(Guid userId, CancellationToken ct)
     {
