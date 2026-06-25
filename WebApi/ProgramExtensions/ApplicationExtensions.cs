@@ -1,4 +1,6 @@
 ﻿using Asp.Versioning.ApiExplorer;
+using DAL.Data;
+using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
 
 namespace WebApi.ProgramExtensions;
@@ -50,5 +52,16 @@ public static class ApplicationExtensions
                     flow.AddQueryParameter("audience", configuration["Auth0:Audience"]!);
                 });
         }).AllowAnonymous();
+    }
+
+    /// <summary>
+    /// Applies any pending EF Core migrations to the database on startup
+    /// </summary>
+    /// <param name="application"></param>
+    public static void ApplyMigrations(this WebApplication application)
+    {
+        using var scope = application.Services.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<ScranHubDbContext>();
+        dbContext.Database.Migrate();
     }
 }

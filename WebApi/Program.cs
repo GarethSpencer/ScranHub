@@ -38,6 +38,8 @@ builder.Host.UseSerilog((hostingContext, configuration) =>
 
 var app = builder.Build();
 
+app.ApplyMigrations();
+
 if (app.Environment.IsDevelopment())
 {
     SelfLog.Enable(Console.Error);
