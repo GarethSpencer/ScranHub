@@ -60,7 +60,7 @@ The main tables are:
 | `UserFriends` | Friendship links between two users (with request status). |
 | `Groups` | Groups that users can create and join. |
 | `UserGroups` | Membership join between users and groups. |
-| `GroupVenues` | Venues added to a group, optionally tagged with a food type and venue type. |
+| `GroupVenues` | Venues added to a group, optionally tagged with a food type and venue type. May also store Google Places details for a selected real-world location. |
 | `FoodTypeOptions` | Configurable food types used to categorise venues. |
 | `VenueTypeOptions` | Configurable venue types used to categorise venues. |
 | `QualityOptions` | Configurable quality rating scale (per group). |
@@ -101,13 +101,22 @@ Application configuration lives in `WebApi/appsettings.json`, with development o
 
 > **Note:** keep real secrets — especially the database connection string — out of source control. In development use [user secrets](https://learn.microsoft.com/aspnet/core/security/app-secrets) or `appsettings.Development.json` (git-ignored); in production they are loaded from Azure Key Vault.
 
-### Apply database migrations
+### Database migrations
 
-The database schema is managed with EF Core migrations in the `DAL` project:
+The database schema is managed with EF Core migrations in the `DAL` project.
+Pending migrations are **applied automatically on application startup**
+(`app.ApplyMigrations()` in `WebApi`), so simply running the API brings the
+database up to date — locally and on deploy. There is no need to run
+`dotnet ef database update` by hand.
+
+When you change an entity, create the migration (this still has to be done
+manually, as it requires the design-time tooling):
 
 ```bash
-dotnet ef database update --project DAL --startup-project WebApi
+dotnet ef migrations add <MigrationName> --project DAL --startup-project WebApi
 ```
+
+It is then applied the next time the API starts.
 
 ### Seed the initial admin user
 
