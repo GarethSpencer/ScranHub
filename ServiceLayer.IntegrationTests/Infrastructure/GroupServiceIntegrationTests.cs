@@ -237,7 +237,7 @@ public class GroupServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifet
     }
 
     [Fact]
-    public async Task SearchGroupsAsync_ValidFriendlessSearch_ReturnsOk()
+    public async Task SearchGroupsAsync_ValidFriendlessSearch_ReturnsNoContent()
     {
         _tokenData.Setup(x => x.UserId).Returns(TestUser4NonAdminId);
 
@@ -249,7 +249,7 @@ public class GroupServiceIntegrationTests(DatabaseFixture fixture) : IAsyncLifet
         };
 
         var result = await _service!.SearchGroupsAsync(request, ct);
-        _checks.OutputSuccessCheck(result, "success", "SearchGroupsAsync", HttpStatusCode.OK);
+        _checks.OutputSuccessCheck(result, "success", "SearchGroupsAsync", HttpStatusCode.NoContent);
 
         var typedResult = result.Should().BeOfType<GetGroupsResponse>().Subject;
         typedResult.TotalCount.Should().Be(0);

@@ -48,7 +48,7 @@ public class CostRatingService(ITokenData tokenData,
 
         return new GetGroupRatingsResponse
         {
-            StatusCode = HttpStatusCode.OK,
+            StatusCode = ratings.Any() ? HttpStatusCode.OK : HttpStatusCode.NoContent,
             Message = "Ratings retrieved successfully.",
             GroupVenueRatingsResults = ratings
         }.WithResponseLog(_logger, callingUserId);

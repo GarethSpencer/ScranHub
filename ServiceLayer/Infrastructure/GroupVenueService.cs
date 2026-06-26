@@ -109,7 +109,7 @@ public class GroupVenueService(ITokenData tokenData,
 
         return new GetGroupVenuesResponse
         {
-            StatusCode = HttpStatusCode.OK,
+            StatusCode = totalCount > 0 ? HttpStatusCode.OK : HttpStatusCode.NoContent,
             Message = "Venues returned successfully.",
             GroupVenues = groupVenues,
             TotalCount = totalCount
@@ -153,7 +153,7 @@ public class GroupVenueService(ITokenData tokenData,
 
         return new GetGroupVenuesResponse
         {
-            StatusCode = HttpStatusCode.OK,
+            StatusCode = totalCount > 0 ? HttpStatusCode.OK : HttpStatusCode.NoContent,
             Message = "Venues returned successfully.",
             GroupVenues = groupVenues,
             TotalCount = totalCount

@@ -146,7 +146,7 @@ public class GroupService(ITokenData tokenData,
 
         return new GetGroupsResponse
         {
-            StatusCode = HttpStatusCode.OK,
+            StatusCode = totalCount > 0 ? HttpStatusCode.OK : HttpStatusCode.NoContent,
             Message = $"Groups returned successfully.",
             Groups = groups,
             TotalCount = totalCount
@@ -226,7 +226,7 @@ public class GroupService(ITokenData tokenData,
         {
             UserId = callingUserId,
             UserGroups = userGroups,
-            StatusCode = HttpStatusCode.OK,
+            StatusCode = userGroups.Any() ? HttpStatusCode.OK : HttpStatusCode.NoContent,
             Message = "Groups retrieved successfully."
         }.WithResponseLog(_logger, callingUserId);
     }
@@ -403,7 +403,7 @@ public class GroupService(ITokenData tokenData,
 
         return new GetGroupsDetailedResponse
         {
-            StatusCode = HttpStatusCode.OK,
+            StatusCode = totalCount > 0 ? HttpStatusCode.OK : HttpStatusCode.NoContent,
             Message = "Groups retrieved successfully.",
             Groups = groups,
             TotalCount = totalCount,
@@ -436,7 +436,7 @@ public class GroupService(ITokenData tokenData,
 
         return new GetGroupsDetailedResponse
         {
-            StatusCode = HttpStatusCode.OK,
+            StatusCode = totalCount > 0 ? HttpStatusCode.OK : HttpStatusCode.NoContent,
             Message = $"Groups returned successfully.",
             Groups = groups,
             TotalCount = totalCount
@@ -480,7 +480,7 @@ public class GroupService(ITokenData tokenData,
 
         return new GetUsersResponse
         {
-            StatusCode = HttpStatusCode.OK,
+            StatusCode = totalCount > 0 ? HttpStatusCode.OK : HttpStatusCode.NoContent,
             Message = $"Groups returned successfully.",
             Users = members,
             TotalCount = totalCount

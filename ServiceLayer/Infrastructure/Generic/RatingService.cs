@@ -246,7 +246,7 @@ public abstract class RatingService<TRatingRepository, TRatingOptionRepository>(
 
         return new GetRatingsResponse
         {
-            StatusCode = HttpStatusCode.OK,
+            StatusCode = ratings.Any() ? HttpStatusCode.OK : HttpStatusCode.NoContent,
             Message = "Ratings retrieved successfully.",
             Ratings = ratings
         }.WithResponseLog(_logger, callingUserId);
@@ -278,7 +278,7 @@ public abstract class RatingService<TRatingRepository, TRatingOptionRepository>(
 
         return new GetRatingsResponse
         {
-            StatusCode = HttpStatusCode.OK,
+            StatusCode = ratings.Any() ? HttpStatusCode.OK : HttpStatusCode.NoContent,
             Message = "Ratings retrieved successfully.",
             Ratings = ratings
         }.WithResponseLog(_logger, callingUserId);

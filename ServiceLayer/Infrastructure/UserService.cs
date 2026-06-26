@@ -126,7 +126,7 @@ public class UserService(ITokenData tokenData,
 
         return new GetUsersResponse
         {
-            StatusCode = HttpStatusCode.OK,
+            StatusCode = totalCount > 0 ? HttpStatusCode.OK : HttpStatusCode.NoContent,
             Message = "Users returned successfully.",
             Users = users,
             TotalCount = totalCount
@@ -513,7 +513,7 @@ public class UserService(ITokenData tokenData,
 
         return new GetUsersDetailedResponse
         {
-            StatusCode = HttpStatusCode.OK,
+            StatusCode = totalCount > 0 ? HttpStatusCode.OK : HttpStatusCode.NoContent,
             Message = "Users returned successfully.",
             Users = users,
             TotalCount = totalCount,
@@ -546,7 +546,7 @@ public class UserService(ITokenData tokenData,
 
         return new GetUsersDetailedResponse
         {
-            StatusCode = HttpStatusCode.OK,
+            StatusCode = totalCount > 0 ? HttpStatusCode.OK : HttpStatusCode.NoContent,
             Message = "Users returned successfully.",
             Users = users,
             TotalCount = totalCount
