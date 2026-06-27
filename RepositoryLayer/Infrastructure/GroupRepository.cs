@@ -34,6 +34,7 @@ public sealed class GroupRepository(ScranHubDbContext dbContext) : EFRepository<
                 UpdatedOn = g.UpdatedOn,
                 UpdatedBy = g.UpdatedBy,
                 DisplayName = g.CreatedByUser.DisplayName,
+                Icon = g.Icon
             })
             .ToListAsync(ct);
 
@@ -63,7 +64,8 @@ public sealed class GroupRepository(ScranHubDbContext dbContext) : EFRepository<
             CreatedOn = group.CreatedOn,
             DisplayName = group.CreatedByUser.DisplayName,
             UserCount = group.UserGroups.Count,
-            VenueCount = group.GroupVenues.Count
+            VenueCount = group.GroupVenues.Count,
+            Icon = group.Icon
         };
     }
 
@@ -90,7 +92,8 @@ public sealed class GroupRepository(ScranHubDbContext dbContext) : EFRepository<
             CreatedOn = group.CreatedOn,
             DisplayName = group.CreatedByUser.DisplayName,
             UserCount = group.UserGroups.Count,
-            VenueCount = group.GroupVenues.Count
+            VenueCount = group.GroupVenues.Count,
+            Icon = group.Icon
         };
     }
 
@@ -123,6 +126,7 @@ public sealed class GroupRepository(ScranHubDbContext dbContext) : EFRepository<
             UpdatedOn = g.UpdatedOn,
             UpdatedBy = g.UpdatedBy,
             DisplayName = g.CreatedByUser.DisplayName,
+            Icon = g.Icon
         });
 
         return (groupResults, totalCount);
@@ -157,7 +161,8 @@ public sealed class GroupRepository(ScranHubDbContext dbContext) : EFRepository<
             CreatedOn = g.CreatedOn,
             DisplayName = g.CreatedByUser.DisplayName,
             UserCount = g.UserGroups.Count,
-            VenueCount = g.GroupVenues.Count
+            VenueCount = g.GroupVenues.Count,
+            Icon = g.Icon
         });
 
         return (groupResults, totalCount);
@@ -210,6 +215,7 @@ public sealed class GroupRepository(ScranHubDbContext dbContext) : EFRepository<
         {
             group.GroupName = groupRequest.GroupName;
             group.Active = groupRequest.Active;
+            group.Icon = groupRequest.Icon;
         }
     }
 

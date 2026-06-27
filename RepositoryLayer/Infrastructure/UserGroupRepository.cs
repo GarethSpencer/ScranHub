@@ -35,7 +35,8 @@ public sealed class UserGroupRepository(ScranHubDbContext dbContext) : EFReposit
                 CreatedOn = ug.Group.CreatedOn,
                 DisplayName = ug.Group.CreatedByUser.DisplayName,
                 UserCount = ug.Group.UserGroups.Count,
-                VenueCount = ug.Group.GroupVenues.Count
+                VenueCount = ug.Group.GroupVenues.Count,
+                Icon = ug.Group.Icon
             })
             .ToListAsync(ct);
 

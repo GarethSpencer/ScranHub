@@ -7,6 +7,7 @@ public class Group : AuditableEntity
     public Guid GroupId { get; set; }
     public required string GroupName { get; set; }
     public required bool Active { get; set; }
+    public string? Icon { get; set; }
 
     public ICollection<UserGroup> UserGroups { get; set; } = [];
     public ICollection<GroupVenue> GroupVenues { get; set; } = [];

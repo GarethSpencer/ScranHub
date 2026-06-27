@@ -10,4 +10,5 @@ public record GroupResult
     public required string DisplayName { get; init; }
     public required int UserCount { get; init; }
     public required int VenueCount { get; init; }
+    public required string? Icon { get; init; }
 }

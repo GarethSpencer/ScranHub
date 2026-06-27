@@ -37,6 +37,24 @@ public class UpdateGroupRequestValidatorTests
     }
 
     [Theory]
+    [InlineData("🐻")]
+    [InlineData("👨🏻‍🦲")]
+    [InlineData("👨🏻‍👩🏼‍👧🏽‍👦🏾")]
+    [InlineData("🔴")]
+    [InlineData(null)]
+    public async Task ValidateAsync_ReturnsValidIcon(string? icon)
+    {
+        var validator = new UpdateGroupRequestValidator();
+        var request = CreateValidRequest();
+        request.Icon = icon;
+
+        var result = await validator.ValidateAsync(request);
+
+        result.IsValid.Should().BeTrue();
+        result.Errors.Should().BeEmpty();
+    }
+
+    [Theory]
     [InlineData("", "required")]
     [InlineData("Test Group ", "leading or trailing spaces")]
     [InlineData(" Test Group", "leading or trailing spaces")]
@@ -59,9 +77,27 @@ public class UpdateGroupRequestValidatorTests
         result.Errors.Should().Contain(e => e.ErrorMessage.Contains(error, StringComparison.InvariantCultureIgnoreCase));
     }
 
+    [Theory]
+    [InlineData("Big icon name of over 30 characts", "must not exceed 32 characters")]
+    [InlineData("😊😊", "must be a single emoji")]
+
+    public async Task ValidateAsync_ReturnsInvalidIcon(string icon, string error)
+    {
+        var validator = new UpdateGroupRequestValidator();
+        var request = CreateValidRequest();
+        request.Icon = icon;
+
+        var result = await validator.ValidateAsync(request);
+
+        result.IsValid.Should().BeFalse();
+        result.Errors.Should().HaveCountGreaterThanOrEqualTo(1);
+        result.Errors.Should().Contain(e => e.ErrorMessage.Contains(error, StringComparison.InvariantCultureIgnoreCase));
+    }
+
     private static UpdateGroupRequest CreateValidRequest() => new()
     {
         GroupName = "Test Group",
-        Active = true
+        Active = true,
+        Icon = "😊"
     };
 }
